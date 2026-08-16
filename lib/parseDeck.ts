@@ -1,0 +1,199 @@
+import type { Card } from "./decks";
+
+export type ParseIssue = { line: number; message: string };
+
+export type ParseResult = {
+  title: string;
+  blurb: string;
+  tint: string | null;
+  cards: Card[];
+  errors: ParseIssue[];
+  warnings: ParseIssue[];
+};
+
+const QUESTION = /^(?:q|question)\s*[:.)-]\s*(.*)$/i;
+const ANSWER = /^(?:a|answer)\s*[:.)-]\s*(.*)$/i;
+const TITLE = /^#\s+(.*)$/;
+const META = /^(tint|colour|color|blurb)\s*:\s*(.*)$/i;
+const HEADING = /^##+\s+(.*)$/;
+const TABLE_RULE = /^\|?[\s:|-]+\|[\s:|-]*$/;
+
+function tidy(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function normaliseTint(value: string): string | null {
+  const hex = value.trim().replace(/^#?/, "#");
+  return /^#[0-9a-f]{6}$/i.test(hex) ? hex.toUpperCase() : null;
+}
+
+/**
+ * Accepts three shapes, in order of preference:
+ *   1. `Q:` / `A:` blocks, answers may run over several lines
+ *   2. `## question` headings followed by the answer as body text
+ *   3. One pair per line, split on a tab or a pipe
+ * Anything before the first card is treated as front matter.
+ */
+export function parseDeck(input: string): ParseResult {
+  const text = input.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+  const lines = text.split("\n");
+
+  const result: ParseResult = {
+    title: "",
+    blurb: "",
+    tint: null,
+    cards: [],
+    errors: [],
+    warnings: [],
+  };
+
+  const hasQA = lines.some((l) => QUESTION.test(l.trim()));
+  const hasHeadings = lines.some((l) => HEADING.test(l.trim()));
+
+  let pendingQ: { text: string; line: number } | null = null;
+  let pendingA: string[] = [];
+  let field: "q" | "a" | null = null;
+
+  const flush = () => {
+    if (!pendingQ) return;
+    const answer = tidy(pendingA.join(" "));
+    if (!answer) {
+      result.errors.push({
+        line: pendingQ.line,
+        message: `Question has no answer: "${pendingQ.text.slice(0, 48)}"`,
+      });
+    } else {
+      result.cards.push({ q: tidy(pendingQ.text), a: answer });
+    }
+    pendingQ = null;
+    pendingA = [];
+    field = null;
+  };
+
+  lines.forEach((raw, i) => {
+    const line = raw.trim();
+    const lineNo = i + 1;
+
+    if (!line) {
+      if (field === "a") field = null;
+      return;
+    }
+
+    const title = TITLE.exec(line);
+    if (title && result.cards.length === 0 && !pendingQ) {
+      result.title = tidy(title[1]);
+      return;
+    }
+
+    const meta = META.exec(line);
+    if (meta && result.cards.length === 0 && !pendingQ) {
+      const bareKey = meta[1].toLowerCase();
+      if (bareKey === "blurb") {
+        result.blurb = tidy(meta[2]);
+      } else {
+        const tint = normaliseTint(meta[2]);
+        if (tint) {
+          result.tint = tint;
+        } else {
+          result.warnings.push({
+            line: lineNo,
+            message: `Not a six-digit hex colour, so a tint was picked for you: "${meta[2]}"`,
+          });
+        }
+      }
+      return;
+    }
+
+    if (hasQA) {
+      const q = QUESTION.exec(line);
+      if (q) {
+        flush();
+        pendingQ = { text: q[1], line: lineNo };
+        field = "q";
+        return;
+      }
+
+      const a = ANSWER.exec(line);
+      if (a) {
+        if (!pendingQ) {
+          result.errors.push({
+            line: lineNo,
+            message: "Answer with no question above it",
+          });
+          return;
+        }
+        pendingA.push(a[1]);
+        field = "a";
+        return;
+      }
+
+      if (field === "q" && pendingQ) {
+        pendingQ.text += ` ${line}`;
+      } else if (pendingQ) {
+        pendingA.push(line);
+        field = "a";
+      } else {
+        result.warnings.push({
+          line: lineNo,
+          message: `Ignored, no Q: above it: "${line.slice(0, 40)}"`,
+        });
+      }
+      return;
+    }
+
+    if (hasHeadings) {
+      const heading = HEADING.exec(line);
+      if (heading) {
+        flush();
+        pendingQ = { text: heading[1], line: lineNo };
+        field = "a";
+        return;
+      }
+      if (pendingQ) pendingA.push(line);
+      return;
+    }
+
+    if (TABLE_RULE.test(line)) return;
+
+    const parts = line.includes("\t") ? line.split("\t") : line.split("|");
+    const cells = parts.map((p) => p.trim()).filter((p) => p.length > 0);
+
+    if (cells.length >= 2) {
+      const [q, ...rest] = cells;
+      if (/^(question|q)$/i.test(q) && /^(answer|a)$/i.test(rest[0] ?? "")) {
+        return;
+      }
+      result.cards.push({ q: tidy(q), a: tidy(rest.join(" ")) });
+    } else {
+      result.warnings.push({
+        line: lineNo,
+        message: `Could not find a question and answer on this line: "${line.slice(0, 40)}"`,
+      });
+    }
+  });
+
+  flush();
+
+  if (!result.title) result.title = "Untitled deck";
+  if (result.cards.length === 0 && result.errors.length === 0) {
+    result.errors.push({
+      line: 1,
+      message: "No cards found — check the format guide below",
+    });
+  }
+
+  return result;
+}
+
+export const EXAMPLE_DECK = `# Kubernetes basics
+tint: #D6E8F7
+blurb: Pods, services, and what the scheduler actually does
+
+Q: What is a pod?
+A: The smallest deployable unit in Kubernetes — one or more containers
+that share a network namespace and storage, scheduled together on one node.
+
+Q: What does a Service do?
+A: Gives a stable virtual IP and DNS name in front of a changing set of pods,
+load balancing across whichever ones currently pass their readiness check.
+`;
