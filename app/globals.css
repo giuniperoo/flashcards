@@ -32,10 +32,25 @@ body {
   border: 1px dashed var(--color-rule);
 }
 
+/*
+ * Both faces sit in the same grid cell, so the card is as tall as whichever
+ * face is taller — which used to mean every card had its own height, and the
+ * controls below it moved as you navigated. A floor sized to the tallest card
+ * holds all of them to one height, the way the printed cards already are.
+ * Short cards carry the slack. Anything taller still grows rather than clips.
+ */
 .flip {
   display: grid;
+  min-height: 30.25rem;
   transform-style: preserve-3d;
   transition: transform 420ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* Wider lines, so the same text needs fewer of them. */
+@media (min-width: 640px) {
+  .flip {
+    min-height: 22.25rem;
+  }
 }
 
 .flip[data-face="back"] {

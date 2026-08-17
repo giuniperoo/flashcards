@@ -189,7 +189,7 @@ export default function Reviewer({
 
       <div className="[perspective:1600px]">
         <div className="flip" data-face={flipped ? "back" : "front"}>
-          <Face tint={card.deck.tint} hidden={flipped}>
+          <Face tint={card.deck.tint} className="flex flex-col" hidden={flipped}>
             <p className="label" style={{ color: "var(--color-question)" }}>
               Question
             </p>
@@ -212,7 +212,12 @@ export default function Reviewer({
               aria-invalid={error}
               aria-describedby={error ? "recall-error" : undefined}
               placeholder="Write it from memory. A half answer still counts."
-              className="mt-5 w-full resize-y rounded-sm border border-rule bg-transparent p-3 text-base leading-relaxed outline-none placeholder:text-muted focus:border-ink sm:text-[15px]"
+              // Grows into whatever the card's fixed height leaves over, and
+              // stays draggable. `grow shrink-0` rather than `flex-1` because
+              // flex-1 sets a 0% basis, which overrides the height the resize
+              // handle writes; an auto basis lets a dragged height stick. The
+              // card then grows with it, which is a shift the reader asked for.
+              className="mt-5 w-full shrink-0 grow resize-y rounded-sm border border-rule bg-transparent p-3 text-base leading-relaxed outline-none placeholder:text-muted focus:border-ink sm:text-[15px]"
             />
             {error && (
               <p id="recall-error" role="alert" className="mt-2 text-sm text-[#a32d2d]">
@@ -221,7 +226,11 @@ export default function Reviewer({
             )}
           </Face>
 
-          <Face tint={card.deck.tint} className="face-back" hidden={!flipped}>
+          <Face
+            tint={card.deck.tint}
+            className="face-back flex flex-col"
+            hidden={!flipped}
+          >
             <p className="label" style={{ color: "var(--color-answer)" }}>
               Answer
             </p>
@@ -231,10 +240,13 @@ export default function Reviewer({
             <div className="mt-5 border-t border-rule pt-4">
               <p className="label text-muted">You wrote</p>
               <p className="mt-2 text-[15px] leading-relaxed text-muted">
-                {saved.drafts[key] || draft}
+                {saved.drafts[key]}
               </p>
             </div>
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+            {/* mt-auto pins the row to the bottom edge on every card, so the
+                grading buttons sit in one place as you move through a deck.
+                pt-5 keeps a gap when a long answer leaves no slack to absorb. */}
+            <div className="mt-auto flex flex-col gap-2 pt-5 sm:flex-row">
               <button
                 type="button"
                 onClick={() => grade("held")}
