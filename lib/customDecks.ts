@@ -1,7 +1,12 @@
 import type { Card, Deck, StudyCard } from "./decks";
 import { decks as builtIn } from "./decks";
+import { newCardId } from "./cardId";
 
 export const CUSTOM_KEY = "decks:custom";
+export const CUSTOM_VERSION = 1;
+
+/** Version 1 wraps what used to be a bare `Deck[]`, and guarantees card ids. */
+type CustomDeckStore = { version: 1; decks: Deck[] };
 
 /** Pastels not already used by a built-in deck, paired with a readable ink. */
 const PALETTE: Array<[string, string]> = [
@@ -22,20 +27,53 @@ export function slugify(value: string) {
   return base || "deck";
 }
 
+/** Backfills ids onto decks that were saved before cards carried them. */
+function withIds(decks: Deck[]) {
+  let changed = false;
+  const next = decks.map((deck) => ({
+    ...deck,
+    cards: deck.cards.map((card) => {
+      if (typeof card.id === "string" && card.id) return card;
+      changed = true;
+      return { ...card, id: newCardId() };
+    }),
+  }));
+  return { decks: next, changed };
+}
+
 export function loadCustomDecks(): Deck[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(CUSTOM_KEY);
     if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Deck[]) : [];
+    const parsed: unknown = JSON.parse(raw);
+
+    // A bare array is the shape that predates versioning; an object is current.
+    const legacy = Array.isArray(parsed);
+    const stored: Deck[] = legacy
+      ? (parsed as Deck[])
+      : Array.isArray((parsed as CustomDeckStore)?.decks)
+        ? (parsed as CustomDeckStore).decks
+        : [];
+
+    const { decks, changed } = withIds(stored);
+
+    // Ids have to survive a reload, so a backfill is written straight back.
+    // No change event: nothing the UI renders has moved.
+    if (legacy || changed) write(decks);
+    return decks;
   } catch {
     return [];
   }
 }
 
+function write(decks: Deck[]) {
+  const store: CustomDeckStore = { version: CUSTOM_VERSION, decks };
+  window.localStorage.setItem(CUSTOM_KEY, JSON.stringify(store));
+}
+
 function persist(decks: Deck[]) {
-  window.localStorage.setItem(CUSTOM_KEY, JSON.stringify(decks));
+  write(decks);
   window.dispatchEvent(new Event("custom-decks-changed"));
 }
 

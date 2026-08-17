@@ -21,7 +21,9 @@ pnpm install          # pnpm, not npm — see below
 pnpm run dev          # local
 pnpm run build        # must pass before any commit
 pnpm run lint         # ESLint flat config, next/core-web-vitals
+pnpm run test         # both suites below
 pnpm run test:parser  # deck parser test cases
+pnpm run test:progress # storage migration test cases
 ```
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
@@ -58,10 +60,12 @@ components/
   Reviewer.tsx          all study state
   PrintSheets.tsx       shared by the built-in and custom print paths
 lib/
-  decks.ts              GENERATED — see below
+  decks.ts              built-in deck data — see below
   parseDeck.ts          one parser for uploads, pastes and (after task 2) files
   print.ts              sheet pagination and column mirroring
   customDecks.ts        localStorage store for imported decks
+  progress.ts           progress store, card keys, and v1 to v2 migration
+  cardId.ts             uuid for new cards
 ```
 
 Both `[deck]` routes set `dynamicParams = true`: built-in slugs are prerendered,
@@ -69,10 +73,14 @@ anything else renders `CustomDeckView`, which reads `localStorage` on the client
 
 ## Things that will break if you "improve" them
 
-**`lib/decks.ts` is generated, not hand-written.** It comes from the printed PDFs
-via `scripts/extract-cards.py` and `scripts/generate-decks.py`. Editing it by hand
-puts the app and the physical cards out of sync. Task 2 replaces this with
-markdown files in `content/`; until then, don't touch the generated file.
+**`lib/decks.ts` is the source of the printed cards.** It was originally generated
+from the printed PDFs via `scripts/extract-cards.py` and `scripts/generate-decks.py`,
+but those scripts cannot be re-run: they read absolute paths (`/home/claude/...`)
+on a machine that no longer exists. Treat the file as source, not output — and
+treat card *content* as fixed, because these decks mirror physical cards and must
+not drift. Adding a field to every card is fine; editing a `q` or an `a` is not,
+unless the printed cards are being reprinted too. Task 2 replaces this file with
+markdown in `content/`, generated from it rather than retyped.
 
 **The print geometry is load-bearing.** `.sheet` and its children in
 `globals.css` reproduce an A4 layout that was validated against reportlab-
@@ -91,13 +99,23 @@ unused pastel rather than an arbitrary colour.
 
 ## Storage
 
-`localStorage`, two kinds of key:
+`localStorage`, two kinds of key, both wrapped in a version envelope:
 
-- `decks:custom` — imported decks, a bare `Deck[]`
-- `progress:{slug}` — `{ drafts, grades }`, currently keyed by card **index**
+- `decks:custom` — `{ version: 1, decks: Deck[] }`
+- `progress:{slug}` — `{ version: 2, drafts, grades }`, keyed by
+  `{deckSlug}:{cardId}`
 
-Card-index keying is a known defect; task 1 fixes it and adds a version envelope
-to both. Until then, assume any change to card order corrupts progress.
+Every card carries a uuid `id`, assigned once when it is written into
+`lib/decks.ts` or parsed on import, and never derived from the question text —
+fixing a typo is exactly when progress should survive. Card order is therefore
+free to change.
+
+Both stores migrate on read, in `lib/progress.ts` and `lib/customDecks.ts`: an
+unversioned progress object is version 1 and gets its index keys rewritten onto
+card ids; a bare `Deck[]` predates the envelope and gets ids backfilled. Both
+migrations persist immediately and are idempotent. `lib/progress.test.ts` covers
+them, including the case that motivated all of this — a card inserted mid-deck
+leaving later cards' grades intact.
 
 ## Conventions
 
@@ -114,6 +132,6 @@ to both. Until then, assume any change to card order corrupts progress.
 
 - `pnpm run build` passes
 - `pnpm run lint` passes
-- `pnpm run test:parser` passes
+- `pnpm run test` passes
 - Anything touching print geometry has been printed and physically checked
 - One task per commit

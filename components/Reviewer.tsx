@@ -2,19 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { StudyCard } from "@/lib/decks";
-
-type Grade = "held" | "review";
-
-type Saved = {
-  drafts: Record<string, string>;
-  grades: Record<string, Grade>;
-};
-
-const empty: Saved = { drafts: {}, grades: {} };
-
-function cardKey(card: StudyCard) {
-  return `${card.deck.slug}:${card.index}`;
-}
+import type { Grade, ProgressStore } from "@/lib/progress";
+import {
+  cardKey,
+  emptyProgress,
+  loadProgress,
+  saveProgress,
+} from "@/lib/progress";
 
 function shuffled<T>(items: T[]) {
   const copy = [...items];
@@ -42,30 +36,28 @@ export default function Reviewer({
   const [flipped, setFlipped] = useState(false);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState(false);
-  const [saved, setSaved] = useState<Saved>(empty);
+  const [saved, setSaved] = useState<ProgressStore>(emptyProgress);
   const [ready, setReady] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const card = order[position];
   const key = cardKey(card);
 
+  // The migration needs the cards, but they must not retrigger the read — the
+  // page above hands down a fresh array each time it renders.
+  const cardsRef = useRef(cards);
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(storageKey);
-      if (raw) setSaved({ ...empty, ...(JSON.parse(raw) as Saved) });
-    } catch {
-      // A corrupt or unavailable store just means starting fresh.
-    }
+    cardsRef.current = cards;
+  }, [cards]);
+
+  useEffect(() => {
+    setSaved(loadProgress(storageKey, cardsRef.current));
     setReady(true);
   }, [storageKey]);
 
   useEffect(() => {
     if (!ready) return;
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify(saved));
-    } catch {
-      // Private mode or a full quota — progress simply will not persist.
-    }
+    saveProgress(storageKey, saved);
   }, [saved, storageKey, ready]);
 
   // Read through a ref so committing a draft — which replaces saved.drafts —

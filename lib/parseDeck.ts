@@ -1,4 +1,5 @@
 import type { Card } from "./decks";
+import { newCardId } from "./cardId";
 
 export type ParseIssue = { line: number; message: string };
 
@@ -63,7 +64,7 @@ export function parseDeck(input: string): ParseResult {
         message: `Question has no answer: "${pendingQ.text.slice(0, 48)}"`,
       });
     } else {
-      result.cards.push({ q: tidy(pendingQ.text), a: answer });
+      result.cards.push({ id: newCardId(), q: tidy(pendingQ.text), a: answer });
     }
     pendingQ = null;
     pendingA = [];
@@ -163,7 +164,7 @@ export function parseDeck(input: string): ParseResult {
       if (/^(question|q)$/i.test(q) && /^(answer|a)$/i.test(rest[0] ?? "")) {
         return;
       }
-      result.cards.push({ q: tidy(q), a: tidy(rest.join(" ")) });
+      result.cards.push({ id: newCardId(), q: tidy(q), a: tidy(rest.join(" ")) });
     } else {
       result.warnings.push({
         line: lineNo,
