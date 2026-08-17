@@ -36,7 +36,7 @@ type CustomDeckStore = { version: 1; decks: Deck[] };
 - Migration runs once and is idempotent
 
 **Done when** existing progress survives the upgrade, a card inserted mid-deck
-leaves later cards' grades intact, and `npm run build` passes.
+leaves later cards' grades intact, and `pnpm run build` passes.
 
 ---
 
@@ -114,7 +114,7 @@ Small fixes to the import path, now that it's the main way decks get created.
   promoted into `content/` by hand
 
 **Done when** the importer's warnings tell you about print problems before you
-print, and `npm run test:parser` still passes.
+print, and `pnpm run test:parser` still passes.
 
 ---
 

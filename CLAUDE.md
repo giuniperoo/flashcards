@@ -17,12 +17,22 @@ revealing the answer easier is working against the point of the app.
 Next.js 15 App Router, React 19, TypeScript, Tailwind CSS v4. No database.
 
 ```bash
-npm run dev           # local
-npm run build         # must pass before any commit
-npm run test:parser   # deck parser test cases
+pnpm install          # pnpm, not npm — see below
+pnpm run dev          # local
+pnpm run build        # must pass before any commit
+pnpm run lint         # ESLint flat config, next/core-web-vitals
+pnpm run test:parser  # deck parser test cases
 ```
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
+
+**The package manager is pnpm**, pinned by `packageManager` in `package.json`.
+pnpm blocks dependency install scripts by default, so the three packages that
+need to link native binaries — `esbuild` (backs `tsx`), `sharp`, and
+`unrs-resolver` — are allowed explicitly in `pnpm-workspace.yaml`. If a future
+dependency fails with `ERR_PNPM_IGNORED_BUILDS`, add it there rather than
+switching package managers. Note that pnpm refuses to run *any* script while
+that error is outstanding, so it presents as every command failing at once.
 
 ## Out of scope — do not build
 
@@ -102,7 +112,8 @@ to both. Until then, assume any change to card order corrupts progress.
 
 ## Before committing
 
-- `npm run build` passes
-- `npm run test:parser` passes
+- `pnpm run build` passes
+- `pnpm run lint` passes
+- `pnpm run test:parser` passes
 - Anything touching print geometry has been printed and physically checked
 - One task per commit

@@ -15,8 +15,8 @@ card data is a typed module, progress lives in `localStorage`.
 ## Run it
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 Open http://localhost:3000.
@@ -103,7 +103,7 @@ question with no answer, an answer with no question, or a tint that is not a
 six-digit hex all surface in the preview before you save.
 
 ```bash
-npm run test:parser
+pnpm run test:parser
 ```
 
 covers all three shapes plus the malformed cases.

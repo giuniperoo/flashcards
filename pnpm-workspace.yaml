@@ -1,0 +1,7 @@
+# Native binaries whose install scripts pnpm blocks by default.
+# esbuild backs tsx (test:parser), sharp is Next's image optimiser,
+# unrs-resolver is the native binding for eslint-import-resolver-typescript.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
