@@ -68,11 +68,18 @@ export default function Reviewer({
     }
   }, [saved, storageKey, ready]);
 
+  // Read through a ref so committing a draft — which replaces saved.drafts —
+  // does not count as a card change and turn the card back over.
+  const draftsRef = useRef(saved.drafts);
   useEffect(() => {
-    setDraft(saved.drafts[key] ?? "");
+    draftsRef.current = saved.drafts;
+  }, [saved.drafts]);
+
+  useEffect(() => {
+    setDraft(draftsRef.current[key] ?? "");
     setFlipped(false);
     setError(false);
-  }, [key, saved.drafts]);
+  }, [key, ready]);
 
   const commitDraft = useCallback(
     (value: string) => {
