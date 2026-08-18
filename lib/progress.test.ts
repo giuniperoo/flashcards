@@ -1,4 +1,4 @@
-import type { Deck, StudyCard } from "./decks";
+import type { Deck, StudyCard } from "./types";
 import { cardKey, loadProgress } from "./progress";
 
 // progress.ts reads window.localStorage lazily, so a stub set up here is enough.

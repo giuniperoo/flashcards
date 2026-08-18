@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Reviewer from "@/components/Reviewer";
 import CustomDeckView from "@/components/CustomDeckView";
-import { decks, getDeck, studySet } from "@/lib/decks";
+import { decks, getDeck, studySet } from "@/lib/loadDecks";
 
 export const dynamicParams = true;
 

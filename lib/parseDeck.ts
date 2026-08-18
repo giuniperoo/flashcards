@@ -1,4 +1,4 @@
-import type { Card } from "./decks";
+import type { Card } from "./types";
 import { newCardId } from "./cardId";
 
 export type ParseIssue = { line: number; message: string };
@@ -7,6 +7,8 @@ export type ParseResult = {
   title: string;
   blurb: string;
   tint: string | null;
+  ink: string | null;
+  order: number | null;
   cards: Card[];
   errors: ParseIssue[];
   warnings: ParseIssue[];
@@ -15,7 +17,9 @@ export type ParseResult = {
 const QUESTION = /^(?:q|question)\s*[:.)-]\s*(.*)$/i;
 const ANSWER = /^(?:a|answer)\s*[:.)-]\s*(.*)$/i;
 const TITLE = /^#\s+(.*)$/;
-const META = /^(tint|colour|color|blurb)\s*:\s*(.*)$/i;
+const META = /^(tint|colour|color|ink|blurb|order)\s*:\s*(.*)$/i;
+const CARD_ID = /^id\s*[:.)-]\s*(.+)$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HEADING = /^##+\s+(.*)$/;
 const TABLE_RULE = /^\|?[\s:|-]+\|[\s:|-]*$/;
 
@@ -43,6 +47,8 @@ export function parseDeck(input: string): ParseResult {
     title: "",
     blurb: "",
     tint: null,
+    ink: null,
+    order: null,
     cards: [],
     errors: [],
     warnings: [],
@@ -53,6 +59,7 @@ export function parseDeck(input: string): ParseResult {
 
   let pendingQ: { text: string; line: number } | null = null;
   let pendingA: string[] = [];
+  let pendingId: string | null = null;
   let field: "q" | "a" | null = null;
 
   const flush = () => {
@@ -64,8 +71,13 @@ export function parseDeck(input: string): ParseResult {
         message: `Question has no answer: "${pendingQ.text.slice(0, 48)}"`,
       });
     } else {
-      result.cards.push({ id: newCardId(), q: tidy(pendingQ.text), a: answer });
+      result.cards.push({
+        id: pendingId ?? newCardId(),
+        q: tidy(pendingQ.text),
+        a: answer,
+      });
     }
+    pendingId = null;
     pendingQ = null;
     pendingA = [];
     field = null;
@@ -80,6 +92,27 @@ export function parseDeck(input: string): ParseResult {
       return;
     }
 
+    // An `id:` line belongs to the card below it, so the card above is closed
+    // out first. Guarded on `field` so an answer that happens to begin "id:"
+    // stays part of that answer.
+    if (field !== "a") {
+      const idLine = CARD_ID.exec(line);
+      if (idLine) {
+        flush();
+        const value = idLine[1].trim();
+        if (UUID.test(value)) {
+          pendingId = value.toLowerCase();
+        } else {
+          pendingId = null;
+          result.warnings.push({
+            line: lineNo,
+            message: `Not a uuid, so a new id was generated: "${value.slice(0, 40)}"`,
+          });
+        }
+        return;
+      }
+    }
+
     const title = TITLE.exec(line);
     if (title && result.cards.length === 0 && !pendingQ) {
       result.title = tidy(title[1]);
@@ -91,6 +124,11 @@ export function parseDeck(input: string): ParseResult {
       const bareKey = meta[1].toLowerCase();
       if (bareKey === "blurb") {
         result.blurb = tidy(meta[2]);
+      } else if (bareKey === "order") {
+        const parsed = Number.parseInt(meta[2].trim(), 10);
+        if (Number.isFinite(parsed)) result.order = parsed;
+      } else if (bareKey === "ink") {
+        result.ink = normaliseTint(meta[2]);
       } else {
         const tint = normaliseTint(meta[2]);
         if (tint) {
@@ -164,7 +202,12 @@ export function parseDeck(input: string): ParseResult {
       if (/^(question|q)$/i.test(q) && /^(answer|a)$/i.test(rest[0] ?? "")) {
         return;
       }
-      result.cards.push({ id: newCardId(), q: tidy(q), a: tidy(rest.join(" ")) });
+      result.cards.push({
+        id: pendingId ?? newCardId(),
+        q: tidy(q),
+        a: tidy(rest.join(" ")),
+      });
+      pendingId = null;
     } else {
       result.warnings.push({
         line: lineNo,

@@ -1,6 +1,6 @@
-import type { Card, Deck, StudyCard } from "./decks";
-import { decks as builtIn } from "./decks";
+import type { Card, Deck, StudyCard } from "./types";
 import { newCardId } from "./cardId";
+import { shadeForTint } from "./tint";
 
 export const CUSTOM_KEY = "decks:custom";
 export const CUSTOM_VERSION = 1;
@@ -77,9 +77,14 @@ function persist(decks: Deck[]) {
   window.dispatchEvent(new Event("custom-decks-changed"));
 }
 
-export function uniqueSlug(title: string, existing: Deck[]) {
+/**
+ * `reserved` is the built-in deck slugs. They live in `content/` and are read
+ * on the server, so they have to be handed in rather than imported: this module
+ * runs in the browser.
+ */
+export function uniqueSlug(title: string, existing: Deck[], reserved: string[] = []) {
   const taken = new Set([
-    ...builtIn.map((d) => d.slug),
+    ...reserved,
     ...existing.map((d) => d.slug),
     "all",
     "new",
@@ -97,12 +102,13 @@ export function saveCustomDeck(input: {
   blurb: string;
   tint: string | null;
   cards: Card[];
+  reservedSlugs?: string[];
 }): Deck {
   const existing = loadCustomDecks();
   const [fallbackTint, fallbackInk] = PALETTE[existing.length % PALETTE.length];
 
   const deck: Deck = {
-    slug: uniqueSlug(input.title, existing),
+    slug: uniqueSlug(input.title, existing, input.reservedSlugs ?? []),
     name: input.title,
     blurb: input.blurb || `${input.cards.length} imported cards`,
     tint: input.tint ?? fallbackTint,
@@ -133,15 +139,6 @@ export function customStudySet(deck: Deck): StudyCard[] {
 
 export function toDeckText(deck: Deck) {
   const head = [`# ${deck.name}`, `tint: ${deck.tint}`, `blurb: ${deck.blurb}`];
-  const body = deck.cards.map((c) => `Q: ${c.q}\nA: ${c.a}`);
+  const body = deck.cards.map((c) => `id: ${c.id}\nQ: ${c.q}\nA: ${c.a}`);
   return [...head, "", ...body].join("\n") + "\n";
-}
-
-/** Darken a pastel enough to read as the progress-bar and pill colour. */
-function shadeForTint(tint: string) {
-  const n = parseInt(tint.slice(1), 16);
-  const r = Math.round(((n >> 16) & 255) * 0.55);
-  const g = Math.round(((n >> 8) & 255) * 0.55);
-  const b = Math.round((n & 255) * 0.55);
-  return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
 }

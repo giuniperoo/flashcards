@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { StudyCard } from "@/lib/decks";
+import type { StudyCard } from "@/lib/types";
 import type { Grade, ProgressStore } from "@/lib/progress";
 import {
   cardKey,

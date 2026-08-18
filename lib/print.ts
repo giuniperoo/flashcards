@@ -1,4 +1,4 @@
-import type { StudyCard } from "./decks";
+import type { StudyCard } from "./types";
 
 export const CARDS_PER_SHEET = 8;
 const COLS = 2;

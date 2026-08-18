@@ -1,3 +1,12 @@
+"""
+One-off migration, kept for the record. Not part of the build.
+
+This pulled the original card text out of the printed PDFs, and its output was
+hand-checked and committed as lib/decks.ts, which task 2 then converted into
+content/*.md. The decks now live in content/ and are read by lib/loadDecks.ts;
+nothing runs this file. It needs PDFs and paths that no longer exist here.
+"""
+
 import re, json, sys
 import pdfplumber
 

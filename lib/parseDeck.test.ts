@@ -78,6 +78,50 @@ A: B.`,
   ["CRLF and BOM survive",
 "\uFEFF# Deck\r\nQ: A?\r\nA: B.\r\n",
    r => r.cards.length === 1 && r.title === "Deck"],
+
+  ["card ids are taken from id: lines",
+`id: 11111111-2222-4333-8444-555555555555
+Q: A?
+A: B.
+
+id: 66666666-7777-4888-8999-aaaaaaaaaaaa
+Q: C?
+A: D.`,
+   r => r.cards.length === 2
+        && r.cards[0].id === "11111111-2222-4333-8444-555555555555"
+        && r.cards[1].id === "66666666-7777-4888-8999-aaaaaaaaaaaa"],
+
+  ["a card with no id: line still gets one",
+`Q: A?
+A: B.`,
+   r => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(r.cards[0].id)],
+
+  ["a malformed id warns and is replaced rather than used",
+`id: not-a-uuid
+Q: A?
+A: B.`,
+   r => r.cards.length === 1 && r.warnings.length === 1 && r.cards[0].id !== "not-a-uuid"],
+
+  ["an answer line beginning id: stays part of the answer",
+`Q: A?
+A: B.
+id: this is prose, not a card id`,
+   r => r.cards.length === 1 && r.cards[0].a.includes("this is prose")],
+
+  ["ink and order front matter are read",
+`# Deck
+tint: #CBDDF2
+ink: #5E86AE
+order: 3
+
+Q: A?
+A: B.`,
+   r => r.tint === "#CBDDF2" && r.ink === "#5E86AE" && r.order === 3],
+
+  ["ink and order are null when absent",
+`Q: A?
+A: B.`,
+   r => r.ink === null && r.order === null],
 ];
 
 let failed = 0;

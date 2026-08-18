@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DeckImporter from "@/components/DeckImporter";
+import { decks } from "@/lib/loadDecks";
 
 export const metadata = { title: "New deck" };
 
@@ -18,7 +19,7 @@ export default function NewDeckPage() {
         the built-in ones, and stay in this browser.
       </p>
 
-      <DeckImporter />
+      <DeckImporter reservedSlugs={decks.map((d) => d.slug)} />
 
       <section className="mt-12 border-t border-rule pt-8">
         <h2 className="text-lg font-medium">The format</h2>

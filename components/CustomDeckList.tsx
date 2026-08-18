@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import type { Deck } from "@/lib/decks";
+import type { Deck } from "@/lib/types";
 import {
   deleteCustomDeck,
   loadCustomDecks,

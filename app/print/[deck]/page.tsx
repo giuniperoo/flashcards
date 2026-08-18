@@ -1,7 +1,7 @@
 import CustomDeckView from "@/components/CustomDeckView";
 import PrintIntro from "@/components/PrintIntro";
 import PrintSheets from "@/components/PrintSheets";
-import { decks, getDeck, studySet } from "@/lib/decks";
+import { decks, getDeck, studySet } from "@/lib/loadDecks";
 import { toSheets } from "@/lib/print";
 
 export const dynamicParams = true;

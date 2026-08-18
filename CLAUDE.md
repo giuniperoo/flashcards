@@ -60,7 +60,9 @@ components/
   Reviewer.tsx          all study state
   PrintSheets.tsx       shared by the built-in and custom print paths
 lib/
-  decks.ts              built-in deck data — see below
+  loadDecks.ts          reads content/*.md at build time — SERVER ONLY
+  types.ts              Card, Deck, StudyCard — safe for client components
+  tint.ts               derives a readable ink from a pastel
   parseDeck.ts          one parser for uploads, pastes and (after task 2) files
   print.ts              sheet pagination and column mirroring
   customDecks.ts        localStorage store for imported decks
@@ -73,14 +75,20 @@ anything else renders `CustomDeckView`, which reads `localStorage` on the client
 
 ## Things that will break if you "improve" them
 
-**`lib/decks.ts` is the source of the printed cards.** It was originally generated
-from the printed PDFs via `scripts/extract-cards.py` and `scripts/generate-decks.py`,
-but those scripts cannot be re-run: they read absolute paths (`/home/claude/...`)
-on a machine that no longer exists. Treat the file as source, not output — and
-treat card *content* as fixed, because these decks mirror physical cards and must
-not drift. Adding a field to every card is fine; editing a `q` or an `a` is not,
-unless the printed cards are being reprinted too. Task 2 replaces this file with
-markdown in `content/`, generated from it rather than retyped.
+**`content/*.md` is the source of the printed cards.** One file per deck; the
+filename is the slug, so adding a file adds a deck and nothing else is needed.
+Card *content* is fixed — these decks mirror physical cards, so editing a `q` or
+an `a` puts the app and the printed cards out of step unless you are reprinting.
+Card order is free to change, because progress is keyed by id.
+
+**Never remove or rewrite an `id:` line.** Progress is keyed by it. A card whose
+id changes reads as a brand new card and loses its history. `tools/extract-cards.py`
+is the original one-off PDF migration, kept for the record and run by nothing.
+
+**`lib/loadDecks.ts` is server-only** — it reads the filesystem. Client
+components import types from `lib/types.ts` instead. This is why `DeckImporter`
+takes `reservedSlugs` as a prop rather than importing the decks: it runs in the
+browser and cannot see `content/`.
 
 **The print geometry is load-bearing.** `.sheet` and its children in
 `globals.css` reproduce an A4 layout that was validated against reportlab-
@@ -106,7 +114,7 @@ unused pastel rather than an arbitrary colour.
   `{deckSlug}:{cardId}`
 
 Every card carries a uuid `id`, assigned once when it is written into
-`lib/decks.ts` or parsed on import, and never derived from the question text —
+`content/*.md` or parsed on import, and never derived from the question text —
 fixing a typo is exactly when progress should survive. Card order is therefore
 free to change.
 

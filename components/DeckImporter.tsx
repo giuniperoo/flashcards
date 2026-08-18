@@ -21,7 +21,13 @@ function fromRtf(source: string) {
     .trim();
 }
 
-export default function DeckImporter() {
+export default function DeckImporter({
+  reservedSlugs,
+}: {
+  /** Built-in deck slugs, read from `content/` on the server so an import
+      cannot claim a slug a committed deck already owns. */
+  reservedSlugs: string[];
+}) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
@@ -50,6 +56,7 @@ export default function DeckImporter() {
         blurb: parsed.blurb,
         tint: parsed.tint,
         cards: parsed.cards,
+        reservedSlugs,
       });
       router.push(`/study/${deck.slug}`);
     } catch {

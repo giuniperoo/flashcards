@@ -10,7 +10,7 @@ the part that survives an interview.
 ## Stack
 
 Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4. No database —
-card data is a typed module, progress lives in `localStorage`.
+decks are markdown files read at build time, progress lives in `localStorage`.
 
 ## Run it
 
@@ -34,7 +34,7 @@ components/
   Reviewer.tsx          the only stateful client component
   PrintButton.tsx       one-line client component for window.print()
 lib/
-  decks.ts              generated card data
+  loadDecks.ts          reads content/*.md at build time
   print.ts              sheet pagination and column mirroring
 ```
 
@@ -122,9 +122,13 @@ respects `prefers-reduced-motion`.
 
 ## Card data
 
-`lib/decks.ts` is generated from the printed PDFs rather than retyped, so the
-app and the paper decks cannot drift. To regenerate after editing a deck, re-run
-the extraction script against the PDFs and overwrite the file.
+Decks live in `content/*.md`, one file per deck, converted from the printed PDFs
+rather than retyped so the app and the paper decks cannot drift. The filename is
+the slug: drop a new `.md` in and it becomes a deck, with no code change. An
+unparseable file fails the build rather than disappearing quietly.
+
+Each card carries an `id:` — a uuid that progress is keyed by. Leave them alone.
+Rewriting one makes the card read as new and drops its history.
 
 Each deck carries the pastel tint used for the corner triangle on the printed
 card, so a card looks the same on screen as it does in your hand.

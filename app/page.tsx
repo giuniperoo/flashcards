@@ -1,6 +1,6 @@
 import Link from "next/link";
 import CustomDeckList from "@/components/CustomDeckList";
-import { decks, totalCards } from "@/lib/decks";
+import { decks, totalCards } from "@/lib/loadDecks";
 
 export default function Home() {
   return (

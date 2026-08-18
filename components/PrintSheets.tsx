@@ -1,4 +1,4 @@
-import type { StudyCard } from "@/lib/decks";
+import type { StudyCard } from "@/lib/types";
 import { toSheets, type Sheet, type Slot } from "@/lib/print";
 
 export default function PrintSheets({

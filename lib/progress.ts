@@ -1,4 +1,4 @@
-import type { StudyCard } from "./decks";
+import type { StudyCard } from "./types";
 
 export type Grade = "held" | "review";
 
