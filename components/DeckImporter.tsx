@@ -184,7 +184,9 @@ export default function DeckImporter({
         disabled={!canSave}
         className="mt-4 min-h-11 w-full rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent sm:w-auto sm:px-6"
       >
-        {canSave ? `Add ${parsed!.cards.length} cards` : "Add deck"}
+        {canSave
+          ? `Add ${parsed!.cards.length} ${parsed!.cards.length === 1 ? "card" : "cards"}`
+          : "Add deck"}
       </button>
     </div>
   );
