@@ -19,7 +19,10 @@ export default function NewDeckPage() {
         the built-in ones, and stay in this browser.
       </p>
 
-      <DeckImporter reservedSlugs={decks.map((d) => d.slug)} />
+      <DeckImporter
+        reservedSlugs={decks.map((d) => d.slug)}
+        reservedTints={decks.map((d) => d.tint)}
+      />
 
       <section className="mt-12 border-t border-rule pt-8">
         <h2 className="text-lg font-medium">The format</h2>

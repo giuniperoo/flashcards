@@ -62,7 +62,7 @@ components/
 lib/
   loadDecks.ts          reads content/*.md at build time — SERVER ONLY
   types.ts              Card, Deck, StudyCard — safe for client components
-  tint.ts               derives a readable ink from a pastel
+  tint.ts               hue maths: ink for a tint, and the next unused tint
   parseDeck.ts          one parser for uploads, pastes and (after task 2) files
   print.ts              sheet pagination and column mirroring
   customDecks.ts        localStorage store for imported decks
@@ -102,8 +102,19 @@ silently produce misaligned cards.
 overflow a printed card and there is no scrollbar on paper.
 
 **Deck tints are pastels with a darker `ink` for text and progress bars.** The
-palette in `globals.css` derives from the original print spec. New decks take an
-unused pastel rather than an arbitrary colour.
+five built-in decks carry both in their front matter, from the original print
+spec, and must not change. A deck you add gets its colour from `nextTint()` in
+`lib/tint.ts`, which picks the hue *furthest from every hue already in use* —
+built-in and custom alike — and renders it at a fixed pastel saturation and
+lightness. There is deliberately no fixed palette: the previous list of six ran
+out and repeated, was indexed by deck count so deleting a deck recoloured every
+later one, and five of its six entries sat within 16° of a built-in hue despite
+a comment claiming otherwise. A `tint:` line in an import still wins — that
+colour is the author's choice.
+
+Because `lib/customDecks.ts` runs in the browser and cannot read `content/`,
+the built-in tints reach it as the `reservedTints` prop, the same way
+`reservedSlugs` does.
 
 ## Storage
 

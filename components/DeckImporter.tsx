@@ -23,10 +23,13 @@ function fromRtf(source: string) {
 
 export default function DeckImporter({
   reservedSlugs,
+  reservedTints,
 }: {
   /** Built-in deck slugs, read from `content/` on the server so an import
       cannot claim a slug a committed deck already owns. */
   reservedSlugs: string[];
+  /** Built-in deck tints, so a new deck is given a colour unlike them. */
+  reservedTints: string[];
 }) {
   const router = useRouter();
   const [text, setText] = useState("");
@@ -57,6 +60,7 @@ export default function DeckImporter({
         tint: parsed.tint,
         cards: parsed.cards,
         reservedSlugs,
+        reservedTints,
       });
       router.push(`/study/${deck.slug}`);
     } catch {
