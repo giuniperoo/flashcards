@@ -12,6 +12,7 @@
     "test:progress": "tsx lib/progress.test.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.123.0",
     "next": "^15.5.23",
     "react": "19.0.0",
     "react-dom": "19.0.0"

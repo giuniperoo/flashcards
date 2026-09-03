@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseDeck, EXAMPLE_DECK } from "@/lib/parseDeck";
 import { saveCustomDeck } from "@/lib/customDecks";
+import DeckGenerator from "./DeckGenerator";
 
 const ACCEPT = ".txt,.md,.markdown,.text,.csv,.tsv,.rtf";
 
@@ -23,10 +24,13 @@ function fromRtf(source: string) {
 
 export default function DeckImporter({
   reservedSlugs,
+  reservedTints,
 }: {
   /** Built-in deck slugs, read from `content/` on the server so an import
       cannot claim a slug a committed deck already owns. */
   reservedSlugs: string[];
+  /** Built-in deck tints, so a new deck is given a colour unlike them. */
+  reservedTints: string[];
 }) {
   const router = useRouter();
   const [text, setText] = useState("");
@@ -57,6 +61,7 @@ export default function DeckImporter({
         tint: parsed.tint,
         cards: parsed.cards,
         reservedSlugs,
+        reservedTints,
       });
       router.push(`/study/${deck.slug}`);
     } catch {
@@ -68,6 +73,15 @@ export default function DeckImporter({
 
   return (
     <div>
+      <DeckGenerator
+        current={text}
+        onText={(next) => {
+          setText(next);
+          setFileName(null);
+          setSaveError(null);
+        }}
+      />
+
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -184,7 +198,9 @@ export default function DeckImporter({
         disabled={!canSave}
         className="mt-4 min-h-11 w-full rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent sm:w-auto sm:px-6"
       >
-        {canSave ? `Add ${parsed!.cards.length} cards` : "Add deck"}
+        {canSave
+          ? `Add ${parsed!.cards.length} ${parsed!.cards.length === 1 ? "card" : "cards"}`
+          : "Add deck"}
       </button>
     </div>
   );

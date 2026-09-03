@@ -1,22 +1,12 @@
 import type { Card, Deck, StudyCard } from "./types";
 import { newCardId } from "./cardId";
-import { shadeForTint } from "./tint";
+import { nextTint, shadeForTint } from "./tint";
 
 export const CUSTOM_KEY = "decks:custom";
 export const CUSTOM_VERSION = 1;
 
 /** Version 1 wraps what used to be a bare `Deck[]`, and guarantees card ids. */
 type CustomDeckStore = { version: 1; decks: Deck[] };
-
-/** Pastels not already used by a built-in deck, paired with a readable ink. */
-const PALETTE: Array<[string, string]> = [
-  ["#D6E8F7", "#3E7AA6"],
-  ["#E8DFC8", "#8A7434"],
-  ["#DCEBD0", "#5B7F3E"],
-  ["#F3D9DE", "#A9536A"],
-  ["#DDD8E8", "#6B5F8C"],
-  ["#F7E3C8", "#A8763A"],
-];
 
 export function slugify(value: string) {
   const base = value
@@ -103,16 +93,23 @@ export function saveCustomDeck(input: {
   tint: string | null;
   cards: Card[];
   reservedSlugs?: string[];
+  /** Tints of the built-in decks. Passed in because this module runs in the
+      browser and cannot read `content/` — the same reason as `reservedSlugs`.
+      Without them a new deck can land on a colour a built-in already owns. */
+  reservedTints?: string[];
 }): Deck {
   const existing = loadCustomDecks();
-  const [fallbackTint, fallbackInk] = PALETTE[existing.length % PALETTE.length];
+  const picked = nextTint([
+    ...(input.reservedTints ?? []),
+    ...existing.map((d) => d.tint),
+  ]);
 
   const deck: Deck = {
     slug: uniqueSlug(input.title, existing, input.reservedSlugs ?? []),
     name: input.title,
     blurb: input.blurb || `${input.cards.length} imported cards`,
-    tint: input.tint ?? fallbackTint,
-    ink: input.tint ? shadeForTint(input.tint) : fallbackInk,
+    tint: input.tint ?? picked.tint,
+    ink: input.tint ? shadeForTint(input.tint) : picked.ink,
     cards: input.cards,
   };
 
