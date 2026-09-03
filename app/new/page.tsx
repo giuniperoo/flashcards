@@ -15,8 +15,8 @@ export default function NewDeckPage() {
       </div>
 
       <p className="mb-6 max-w-lg text-muted">
-        Paste it or upload a file. Imported decks study and print exactly like
-        the built-in ones, and stay in this browser.
+        Write one with Claude, paste one, or upload a file. Added decks study
+        and print exactly like the built-in ones, and stay in this browser.
       </p>
 
       <DeckImporter

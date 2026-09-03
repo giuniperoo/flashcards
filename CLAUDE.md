@@ -46,8 +46,9 @@ to need one of them, stop and ask rather than introducing it.
 ## Architecture
 
 Server components by default. Only `Reviewer.tsx`, `PrintButton.tsx`,
-`DeckImporter.tsx`, `CustomDeckList.tsx` and `CustomDeckView.tsx` are client
-components, and that list should not grow without a reason. The point is that
+`DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx` and
+`CustomDeckView.tsx` are client components, and that list should not grow
+without a reason. The point is that
 the JavaScript shipped is the interactive parts and nothing else.
 
 ```
@@ -58,6 +59,7 @@ app/
   print/[deck]/page.tsx A4 sheets
 components/
   Reviewer.tsx          all study state
+  DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
   PrintSheets.tsx       shared by the built-in and custom print paths
 lib/
   loadDecks.ts          reads content/*.md at build time — SERVER ONLY
@@ -68,6 +70,8 @@ lib/
   customDecks.ts        localStorage store for imported decks
   progress.ts           progress store, card keys, and v1 to v2 migration
   cardId.ts             uuid for new cards
+  apiKey.ts             the user's own Anthropic key, its own localStorage key
+  generateDeck.ts       browser-direct call to Anthropic — CLIENT ONLY
 ```
 
 Both `[deck]` routes set `dynamicParams = true`: built-in slugs are prerendered,

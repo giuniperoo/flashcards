@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseDeck, EXAMPLE_DECK } from "@/lib/parseDeck";
 import { saveCustomDeck } from "@/lib/customDecks";
+import DeckGenerator from "./DeckGenerator";
 
 const ACCEPT = ".txt,.md,.markdown,.text,.csv,.tsv,.rtf";
 
@@ -72,6 +73,15 @@ export default function DeckImporter({
 
   return (
     <div>
+      <DeckGenerator
+        current={text}
+        onText={(next) => {
+          setText(next);
+          setFileName(null);
+          setSaveError(null);
+        }}
+      />
+
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <button
           type="button"
