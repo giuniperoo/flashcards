@@ -1,5 +1,5 @@
 # Auth and sessions
-tint: #D9C8B4
+tint: #DFF2CA
 blurb: Sessions, tokens, OAuth and OTP flows, with the browser details interviewers probe.
 
 id: 23355e3d-5153-4116-9c83-1d996198f23e

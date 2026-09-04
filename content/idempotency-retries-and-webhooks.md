@@ -1,5 +1,5 @@
 # Idempotency, retries and webhooks
-tint: #F5E3A3
+tint: #CAE4F2
 blurb: Safe repeats, at-least-once delivery, and the patterns that keep money and SIMs consistent.
 
 id: 5681e508-a033-4cc9-8348-5db28ba40584

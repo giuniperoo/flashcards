@@ -1,5 +1,5 @@
 # Kafka
-tint: #F9D7BC
+tint: #F0CAF2
 blurb: Partitions, consumer groups, and what to say in the interview
 
 id: cb1abdcb-4aee-4c95-99ef-cede9bd2e6e5

@@ -1,5 +1,5 @@
 # TypeScript in practice
-tint: #F7DFC0
+tint: #F2CDCA
 blurb: Type-system mechanics and applied React/Next.js typing
 
 id: c9dbc60f-ea49-4f63-a2d9-c1ccd532014b

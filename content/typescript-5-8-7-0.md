@@ -1,5 +1,5 @@
 # TypeScript 5.8-7.0
-tint: #C7DDF7
+tint: #CAD3F2
 blurb: Releases, dates, breaking changes and what's next
 
 id: 36560cec-d8b8-4c87-a4c4-251caecfb8fa

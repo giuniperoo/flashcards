@@ -1,5 +1,5 @@
 # Next.js caching and data fetching
-tint: #C7DDF0
+tint: #CBF2CA
 blurb: The caching layers, the use cache model, and fetching patterns from 15 to 16.3.
 
 id: a3b1d931-696c-42d7-a4fd-e5c695f4e374

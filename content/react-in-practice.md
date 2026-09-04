@@ -1,5 +1,5 @@
 # React in Practice
-tint: #F5E6A8
+tint: #CAF2EF
 blurb: Patterns and conventions for senior React work
 
 id: ff487b75-ae21-40c9-a7fc-0faf4cb364da

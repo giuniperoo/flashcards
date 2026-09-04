@@ -1,5 +1,5 @@
 # Next.js App Router
-tint: #FADCC0
+tint: #F2F0CA
 blurb: Routing, rendering and file conventions in the App Router, weighted to 15→16.3.
 
 id: 42575223-35e4-4cf8-b145-3a8bd3112785
