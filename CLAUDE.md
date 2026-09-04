@@ -69,6 +69,7 @@ components/
   Reviewer.tsx          all study state
   DeckIndex.tsx         headline counts, and hiding the built-in decks
   DeckCard.tsx          one deck on the index; both lists render through it
+  DeckVisibility.tsx    the show/hide controls, at the foot of the index
   DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
   PrintSheets.tsx       shared by the built-in and custom print paths
 lib/
@@ -83,6 +84,7 @@ lib/
   apiKey.ts             the user's own Anthropic key, its own localStorage key
   prefs.ts              index preferences; so far, showing the built-in decks
   useCustomDecks.ts     the imported decks, kept in step with localStorage
+  usePrefs.ts           index preferences, shared by the grid and the controls
   generateDeck.ts       browser-direct call to Anthropic — CLIENT ONLY
 ```
 
@@ -152,6 +154,11 @@ flash up on every load, because the server has no way to know. `DeckIndex`
 removes that tag once it has read the preferences, or the rules would go on
 hiding a deck the reader un-hides. If the storage key or its shape changes,
 both readers change together.
+
+The controls that change all this sit at the foot of the index, beside "Add
+your own deck", not above the grid. Someone who has hidden the built-in decks
+because none of them are theirs will never press "show" again, and a control
+they will not use should not sit in the middle of the page.
 
 Hiding is not deleting, and the copy has to keep saying so: the files are read
 off the filesystem at build time and the browser cannot remove them. That is
