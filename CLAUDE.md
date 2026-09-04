@@ -52,10 +52,12 @@ without a reason. The point is that
 the JavaScript shipped is the interactive parts and nothing else.
 
 `DeckIndex.tsx` earns its place by counting: the headline totals span the
-built-in decks and the imported ones, and the imported ones only exist in the
-browser. The deck cards it wraps are still rendered on the server and passed in
-as `children`, so the markup never reaches the bundle — only the count and the
-show/hide toggle do.
+built-in decks and the imported ones, and neither which decks are hidden nor
+the imported decks themselves are visible to the server. It takes
+`DeckSummary[]` rather than `Deck[]` — a dozen names and counts instead of 264
+cards — so what reaches the browser stays small. Exporting a built-in deck goes
+through `/export/[deck]` for the same reason: a download button built in the
+browser would need every card in the page payload.
 
 ```
 app/
@@ -66,6 +68,7 @@ app/
 components/
   Reviewer.tsx          all study state
   DeckIndex.tsx         headline counts, and hiding the built-in decks
+  DeckCard.tsx          one deck on the index; both lists render through it
   DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
   PrintSheets.tsx       shared by the built-in and custom print paths
 lib/
@@ -136,13 +139,25 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
 - `progress:{slug}` — `{ version: 2, drafts, grades }`, keyed by
   `{deckSlug}:{cardId}`
-- `prefs:index` — `{ version: 1, showBuiltIns }`
+- `prefs:index` — `{ version: 2, showBuiltIns, hiddenDecks }`
+
+Version 1 of `prefs:index` held `showBuiltIns` alone, and reads as a version 2
+with nothing hidden individually — the defaults are the migration, so there is
+nothing to write back.
 
 `prefs:index` is read twice: by `lib/prefs.ts`, and by a small inline script in
-`app/layout.tsx` that runs before paint and sets `data-built-ins-hidden` on
-`<html>`. Without that script a reader who has hidden the built-in decks sees
-all of them flash up on every load, because the server has no way to know. If
-the storage key or its shape changes, both readers change together.
+`app/layout.tsx` that runs before paint and writes a `<style id="deck-prefs">`
+hiding whatever this reader has hidden. Without it, decks they have turned off
+flash up on every load, because the server has no way to know. `DeckIndex`
+removes that tag once it has read the preferences, or the rules would go on
+hiding a deck the reader un-hides. If the storage key or its shape changes,
+both readers change together.
+
+Hiding is not deleting, and the copy has to keep saying so: the files are read
+off the filesystem at build time and the browser cannot remove them. That is
+why built-in decks carry "Hide" where imported decks carry "Delete". `/study/all`
+is assembled on the server from every built-in deck, hidden ones included, so
+the "Everything, shuffled" card deliberately keeps counting all of them.
 
 Every card carries a uuid `id`, assigned once when it is written into
 `content/*.md` or parsed on import, and never derived from the question text —
