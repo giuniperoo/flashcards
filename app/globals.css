@@ -33,6 +33,48 @@ body {
 }
 
 /*
+ * The deck grid.
+ *
+ * Past 1300px the shell widens to 75% of the viewport (see `app/layout.tsx`)
+ * and the extra room goes into more columns rather than wider cards. A deck
+ * card is a card: stretched to 600px it stops reading as one, and the blurb
+ * under the name turns into a single long line. Columns are added instead, so
+ * a card stays between roughly 320 and 380px at every size.
+ *
+ * Both the built-in grid and "your decks" use this, so the two cannot drift
+ * apart as breakpoints are added.
+ */
+.deck-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 640px) {
+  .deck-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1300px) {
+  .deck-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1800px) {
+  .deck-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 2400px) {
+  .deck-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/*
  * Both faces sit in the same grid cell, so the card is as tall as whichever
  * face is taller — which used to mean every card had its own height, and the
  * controls below it moved as you navigated. A floor sized to the tallest card

@@ -46,10 +46,18 @@ to need one of them, stop and ask rather than introducing it.
 ## Architecture
 
 Server components by default. Only `Reviewer.tsx`, `PrintButton.tsx`,
-`DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx` and
-`CustomDeckView.tsx` are client components, and that list should not grow
+`DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx`, `DeckIndex.tsx`
+and `CustomDeckView.tsx` are client components, and that list should not grow
 without a reason. The point is that
 the JavaScript shipped is the interactive parts and nothing else.
+
+`DeckIndex.tsx` earns its place by counting: the headline totals span the
+built-in decks and the imported ones, and neither which decks are hidden nor
+the imported decks themselves are visible to the server. It takes
+`DeckSummary[]` rather than `Deck[]` — a dozen names and counts instead of 264
+cards — so what reaches the browser stays small. Exporting a built-in deck goes
+through `/export/[deck]` for the same reason: a download button built in the
+browser would need every card in the page payload.
 
 ```
 app/
@@ -59,6 +67,9 @@ app/
   print/[deck]/page.tsx A4 sheets
 components/
   Reviewer.tsx          all study state
+  DeckIndex.tsx         headline counts, and hiding the built-in decks
+  DeckCard.tsx          one deck on the index; both lists render through it
+  DeckVisibility.tsx    the show/hide controls, at the foot of the index
   DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
   PrintSheets.tsx       shared by the built-in and custom print paths
 lib/
@@ -71,6 +82,9 @@ lib/
   progress.ts           progress store, card keys, and v1 to v2 migration
   cardId.ts             uuid for new cards
   apiKey.ts             the user's own Anthropic key, its own localStorage key
+  prefs.ts              index preferences; so far, showing the built-in decks
+  useCustomDecks.ts     the imported decks, kept in step with localStorage
+  usePrefs.ts           index preferences, shared by the grid and the controls
   generateDeck.ts       browser-direct call to Anthropic — CLIENT ONLY
 ```
 
@@ -127,6 +141,30 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
 - `progress:{slug}` — `{ version: 2, drafts, grades }`, keyed by
   `{deckSlug}:{cardId}`
+- `prefs:index` — `{ version: 2, showBuiltIns, hiddenDecks }`
+
+Version 1 of `prefs:index` held `showBuiltIns` alone, and reads as a version 2
+with nothing hidden individually — the defaults are the migration, so there is
+nothing to write back.
+
+`prefs:index` is read twice: by `lib/prefs.ts`, and by a small inline script in
+`app/layout.tsx` that runs before paint and writes a `<style id="deck-prefs">`
+hiding whatever this reader has hidden. Without it, decks they have turned off
+flash up on every load, because the server has no way to know. `DeckIndex`
+removes that tag once it has read the preferences, or the rules would go on
+hiding a deck the reader un-hides. If the storage key or its shape changes,
+both readers change together.
+
+The controls that change all this sit at the foot of the index, beside "Add
+your own deck", not above the grid. Someone who has hidden the built-in decks
+because none of them are theirs will never press "show" again, and a control
+they will not use should not sit in the middle of the page.
+
+Hiding is not deleting, and the copy has to keep saying so: the files are read
+off the filesystem at build time and the browser cannot remove them. That is
+why built-in decks carry "Hide" where imported decks carry "Delete". `/study/all`
+is assembled on the server from every built-in deck, hidden ones included, so
+the "Everything, shuffled" card deliberately keeps counting all of them.
 
 Every card carries a uuid `id`, assigned once when it is written into
 `content/*.md` or parsed on import, and never derived from the question text —
@@ -148,6 +186,11 @@ leaving later cards' grades intact.
   zoom on focus
 - Colours come from the Tailwind theme in `globals.css`, never hardcoded hex in
   components, except deck tints which are data
+- The shell is `max-w-3xl` up to 1300px and 75% of the viewport past it. The
+  extra width becomes more columns — `.deck-grid` goes 2, 3, 4, 5 — never wider
+  cards, because a deck card stretched to 600px stops reading as a card. Study
+  and the import screen set `max-w-3xl` of their own: a flip card the width of
+  the window no longer matches the printed one, and prose wants a line length
 - `prefers-reduced-motion` is respected by the card flip; keep it that way
 - Errors are specific and actionable, and never blame the user
 

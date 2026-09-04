@@ -6,7 +6,7 @@ export const metadata = { title: "New deck" };
 
 export default function NewDeckPage() {
   return (
-    <div>
+    <div className="mx-auto w-full max-w-3xl">
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <h1 className="text-2xl font-medium tracking-tight">Add a deck</h1>
         <Link href="/" className="label text-muted hover:text-ink">
