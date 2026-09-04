@@ -25,7 +25,7 @@ export default function DeckCard({
   actions?: ReactNode;
 }) {
   return (
-    <div className="cut relative h-full overflow-hidden rounded-sm bg-card">
+    <div className="cut relative flex h-full flex-col overflow-hidden rounded-sm bg-card">
       <span
         aria-hidden
         className="absolute top-0 right-0 h-8 w-8"
@@ -36,12 +36,15 @@ export default function DeckCard({
       />
       <Link
         href={`/study/${deck.slug}`}
-        className="block px-5 pt-4 pb-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        className="block flex-1 px-5 pt-4 pb-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
       >
         <span className="label text-muted">{deck.count} cards</span>
         <span className="mt-1 block text-lg font-medium">{deck.name}</span>
         <span className="mt-1 block text-sm text-muted">{deck.blurb}</span>
       </Link>
+      {/* The grid stretches every card in a row to the tallest one. Without
+          this the actions would sit under the blurb with the slack below
+          them, floating mid-card on anything with a short blurb. */}
       <div className="flex border-t border-rule">
         <Link
           href={`/study/${deck.slug}`}
