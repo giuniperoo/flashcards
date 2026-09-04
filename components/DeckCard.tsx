@@ -38,7 +38,9 @@ export default function DeckCard({
         href={`/study/${deck.slug}`}
         className="block flex-1 px-5 pt-4 pb-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
       >
-        <span className="label text-muted">{deck.count} cards</span>
+        <span className="label text-muted">
+          {deck.count} card{deck.count === 1 ? "" : "s"}
+        </span>
         <span className="mt-1 block text-lg font-medium">{deck.name}</span>
         <span className="mt-1 block text-sm text-muted">{deck.blurb}</span>
       </Link>
