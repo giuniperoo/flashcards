@@ -59,9 +59,6 @@ export default function RootLayout({
             <span className="label text-muted">Recall, then flip</span>
           </header>
           <main className="flex-1">{children}</main>
-          <footer className="no-print label mt-16 border-t border-rule pt-4 text-muted">
-            Same cards as the printed decks
-          </footer>
         </div>
       </body>
     </html>
