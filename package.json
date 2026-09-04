@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "pnpm run test:parser && pnpm run test:progress",
+    "test": "pnpm run test:parser && pnpm run test:progress && pnpm run test:filter",
     "test:parser": "tsx lib/parseDeck.test.ts",
-    "test:progress": "tsx lib/progress.test.ts"
+    "test:progress": "tsx lib/progress.test.ts",
+    "test:filter": "tsx lib/deckFilter.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Reviewer from "@/components/Reviewer";
+import ShuffledSet from "@/components/ShuffledSet";
 import CustomDeckView from "@/components/CustomDeckView";
 import { decks, getDeck, studySet } from "@/lib/loadDecks";
 
@@ -40,7 +41,16 @@ export default async function StudyPage({
           </Link>
         </div>
       </div>
-      <Reviewer cards={cards} storageKey={`progress:${slug}`} />
+      {slug === "all" ? (
+        <ShuffledSet
+          cards={cards}
+          slugs={decks.map((d) => d.slug)}
+          mode="study"
+          title={title}
+        />
+      ) : (
+        <Reviewer cards={cards} storageKey={`progress:${slug}`} />
+      )}
     </div>
   );
 }

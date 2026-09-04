@@ -162,9 +162,21 @@ they will not use should not sit in the middle of the page.
 
 Hiding is not deleting, and the copy has to keep saying so: the files are read
 off the filesystem at build time and the browser cannot remove them. That is
-why built-in decks carry "Hide" where imported decks carry "Delete". `/study/all`
-is assembled on the server from every built-in deck, hidden ones included, so
-the "Everything, shuffled" card deliberately keeps counting all of them.
+why built-in decks carry "Hide" where imported decks carry "Delete".
+
+`/study/all` and `/print/all` are assembled on the server from every deck, then
+narrowed in the browser by `components/ShuffledSet.tsx` — from `?deck=a,b,c` if
+the link carries one, and from the preferences otherwise. The index writes that
+parameter into the shuffled card's links, so a link says what it contains and
+works for whoever opens it; their own hidden decks are none of its business. A
+single deck is never narrowed: `/study/kafka` opens a hidden deck, because
+hidden is not deleted.
+
+`ShuffledSet` reads the query off `window.location` in an effect rather than
+with `useSearchParams`. On a prerendered route that hook needs a Suspense
+boundary, and a boundary there left the whole subtree unhydrated — the cards
+rendered and no button did anything. If you reintroduce it, click a button
+before believing it works.
 
 Every card carries a uuid `id`, assigned once when it is written into
 `content/*.md` or parsed on import, and never derived from the question text —

@@ -20,10 +20,18 @@ export type DeckSummary = {
 export default function DeckCard({
   deck,
   actions,
+  studyHref,
+  printHref,
 }: {
   deck: DeckSummary;
   actions?: ReactNode;
+  /** Defaults to the deck's own routes. The shuffled card overrides them to
+      carry `?deck=`, so the link contains the set it is offering. */
+  studyHref?: string;
+  printHref?: string;
 }) {
+  const study = studyHref ?? `/study/${deck.slug}`;
+  const print = printHref ?? `/print/${deck.slug}`;
   return (
     <div className="cut relative flex h-full flex-col overflow-hidden rounded-sm bg-card">
       <span
@@ -35,7 +43,7 @@ export default function DeckCard({
         }}
       />
       <Link
-        href={`/study/${deck.slug}`}
+        href={study}
         className="block flex-1 px-5 pt-4 pb-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
       >
         <span className="label text-muted">
@@ -49,13 +57,13 @@ export default function DeckCard({
           them, floating mid-card on anything with a short blurb. */}
       <div className="flex border-t border-rule">
         <Link
-          href={`/study/${deck.slug}`}
+          href={study}
           className="label flex-1 px-5 py-3 text-muted hover:text-ink"
         >
           Study
         </Link>
         <Link
-          href={`/print/${deck.slug}`}
+          href={print}
           className="label border-l border-rule px-4 py-3 text-muted hover:text-ink"
         >
           Print
