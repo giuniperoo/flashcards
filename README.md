@@ -1,7 +1,8 @@
-# Interview flashcards
+# Verso
 
-A recall-first flashcard app built from five printed decks: Gigs, React 19, CAP
-theorem, ACID and SOLID. 80 cards.
+A recall-first flashcard app. Twelve decks, 264 cards. Four of them — React 19,
+CAP theorem, ACID and SOLID — mirror decks that exist as printed cards; the rest
+were written for the same drill.
 
 The one rule the app enforces: you cannot turn a card over until you have
 written something. Recognising an answer feels like knowing it; producing one is
@@ -26,21 +27,29 @@ Open http://localhost:3000.
 ```
 app/
   layout.tsx            shell, fonts, chrome
-  page.tsx              deck index (server component)
+  page.tsx              deck index
+  export/[deck]/route.ts a built-in deck as re-importable markdown
   study/[deck]/page.tsx reviewer, one route per deck plus /study/all
   print/[deck]/page.tsx printable A4 sheets, same routes
   globals.css           Tailwind v4 theme, palette lifted from the print spec
 components/
-  Reviewer.tsx          the only stateful client component
+  Reviewer.tsx          all study state
+  DeckIndex.tsx         headline counts and the built-in deck grid
+  DeckCard.tsx          one deck on the index; both lists render through it
+  DeckVisibility.tsx    the show/hide controls, at the foot of the index
   PrintButton.tsx       one-line client component for window.print()
 lib/
   loadDecks.ts          reads content/*.md at build time
+  prefs.ts              which built-in decks this reader wants to see
   print.ts              sheet pagination and column mirroring
 ```
 
-Only `Reviewer.tsx` and `PrintButton.tsx` are client components, so the
-JavaScript that ships is the reviewer and nothing else. `generateStaticParams`
-prerenders all twelve study and print routes at build time.
+The client components are the interactive parts and nothing else: the reviewer,
+the print button, the importer and generator, and the index components that read
+`localStorage`. Deck cards are rendered from summaries — names and counts, not
+264 cards — so the index ships kilobytes, not the content folder.
+`generateStaticParams` prerenders all thirteen study and print routes at build
+time.
 
 ## Keyboard
 
@@ -69,8 +78,9 @@ shifting the alignment.
 
 `/new` takes a pasted deck or an uploaded `.txt`, `.md`, `.csv`, `.tsv` or
 `.rtf` file, parses it in the browser, shows you what it found, and saves it to
-`localStorage`. Imported decks study and print exactly like the built-in ones,
-and can be exported back out as markdown.
+`localStorage`. Imported decks study and print exactly like the built-in ones.
+Any deck can be exported back out as markdown — an imported one from the
+browser, a built-in one through `/export/[deck]`.
 
 The preferred format:
 
@@ -112,18 +122,39 @@ Imported decks live in one browser. They do not sync, they do not survive
 clearing site data, and a `/study/your-deck` link will not open for anyone else
 — hence the export button. Built-in decks are compiled in and unaffected.
 
+## Hiding the built-in decks
+
+The decks in `content/` are compiled in, so nobody but their author can delete
+them — and somebody running this app for their own material has no use for them.
+The controls at the foot of the index hide them instead: **Hide** on a card for
+one deck, or the toggle beside "Add your own deck" for all of them. The two are
+independent, so turning the built-in decks back on restores whatever selection
+was there before.
+
+Hiding is never deleting. The files stay, the routes still resolve, progress
+against those cards is untouched, and imported decks are never affected. The
+preference lives in `localStorage` under `prefs:index`, and applies before the
+page paints so a hidden grid does not flash up on load.
+
+The headline count follows what is actually on screen: hidden decks are not
+counted, imported ones are.
+
 ## Responsive
 
-Single column throughout, so the layouts differ by scale rather than structure.
-Tap targets are at least 44px, the grading buttons stack on narrow screens, the
+The deck grid goes one column, then two at 640px, and past 1300px the shell
+takes 75% of the viewport and adds a column at 1300, 1800 and 2400px. The extra
+width becomes more cards per row, never wider cards. Study and the import screen
+keep a reading measure of their own at any window size. Tap targets are at least
+44px, the grading buttons stack on narrow screens, the
 answer box uses 16px text on mobile to stop iOS zooming on focus, and the sheet
 preview scrolls horizontally rather than shrinking the cards. The card flip
 respects `prefers-reduced-motion`.
 
 ## Card data
 
-Decks live in `content/*.md`, one file per deck, converted from the printed PDFs
-rather than retyped so the app and the paper decks cannot drift. The filename is
+Decks live in `content/*.md`, one file per deck. The four that exist as printed
+cards were converted from the PDFs rather than retyped, so the app and the paper
+decks cannot drift. The filename is
 the slug: drop a new `.md` in and it becomes a deck, with no code change. An
 unparseable file fails the build rather than disappearing quietly.
 
@@ -142,13 +173,13 @@ your account:
 cd flashcards
 git init
 git add .
-git commit -m "Flashcard reviewer: five decks, recall-first"
+git commit -m "Flashcard reviewer: recall-first"
 
 # with the GitHub CLI
-gh repo create interview-flashcards --private --source=. --push
+gh repo create verso --private --source=. --push
 
 # or, if you made the repo in the browser first
-git remote add origin git@github.com:YOUR_USERNAME/interview-flashcards.git
+git remote add origin git@github.com:YOUR_USERNAME/verso.git
 git branch -M main
 git push -u origin main
 ```
