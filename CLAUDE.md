@@ -186,6 +186,11 @@ leaving later cards' grades intact.
   zoom on focus
 - Colours come from the Tailwind theme in `globals.css`, never hardcoded hex in
   components, except deck tints which are data
+- The shell is `max-w-3xl` up to 1300px and 75% of the viewport past it. The
+  extra width becomes more columns — `.deck-grid` goes 2, 3, 4, 5 — never wider
+  cards, because a deck card stretched to 600px stops reading as a card. Study
+  and the import screen set `max-w-3xl` of their own: a flip card the width of
+  the window no longer matches the printed one, and prose wants a line length
 - `prefers-reduced-motion` is respected by the card flip; keep it that way
 - Errors are specific and actionable, and never blame the user
 

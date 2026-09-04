@@ -34,7 +34,7 @@ export default function CustomDeckList() {
   return (
     <section className="mt-10">
       <h2 className="label mb-3 text-muted">Your decks</h2>
-      <ul className="grid gap-3 sm:grid-cols-2">
+      <ul className="deck-grid">
         {decks.map((deck) => (
           <li key={deck.slug}>
             <DeckCard

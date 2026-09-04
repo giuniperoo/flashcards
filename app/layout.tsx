@@ -51,7 +51,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-paper font-sans antialiased">
-        <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-6 sm:px-8 sm:py-8 print:max-w-none print:p-0">
+        <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-6 sm:px-8 sm:py-8 min-[1300px]:max-w-[75%] print:max-w-none print:p-0">
           <header className="no-print mb-8 flex items-baseline justify-between border-b border-rule pb-4 sm:mb-10">
             <Link href="/" className="label text-muted hover:text-ink">
               Flashcards

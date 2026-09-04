@@ -54,12 +54,12 @@ export default function DeckIndex({
       </p>
 
       {prefs.showBuiltIns && shown.length > 0 && (
-        <ul className="built-ins mt-8 grid gap-3 sm:grid-cols-2 sm:mt-10">
+        <ul className="built-ins deck-grid mt-8 sm:mt-10">
           {/* Counts every built-in deck, hidden ones included, because that
               is what /study/all does: the set is assembled on the server,
               which cannot see what this reader has hidden. Saying "all 11"
               and then dealing 12 would be the worse of the two. */}
-          <li className="sm:col-span-2">
+          <li className="col-span-full">
             <DeckCard deck={shuffled} />
           </li>
           {shown.map((deck) => (

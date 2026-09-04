@@ -17,14 +17,18 @@ export default async function StudyPage({
   const { deck: slug } = await params;
 
   if (slug !== "all" && !getDeck(slug)) {
-    return <CustomDeckView slug={slug} mode="study" />;
+    return (
+      <div className="mx-auto w-full max-w-3xl">
+        <CustomDeckView slug={slug} mode="study" />
+      </div>
+    );
   }
 
   const cards = studySet(slug);
   const title = slug === "all" ? "Everything" : getDeck(slug)!.name;
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-3xl">
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <h1 className="text-2xl font-medium tracking-tight">{title}</h1>
         <div className="flex items-baseline gap-4">
