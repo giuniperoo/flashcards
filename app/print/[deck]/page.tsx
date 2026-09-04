@@ -1,4 +1,5 @@
 import CustomDeckView from "@/components/CustomDeckView";
+import ShuffledSet from "@/components/ShuffledSet";
 import PrintIntro from "@/components/PrintIntro";
 import PrintSheets from "@/components/PrintSheets";
 import { decks, getDeck, studySet } from "@/lib/loadDecks";
@@ -23,6 +24,21 @@ export default async function PrintPage({
 
   const cards = studySet(slug);
   const title = slug === "all" ? "All decks" : getDeck(slug)!.name;
+
+  // The shuffle follows the same hidden decks the index does; a single deck
+  // prints whatever the file says, hidden or not.
+  if (slug === "all") {
+    return (
+      <div>
+        <ShuffledSet
+          cards={cards}
+          slugs={decks.map((d) => d.slug)}
+          mode="print"
+          title={title}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>

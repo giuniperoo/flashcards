@@ -2,6 +2,7 @@
 
 import DeckCard, { type DeckSummary } from "@/components/DeckCard";
 import { visibleDecks } from "@/lib/prefs";
+import { DECK_PARAM, deckParamFor } from "@/lib/deckFilter";
 import { useCustomDecks } from "@/lib/useCustomDecks";
 import { usePrefs } from "@/lib/usePrefs";
 
@@ -33,6 +34,11 @@ export default function DeckIndex({
     update({ ...prefs, hiddenDecks: [...prefs.hiddenDecks, slug] });
 
   const shown = visibleDecks(decks, prefs);
+  const param = deckParamFor(
+    shown.map((deck) => deck.slug),
+    decks.map((deck) => deck.slug),
+  );
+  const query = param ? `?${DECK_PARAM}=${encodeURIComponent(param)}` : "";
 
   // `custom` is null until the first read, which counts as nothing rather than
   // as zero decks: the server said the same, so no number moves on hydration.
@@ -55,12 +61,20 @@ export default function DeckIndex({
 
       {prefs.showBuiltIns && shown.length > 0 && (
         <ul className="built-ins deck-grid mt-8 sm:mt-10">
-          {/* Counts every built-in deck, hidden ones included, because that
-              is what /study/all does: the set is assembled on the server,
-              which cannot see what this reader has hidden. Saying "all 11"
-              and then dealing 12 would be the worse of the two. */}
+          {/* The link carries the decks it is offering, so the card can
+              count what it will actually deal rather than every deck in
+              content/. Without a parameter the shuffle falls back to these
+              same preferences, so a bookmark behaves the same way. */}
           <li className="col-span-full">
-            <DeckCard deck={shuffled} />
+            <DeckCard
+              deck={{
+                ...shuffled,
+                blurb: `All ${shown.length} decks interleaved — the honest test`,
+                count: shown.reduce((n, deck) => n + deck.count, 0),
+              }}
+              studyHref={`/study/all${query}`}
+              printHref={`/print/all${query}`}
+            />
           </li>
           {shown.map((deck) => (
             <li key={deck.slug} data-deck={deck.slug}>
