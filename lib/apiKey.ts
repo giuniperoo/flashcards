@@ -8,9 +8,10 @@
  *
  * The key is held in `localStorage`, which is readable by any script running on
  * the page. That is safe here only because nothing in this app renders
- * user-supplied text as HTML — there is no `dangerouslySetInnerHTML` anywhere,
- * so an imported deck is inert text. If that ever changes, a malicious deck
- * could read this key, and this store needs to change with it.
+ * user-supplied text as HTML — an imported deck is inert text. The single
+ * `dangerouslySetInnerHTML` in the app, in `app/layout.tsx`, is a constant
+ * string that never touches deck content. If either of those changes, a
+ * malicious deck could read this key, and this store needs to change with it.
  */
 
 export const KEY_STORAGE = "llm:key";

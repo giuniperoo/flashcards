@@ -1,28 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { Deck } from "@/lib/types";
-import {
-  deleteCustomDeck,
-  loadCustomDecks,
-  toDeckText,
-} from "@/lib/customDecks";
+import { deleteCustomDeck, toDeckText } from "@/lib/customDecks";
+import { useCustomDecks } from "@/lib/useCustomDecks";
 
 export default function CustomDeckList() {
-  const [decks, setDecks] = useState<Deck[] | null>(null);
-
-  const refresh = useCallback(() => setDecks(loadCustomDecks()), []);
-
-  useEffect(() => {
-    refresh();
-    window.addEventListener("custom-decks-changed", refresh);
-    window.addEventListener("storage", refresh);
-    return () => {
-      window.removeEventListener("custom-decks-changed", refresh);
-      window.removeEventListener("storage", refresh);
-    };
-  }, [refresh]);
+  const decks = useCustomDecks();
 
   const download = (deck: Deck) => {
     const blob = new Blob([toDeckText(deck)], {

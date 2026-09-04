@@ -46,10 +46,16 @@ to need one of them, stop and ask rather than introducing it.
 ## Architecture
 
 Server components by default. Only `Reviewer.tsx`, `PrintButton.tsx`,
-`DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx` and
-`CustomDeckView.tsx` are client components, and that list should not grow
+`DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx`, `DeckIndex.tsx`
+and `CustomDeckView.tsx` are client components, and that list should not grow
 without a reason. The point is that
 the JavaScript shipped is the interactive parts and nothing else.
+
+`DeckIndex.tsx` earns its place by counting: the headline totals span the
+built-in decks and the imported ones, and the imported ones only exist in the
+browser. The deck cards it wraps are still rendered on the server and passed in
+as `children`, so the markup never reaches the bundle — only the count and the
+show/hide toggle do.
 
 ```
 app/
@@ -59,6 +65,7 @@ app/
   print/[deck]/page.tsx A4 sheets
 components/
   Reviewer.tsx          all study state
+  DeckIndex.tsx         headline counts, and hiding the built-in decks
   DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
   PrintSheets.tsx       shared by the built-in and custom print paths
 lib/
@@ -71,6 +78,8 @@ lib/
   progress.ts           progress store, card keys, and v1 to v2 migration
   cardId.ts             uuid for new cards
   apiKey.ts             the user's own Anthropic key, its own localStorage key
+  prefs.ts              index preferences; so far, showing the built-in decks
+  useCustomDecks.ts     the imported decks, kept in step with localStorage
   generateDeck.ts       browser-direct call to Anthropic — CLIENT ONLY
 ```
 
@@ -127,6 +136,13 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
 - `progress:{slug}` — `{ version: 2, drafts, grades }`, keyed by
   `{deckSlug}:{cardId}`
+- `prefs:index` — `{ version: 1, showBuiltIns }`
+
+`prefs:index` is read twice: by `lib/prefs.ts`, and by a small inline script in
+`app/layout.tsx` that runs before paint and sets `data-built-ins-hidden` on
+`<html>`. Without that script a reader who has hidden the built-in decks sees
+all of them flash up on every load, because the server has no way to know. If
+the storage key or its shape changes, both readers change together.
 
 Every card carries a uuid `id`, assigned once when it is written into
 `content/*.md` or parsed on import, and never derived from the question text —

@@ -1,25 +1,17 @@
 import Link from "next/link";
 import CustomDeckList from "@/components/CustomDeckList";
+import DeckIndex from "@/components/DeckIndex";
 import { decks, totalCards } from "@/lib/loadDecks";
 
 export default function Home() {
   return (
     <div>
-      <h1 className="max-w-xl text-2xl leading-tight font-medium tracking-tight sm:text-3xl">
-        Five decks, {totalCards} cards, one rule: write the answer before you
-        turn the card over.
-      </h1>
-      <p className="mt-4 max-w-lg text-muted">
-        Recognising an answer feels like knowing it. Producing one is the part
-        that holds up under questioning.
-      </p>
-
-      <ul className="mt-8 grid gap-3 sm:mt-10 sm:grid-cols-2">
+      <DeckIndex builtInDecks={decks.length} builtInCards={totalCards}>
         <li className="sm:col-span-2">
           <DeckCard
             slug="all"
             name="Everything, shuffled"
-            blurb="All five decks interleaved — the honest test"
+            blurb={`All ${decks.length} decks interleaved — the honest test`}
             count={totalCards}
             tint="#e4e2da"
           />
@@ -35,7 +27,7 @@ export default function Home() {
             />
           </li>
         ))}
-      </ul>
+      </DeckIndex>
 
       <CustomDeckList />
 

@@ -28,6 +28,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${body.variable} ${label.variable}`}>
+      <head>
+        {/*
+          Runs before paint, so decks the reader has hidden never flash up
+          during hydration. It reads the same key as `lib/prefs.ts` and sets the
+          attribute that `globals.css` hides the grid on; React owns the element
+          from hydration onwards. A constant string, not user input — see the
+          note in `lib/apiKey.ts`.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{var p=JSON.parse(localStorage.getItem("prefs:index")||"{}");' +
+              'if(p.showBuiltIns===false)' +
+              'document.documentElement.setAttribute("data-built-ins-hidden","")}catch(e){}',
+          }}
+        />
+      </head>
       <body className="bg-paper font-sans antialiased">
         <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-6 sm:px-8 sm:py-8 print:max-w-none print:p-0">
           <header className="no-print mb-8 flex items-baseline justify-between border-b border-rule pb-4 sm:mb-10">
