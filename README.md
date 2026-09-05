@@ -1,6 +1,5 @@
 <img src="public/logo.svg" alt="Flashcards" width="265">
-
-# Verso
+<br><br>
 
 A recall-first flashcard app. Twelve decks, 264 cards. Four of them — React 19,
 CAP theorem, ACID and SOLID — mirror decks that exist as printed cards; the rest
@@ -55,13 +54,13 @@ time.
 
 ## Keyboard
 
-| Key | Action |
-| --- | --- |
-| Cmd/Ctrl + Enter | Turn the card over |
-| Left / Right | Previous / next card |
-| 1 or K | Mark held (once turned over) |
-| 2 or R | Mark for review (once turned over) |
-| S | Shuffle |
+| Key              | Action                             |
+| ---------------- | ---------------------------------- |
+| Cmd/Ctrl + Enter | Turn the card over                 |
+| Left / Right     | Previous / next card               |
+| 1 or K           | Mark held (once turned over)       |
+| 2 or R           | Mark for review (once turned over) |
+| S                | Shuffle                            |
 
 Arrow and letter shortcuts stand down while you are typing in the answer box.
 
