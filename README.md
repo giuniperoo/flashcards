@@ -1,3 +1,5 @@
+<img src="public/logo.svg" alt="Flashcards" width="265">
+
 # Verso
 
 A recall-first flashcard app. Twelve decks, 264 cards. Four of them — React 19,

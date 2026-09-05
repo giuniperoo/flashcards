@@ -52,9 +52,20 @@ export default function RootLayout({
       </head>
       <body className="bg-paper font-sans antialiased">
         <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-6 sm:px-8 sm:py-8 min-[1300px]:max-w-[75%] print:max-w-none print:p-0">
-          <header className="no-print mb-8 flex items-baseline justify-between border-b border-rule pb-4 sm:mb-10">
-            <Link href="/" className="label text-muted hover:text-ink">
-              Flashcards
+          <header className="no-print mb-8 flex items-center justify-between border-b border-rule pb-4 sm:mb-10">
+            <Link
+              href="/"
+              className="inline-flex rounded-sm opacity-90 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink"
+            >
+              {/*
+                next/image has nothing to optimise in a 4KB vector already at
+                its final size, and would need dangerouslyAllowSVG turned on to
+                serve it at all. 132x38 puts the mark's letters at about 9.5px
+                against the 11px label opposite; smaller reads weedy beside it.
+                The alt text carries the name the link used to spell out.
+              */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.svg" alt="Flashcards" width={132} height={38} />
             </Link>
             <span className="label text-muted">Recall, then flip</span>
           </header>
