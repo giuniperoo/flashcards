@@ -313,7 +313,7 @@ export default function DeckGenerator({
       )}
 
       {error && (
-        <p role="alert" className="mt-3 text-sm text-[#a32d2d]">
+        <p role="alert" className="mt-3 text-sm text-error">
           {error}
         </p>
       )}

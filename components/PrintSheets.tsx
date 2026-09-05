@@ -65,7 +65,11 @@ function PrintCard({ slot, side }: { slot: Slot; side: "question" | "answer" }) 
       <span className="pcard-tri" style={{ background: slot.deck.tint }} />
       <span
         className="pcard-label"
-        style={{ color: isQuestion ? "#185FA5" : "#0F6E56" }}
+        style={{
+          color: isQuestion
+            ? "var(--color-question)"
+            : "var(--color-answer)",
+        }}
       >
         CARD {slot.index + 1} · {isQuestion ? "QUESTION" : "ANSWER"}
       </span>

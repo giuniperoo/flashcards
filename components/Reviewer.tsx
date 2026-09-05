@@ -19,6 +19,58 @@ function shuffled<T>(items: T[]) {
   return copy;
 }
 
+/* The progress strip's geometry: how many dashes go in a row.
+ *
+ * The cap is dynamic. MAX_PER_ROW is the most a row may hold so a dash stays
+ * wide enough to read, and MIN_DASH stops a narrow screen from packing that
+ * many in anyway — whichever binds gives the capacity.
+ *
+ * Then the rows are chosen before the columns, and chosen to fill the last
+ * one. `count / rows` rounded up is the column count for a given number of
+ * rows, so walking the row count upwards from the fewest that fit and
+ * keeping the fullest last row lands on a row count that divides the deck
+ * where one exists nearby: 264 cards capped at 40 gives 7 rows of 38 with a
+ * stub of 36, but 8 rows of 33 comes out exactly even, so 33 wins. On a
+ * phone, where the cap falls to 31, it finds 11 rows of 24.
+ *
+ * It is best effort, not a guarantee — a prime card count has no even split
+ * at all, so the search takes the fullest last row in the window and stops.
+ * Searching further would buy a rounder strip at the cost of rows nobody
+ * asked for.
+ *
+ * A deck smaller than the capacity is one row of `count`, which `1fr`
+ * columns stretch across the full width. */
+const MAX_PER_ROW = 40;
+const MIN_DASH = 8;
+const COL_GAP = 3;
+const EXTRA_ROWS = 4;
+
+function columnsFor(count: number, width: number) {
+  if (count < 1) return 1;
+  const fits = Math.floor((width + COL_GAP) / (MIN_DASH + COL_GAP));
+  const capacity = Math.max(1, Math.min(MAX_PER_ROW, fits));
+  const fewest = Math.ceil(count / capacity);
+
+  let best = capacity;
+  let bestFill = -1;
+  for (let rows = fewest; rows <= fewest + EXTRA_ROWS; rows++) {
+    const columns = Math.ceil(count / rows);
+    const last = count - (rows - 1) * columns;
+    /* Rounding up can make the rows before the last hold everything, which
+       means this row count is not reachable. Skip it. */
+    if (last < 1) continue;
+    const fill = last / columns;
+    if (fill > bestFill) {
+      best = columns;
+      bestFill = fill;
+      /* Exactly even. Nothing further can beat it, and every later row
+         count only adds rows. */
+      if (fill === 1) break;
+    }
+  }
+  return best;
+}
+
 function isTyping(target: EventTarget | null) {
   const el = target as HTMLElement | null;
   return !!el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT");
@@ -146,6 +198,28 @@ export default function Reviewer({
     return () => window.removeEventListener("keydown", onKey);
   }, [flip, move, grade, shuffle, flipped]);
 
+  /* The strip needs its own width to choose a column count, and the width
+     depends on the viewport. Measured rather than guessed, so the count is
+     right at any size; `columns` starts at 0 and the strip renders a single
+     row until the first measurement lands, one frame later. */
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [stripWidth, setStripWidth] = useState(0);
+
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      setStripWidth(entry.contentRect.width);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const columns = useMemo(
+    () => columnsFor(order.length, stripWidth),
+    [order.length, stripWidth],
+  );
+
   const tally = useMemo(() => {
     const values = order.map((c) => saved.grades[cardKey(c)]);
     return {
@@ -220,7 +294,7 @@ export default function Reviewer({
               className="mt-5 w-full shrink-0 grow resize-y rounded-sm border border-rule bg-transparent p-3 text-base leading-relaxed outline-none placeholder:text-muted focus:border-ink sm:text-[15px]"
             />
             {error && (
-              <p id="recall-error" role="alert" className="mt-2 text-sm text-[#a32d2d]">
+              <p id="recall-error" role="alert" className="mt-2 text-sm text-error">
                 Write something first — the guess is the part that works.
               </p>
             )}
@@ -292,22 +366,45 @@ export default function Reviewer({
         </button>
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-[3px]" aria-hidden>
+      {/* One dash per card, on a grid rather than a wrapping flex row.
+       *
+       * Every column is `1fr` of the same track list, so every dash is the
+       * same width. The old `flex-1` stretched whatever was left over onto
+       * the final row, which is why a 46-card last row read as dashes three
+       * times wider than the rows above it.
+       *
+       * `columnsFor` picks the count; see it for why rows come first.
+       *
+       * Rows are a fixed 7px with the dashes centred in them, so a row is
+       * not resized by the taller current-card marker, and the row gap is
+       * wider than the column gap — rows read as rows. */}
+      <div
+        className="mt-5 grid items-center gap-x-[3px] gap-y-[5px]"
+        ref={stripRef}
+        style={{
+          gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+          gridAutoRows: "7px",
+        }}
+        aria-hidden
+      >
         {order.map((c, i) => {
           const g = saved.grades[cardKey(c)];
+          /* The current card is full row height rather than a wider dash:
+             at 8px there is no width to spare, and a taller mark stays
+             findable in several hundred of them. */
+          const current = i === position;
           return (
             <span
               key={cardKey(c)}
-              className="h-[3px] min-w-[4px] flex-1 rounded-full"
+              className={`rounded-full ${current ? "h-[7px]" : "h-[3px]"}`}
               style={{
-                background:
-                  i === position
-                    ? c.deck.ink
-                    : g === "held"
-                      ? "#9fe1cb"
-                      : g === "review"
-                        ? "#f7c1c1"
-                        : "var(--color-rule)",
+                background: current
+                  ? c.deck.ink
+                  : g === "held"
+                    ? "var(--color-held)"
+                    : g === "review"
+                      ? "var(--color-review)"
+                      : "var(--color-rule)",
               }}
             />
           );

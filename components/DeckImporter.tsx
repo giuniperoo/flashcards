@@ -151,7 +151,7 @@ export default function DeckImporter({
           {parsed.errors.length > 0 && (
             <ul role="alert" className="mt-3 space-y-1">
               {parsed.errors.map((issue, i) => (
-                <li key={i} className="text-sm text-[#a32d2d]">
+                <li key={i} className="text-sm text-error">
                   Line {issue.line}: {issue.message}
                 </li>
               ))}
@@ -187,7 +187,7 @@ export default function DeckImporter({
       )}
 
       {saveError && (
-        <p role="alert" className="mt-3 text-sm text-[#a32d2d]">
+        <p role="alert" className="mt-3 text-sm text-error">
           {saveError}
         </p>
       )}
