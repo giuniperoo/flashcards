@@ -6,6 +6,14 @@
   --color-ink: #2c2c2a;
   --color-muted: #78776f;
   --color-rule: #ccc6b8;
+  /* The two grades a card can carry, in the progress strip.
+     Ordered by how far forward they should sit: ungraded `rule` is
+     flattest at S 16%/L 76%, `held` next, and `review` furthest
+     forward — it is the one you still owe work to. They used to be a
+     mint and a pink written inline in Reviewer, with review at L 86%,
+     lighter than ungraded, so the cards to revisit receded. */
+  --color-held: #9fc6b1;
+  --color-review: #d88f79;
   --color-question: #185fa5;
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;

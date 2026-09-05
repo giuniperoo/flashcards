@@ -401,9 +401,9 @@ export default function Reviewer({
                 background: current
                   ? c.deck.ink
                   : g === "held"
-                    ? "#9fe1cb"
+                    ? "var(--color-held)"
                     : g === "review"
-                      ? "#f7c1c1"
+                      ? "var(--color-review)"
                       : "var(--color-rule)",
               }}
             />
