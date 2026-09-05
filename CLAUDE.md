@@ -93,6 +93,17 @@ anything else renders `CustomDeckView`, which reads `localStorage` on the client
 
 ## Things that will break if you "improve" them
 
+**The mark is generated, not hand-edited.** `public/logo.svg` comes out of
+`tools/wordmark.py`, and `app/icon.png` and `app/apple-icon.png` out of
+`tools/app-icons.py`. Editing the SVG by hand works until the next regeneration
+throws it away. The letters in the wordmark are outlines rather than `<text>`,
+because an SVG that lands somewhere without IBM Plex Mono would otherwise fall
+back to another mono and no longer fit the frame drawn around it — which also
+means `tools/wordmark.py` needs `pnpm run build` to have run, since that is what
+puts the font on disk. The icon carries a lighter frame and bolt outline than
+the wordmark: the wordmark's weights are hairlines at 265x76 and heavy on a
+square.
+
 **`content/*.md` is the source of the printed cards.** One file per deck; the
 filename is the slug, so adding a file adds a deck and nothing else is needed.
 Card *content* is fixed — these decks mirror physical cards, so editing a `q` or
