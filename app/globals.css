@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f4f3ef;
-  --color-card: #fbfaf7;
+  --color-paper: #f6f4ef;
+  --color-card: #fcfbf8;
   --color-ink: #2c2c2a;
   --color-muted: #78776f;
-  --color-rule: #c9c7bd;
+  --color-rule: #ccc6b8;
   --color-question: #185fa5;
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;

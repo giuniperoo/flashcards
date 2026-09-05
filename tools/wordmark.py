@@ -54,7 +54,15 @@ BOLT_STROKE = 2.0
 BOLT = "M18 0 L0 42 H12 L9 72 L30 26 H16 Z"      # ink 30 wide, 72 tall
 BOLT_W, BOLT_H = 30.0, 72.0
 
-CREAM, RED, GOLD, INK = "#E0D4BF", "#B72622", "#DAAD3B", "#2C2C2A"
+# The frame and the bolt are named for their role, not their hue: they were a
+# saturated red and gold, and the mark was then the only mid-light, heavily
+# saturated field on the site. Every deck tint sits at L 83-90% and every deck
+# ink at S 33-51%/L 30-59%, so the two hot colours were moved into that ink
+# register, taking the warm hue SOLID already uses (tint #FAD9BE, ink #B87A3C).
+# They stay inks rather than tints because the frame is a 4.2/76 hairline and
+# has to hold the mark together at favicon size; a pastel frame on the cream
+# ground is 5 points of lightness apart and disappears there.
+CREAM, FRAME, BOLT_FILL, INK = "#E0D4BF", "#B87A3C", "#D9B77D", "#2C2C2A"
 
 
 def find_font(family="IBM Plex Mono Regular", needed="FLASHCARDS"):
@@ -147,10 +155,10 @@ def main():
     spacing is measured on ink: {GAP:g} either side of the bolt, {PAD:g} to the frame.
   -->
   <rect x="0" y="0" width="{width:g}" height="{HEIGHT:g}" rx="{RADIUS:g}" fill="{CREAM}"/>
-  <rect x="{FRAME_STROKE / 2:g}" y="{FRAME_STROKE / 2:g}" width="{width - FRAME_STROKE:g}" height="{HEIGHT - FRAME_STROKE:g}" rx="{RADIUS - FRAME_STROKE / 2:g}" fill="none" stroke="{RED}" stroke-width="{FRAME_STROKE:g}"/>
+  <rect x="{FRAME_STROKE / 2:g}" y="{FRAME_STROKE / 2:g}" width="{width - FRAME_STROKE:g}" height="{HEIGHT - FRAME_STROKE:g}" rx="{RADIUS - FRAME_STROKE / 2:g}" fill="none" stroke="{FRAME}" stroke-width="{FRAME_STROKE:g}"/>
   <path d="{flash.getCommands()}" fill="{INK}"/>
   <g transform="translate({bolt_x:.2f},{(HEIGHT - BOLT_H) / 2:g})">
-    <path d="{BOLT}" fill="{GOLD}" stroke="{RED}" stroke-width="{BOLT_STROKE:g}" stroke-linejoin="round"/>
+    <path d="{BOLT}" fill="{BOLT_FILL}" stroke="{FRAME}" stroke-width="{BOLT_STROKE:g}" stroke-linejoin="round"/>
   </g>
   <path d="{cards.getCommands()}" fill="{INK}"/>
 </svg>

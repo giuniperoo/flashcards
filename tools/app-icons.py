@@ -10,7 +10,9 @@ the same object, with one deliberate exception noted below.
 """
 from PIL import Image, ImageDraw
 
-CREAM, RED, GOLD = (224, 212, 191), (183, 38, 34), (218, 173, 59)
+# Named for role, not hue, and kept in step with tools/wordmark.py — change
+# one, change the other. The reasoning for these values lives there.
+CREAM, FRAME, BOLT_FILL = (224, 212, 191), (184, 122, 60), (217, 183, 125)
 SS = 8                       # supersample, then downsample for clean edges
 
 # Everything as a fraction of the mark's 76-unit height, and these are the
@@ -36,7 +38,7 @@ def draw_icon(size, opaque):
     if not opaque:
         d.rounded_rectangle([0, 0, n - 1, n - 1], radius=r, fill=CREAM)
     # Same band as the SVG: the frame sits on the outer edge of the cream.
-    d.rounded_rectangle([0, 0, n - 1, n - 1], radius=r, outline=RED, width=stroke)
+    d.rounded_rectangle([0, 0, n - 1, n - 1], radius=r, outline=FRAME, width=stroke)
 
     # The bolt keeps its aspect and its overshoot: as tall relative to the mark
     # as it is in the wordmark, so it meets the frame top and bottom.
@@ -45,12 +47,12 @@ def draw_icon(size, opaque):
     sx, sy = w / 30, h / 72
     ox, oy = (n - w) / 2, (n - h) / 2
     pts = [(ox + x * sx, oy + y * sy) for x, y in BOLT]
-    d.polygon(pts, fill=GOLD)
+    d.polygon(pts, fill=BOLT_FILL)
     # Not polygon(outline=...): that strokes each edge separately and leaves a
     # notch at every concave corner, which is where this bolt has four of them.
     # A closed line with rounded joins is also what the SVG does — the wordmark
     # sets stroke-linejoin="round" — so the two bolts come out the same shape.
-    d.line(pts + [pts[0]], fill=RED, width=max(1, round(BOLT_STROKE * n)),
+    d.line(pts + [pts[0]], fill=FRAME, width=max(1, round(BOLT_STROKE * n)),
            joint="curve")
 
     im = im.resize((size, size), Image.LANCZOS)
