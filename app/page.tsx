@@ -19,7 +19,9 @@ export default function Home() {
           slug: "all",
           name: "Everything, shuffled",
           blurb: `All ${decks.length} decks interleaved — the honest test`,
-          tint: "#e4e2da",
+          // The mark's own cream ground: the card that is every deck wears
+          // the logo's colour rather than a hue that would read as a deck.
+          tint: "#e0d4bf",
           count: totalCards,
         }}
       />
