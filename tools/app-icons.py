@@ -57,9 +57,15 @@ def draw_icon(size, opaque):
     return im.convert("RGB") if opaque else im
 
 
-# icon.png keeps its transparent corners: it sits on whatever a browser tab or
-# a bookmark bar happens to be. apple-icon.png is painted to the edges, because
-# iOS masks the corners itself and renders alpha as black.
+# Both keep their transparent corners.
+#
+# iOS composites an apple-touch-icon's alpha onto black, which is the usual
+# reason to paint one edge to edge — but it then masks the tile with a
+# superellipse, and this mark's corner radius is 16/76, near enough the same
+# silhouette. Diagonally the mask reaches about 1.23 times the half-width and
+# the rounded rect about 1.24, so the corners are clipped either way and the
+# black never survives. Painting them cream only shows up somewhere that does
+# not mask, and there a square cream tile is the worse of the two.
 draw_icon(512, opaque=False).save("app/icon.png")
-draw_icon(180, opaque=True).save("app/apple-icon.png")
-print("wrote app/icon.png (512, alpha) and app/apple-icon.png (180, opaque)")
+draw_icon(180, opaque=False).save("app/apple-icon.png")
+print("wrote app/icon.png (512) and app/apple-icon.png (180), both with alpha")
