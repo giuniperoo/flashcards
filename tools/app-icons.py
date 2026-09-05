@@ -13,16 +13,15 @@ from PIL import Image, ImageDraw
 CREAM, RED, GOLD = (224, 212, 191), (183, 38, 34), (218, 173, 59)
 SS = 8                       # supersample, then downsample for clean edges
 
-# Everything as a fraction of the mark's 76-unit height, from public/logo.svg.
+# Everything as a fraction of the mark's 76-unit height, and these are the
+# wordmark's own numbers — see FRAME_STROKE and BOLT_STROKE in tools/wordmark.py.
+# The icon is that mark with the words taken out, so the two stay in step: change
+# one, change the other.
 RADIUS = 16 / 76
-# Lighter than the wordmark's 5 and 2. Those weights are hairlines on a mark
-# 76 tall and 265 wide; on a square the frame closes in on itself and the
-# bolt's red edge starts to compete with its gold.
-STROKE = 4 / 76
+STROKE = 4.2 / 76
 BOLT_H = 72 / 76
 BOLT_W = 30 / 76
-BOLT_STROKE = 1 / 76
-# The bolt path in its own 30x72 space, as in the wordmark.
+BOLT_STROKE = 2 / 76
 BOLT = [(18, 0), (0, 42), (12, 42), (9, 72), (30, 26), (16, 26)]
 
 
@@ -46,7 +45,13 @@ def draw_icon(size, opaque):
     sx, sy = w / 30, h / 72
     ox, oy = (n - w) / 2, (n - h) / 2
     pts = [(ox + x * sx, oy + y * sy) for x, y in BOLT]
-    d.polygon(pts, fill=GOLD, outline=RED, width=max(1, round(BOLT_STROKE * n)))
+    d.polygon(pts, fill=GOLD)
+    # Not polygon(outline=...): that strokes each edge separately and leaves a
+    # notch at every concave corner, which is where this bolt has four of them.
+    # A closed line with rounded joins is also what the SVG does — the wordmark
+    # sets stroke-linejoin="round" — so the two bolts come out the same shape.
+    d.line(pts + [pts[0]], fill=RED, width=max(1, round(BOLT_STROKE * n)),
+           joint="curve")
 
     im = im.resize((size, size), Image.LANCZOS)
     return im.convert("RGB") if opaque else im
