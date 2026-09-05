@@ -57,7 +57,7 @@ export default function CustomDeckList() {
                   <button
                     type="button"
                     onClick={() => remove(deck)}
-                    className="label border-l border-rule px-4 py-3 text-muted hover:text-[#a32d2d]"
+                    className="label border-l border-rule px-4 py-3 text-muted hover:text-error"
                   >
                     Delete
                   </button>

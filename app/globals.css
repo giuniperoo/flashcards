@@ -14,6 +14,9 @@
      lighter than ungraded, so the cards to revisit receded. */
   --color-held: #9fc6b1;
   --color-review: #d88f79;
+  /* Error text. Was written inline as #a32d2d in five places across
+     four components. */
+  --color-error: #a32d2d;
   --color-question: #185fa5;
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;

@@ -294,7 +294,7 @@ export default function Reviewer({
               className="mt-5 w-full shrink-0 grow resize-y rounded-sm border border-rule bg-transparent p-3 text-base leading-relaxed outline-none placeholder:text-muted focus:border-ink sm:text-[15px]"
             />
             {error && (
-              <p id="recall-error" role="alert" className="mt-2 text-sm text-[#a32d2d]">
+              <p id="recall-error" role="alert" className="mt-2 text-sm text-error">
                 Write something first — the guess is the part that works.
               </p>
             )}
