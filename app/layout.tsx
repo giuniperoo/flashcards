@@ -55,7 +55,7 @@ export default function RootLayout({
           <header className="no-print mb-8 flex items-center justify-between border-b border-rule pb-4 sm:mb-10">
             <Link
               href="/"
-              className="inline-flex rounded-sm opacity-90 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink"
+              className="inline-flex cursor-pointer rounded-sm opacity-90 transition-opacity select-none hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink"
             >
               {/*
                 next/image has nothing to optimise in a 4KB vector already at
@@ -63,9 +63,20 @@ export default function RootLayout({
                 serve it at all. 132x38 puts the mark's letters at about 9.5px
                 against the 11px label opposite; smaller reads weedy beside it.
                 The alt text carries the name the link used to spell out.
+
+                cursor-pointer, select-none and draggable={false} make the mark
+                behave as one clickable object rather than as content sitting
+                inside a link: no text caret over it, no drag ghost, and the
+                pointer does not depend on a browser's default for a link.
               */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.svg" alt="Flashcards" width={132} height={38} />
+              <img
+                src="/logo.svg"
+                alt="Flashcards"
+                width={132}
+                height={38}
+                draggable={false}
+              />
             </Link>
             <span className="label text-muted">Recall, then flip</span>
           </header>
