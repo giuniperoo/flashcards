@@ -19,8 +19,11 @@ function check(name: string, actual: unknown, expected: unknown) {
 }
 
 const all = ["acid", "cap", "kafka", "solid"];
+// The built-in decks are off until the reader turns them on, so the cases
+// about hiding one deck have to say that the rest are on.
 const prefs = (over: Partial<IndexPrefs> = {}): IndexPrefs => ({
   ...DEFAULT_PREFS,
+  showBuiltIns: true,
   ...over,
 });
 
@@ -43,6 +46,16 @@ check(
   "without a parameter, hidden decks are left out",
   slugsToStudy(all, null, prefs({ hiddenDecks: ["cap", "solid"] })),
   ["acid", "kafka"],
+);
+check(
+  "a first visit draws nothing from the built-in decks",
+  slugsToStudy(all, null, DEFAULT_PREFS),
+  [],
+);
+check(
+  "a shared link still works on a first visit",
+  slugsToStudy(all, ["kafka"], DEFAULT_PREFS),
+  ["kafka"],
 );
 check(
   "the master switch empties the shuffle",

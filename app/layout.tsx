@@ -28,28 +28,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${body.variable} ${label.variable}`}>
-      <head>
-        {/*
-          Applies the reader's deck preferences before paint, so decks they
-          have hidden never flash up while the page hydrates — the server has
-          no way to know which those are. Same storage key as `lib/prefs.ts`;
-          `DeckIndex` removes this tag once React is rendering the truth.
-          Slugs are checked against the shape a slug can have before going into
-          a selector, so a hand-edited storage value cannot inject CSS.
-        */}
-        <script
-          id="deck-prefs-script"
-          dangerouslySetInnerHTML={{
-            __html:
-              'try{var p=JSON.parse(localStorage.getItem("prefs:index")||"{}"),r=[];' +
-              'if(p.showBuiltIns===false)r.push(".built-ins");' +
-              'else if(p.hiddenDecks&&p.hiddenDecks.length)p.hiddenDecks.forEach(function(s){' +
-              'if(/^[a-z0-9-]+$/.test(s))r.push("[data-deck="+JSON.stringify(s)+"]")});' +
-              'if(r.length){var t=document.createElement("style");t.id="deck-prefs";' +
-              't.textContent=r.join(",")+"{display:none}";document.head.appendChild(t)}}catch(e){}',
-          }}
-        />
-      </head>
       <body className="bg-paper font-sans antialiased">
         {/* `relative z-10` opens a stacking context, which is what lets the
             index's `LogoSun` sit behind this on a negative z-index without
