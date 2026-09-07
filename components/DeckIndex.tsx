@@ -53,12 +53,12 @@ export default function DeckIndex({
 
   return (
     <div>
-      <h1 className="max-w-xl text-2xl leading-tight font-medium tracking-tight sm:text-3xl">
+      <h1 className="max-w-[40rem] text-2xl leading-tight font-medium tracking-tight sm:text-3xl">
         {deckTotal === 0
           ? "No decks yet. One rule when you add one: write the answer before you turn the card over."
           : `${count(deckTotal, "deck")}, ${count(cardTotal, "card")}, one rule: write the answer before you turn the card over.`}
       </h1>
-      <p className="mt-4 max-w-lg text-muted">
+      <p className="mt-4 max-w-[33rem] text-muted">
         Recognising an answer feels like knowing it. Producing one is the part
         that holds up under questioning.
       </p>

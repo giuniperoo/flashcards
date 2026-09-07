@@ -31,7 +31,7 @@ export default function Home() {
 
       <CustomDeckList />
 
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:mt-25">
         <Link
           href="/new"
           className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink"
