@@ -9,6 +9,9 @@ The one rule the app enforces: you cannot turn a card over until you have
 written something. Recognising an answer feels like knowing it; producing one is
 the part that survives an interview.
 
+Live at **[f.lash.cards](https://f.lash.cards)**. The built-in decks start
+hidden, so a first visit is empty — turn them on at the foot of the index.
+
 ## Stack
 
 Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4. No database —
