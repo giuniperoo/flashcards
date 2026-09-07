@@ -164,3 +164,9 @@ Rewriting one makes the card read as new and drops its history.
 
 Each deck carries the pastel tint used for the corner triangle on the printed
 card, so a card looks the same on screen as it does in your hand.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE). That covers the code and the card content
+alike: the decks are original, and the four that exist as printed cards were
+written for those cards.
