@@ -135,7 +135,26 @@ export function customStudySet(deck: Deck): StudyCard[] {
 }
 
 export function toDeckText(deck: Deck) {
-  const head = [`# ${deck.name}`, `tint: ${deck.tint}`, `blurb: ${deck.blurb}`];
+  // `ink:` only when the tint would not give it, and in the order the decks in
+  // `content/` carry it.
+  //
+  // An ink is derived from its tint's hue, so most decks need no line at all —
+  // leaving it out is what keeps them tracking `shadeForTint`, rather than
+  // freezing today's shade into a file. The decks that do carry one are the
+  // built-ins, whose inks came from the print spec and sit up to 21 points of
+  // saturation and 20 of lightness off the formula, in both directions. Those
+  // cannot be derived, and dropping the line would recolour a printed deck.
+  const head = [`# ${deck.name}`, `tint: ${deck.tint}`];
+  if (deck.ink.toUpperCase() !== shadeForTint(deck.tint).toUpperCase()) {
+    head.push(`ink: ${deck.ink}`);
+  }
+  head.push(`blurb: ${deck.blurb}`);
   const body = deck.cards.map((c) => `id: ${c.id}\nQ: ${c.q}\nA: ${c.a}`);
-  return [...head, "", ...body].join("\n") + "\n";
+  // A blank line between the cards, not just after the front matter. Joined by
+  // a single newline, a card's `id:` lands directly under the answer above it,
+  // where the parser is still reading that answer and takes the id as more of
+  // it — which costs the card below its id and rekeys it on every read. This
+  // is what a deck exported and then kept in `content/` is parsed from, so the
+  // two have to agree.
+  return [head.join("\n"), ...body].join("\n\n") + "\n";
 }
