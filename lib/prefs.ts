@@ -26,16 +26,26 @@ export const PREFS_EVENT = "index-prefs-changed";
 export type IndexPrefs = { showBuiltIns: boolean; hiddenDecks: string[] };
 
 /**
+ * The decks in `content/` are mine rather than the reader's, so a first visit
+ * starts without them: the index opens on their own decks and a button at the
+ * foot of the page offering mine. Turning them on is a decision, and a stored
+ * one — this default only ever describes somebody who has not made it.
+ *
+ * This is also what the server renders, since it is what the server can know,
+ * which is what keeps the index from flashing decks away on load.
+ *
  * Version 1 held `showBuiltIns` alone. It reads as a version 2 with nothing
  * hidden individually, so there is nothing to migrate and nothing to write
  * back — the defaults do the work.
  */
-export const DEFAULT_PREFS: IndexPrefs = { showBuiltIns: true, hiddenDecks: [] };
+export const DEFAULT_PREFS: IndexPrefs = { showBuiltIns: false, hiddenDecks: [] };
 
 /**
- * Showing every deck is the default, and also the answer whenever storage is
- * unreadable — a private window should look like a first visit, not like
- * someone's decks have gone missing.
+ * A first visit is also the answer whenever storage is unreadable — a private
+ * window should look like a first visit, not like someone's decks have gone
+ * missing. `showBuiltIns` has to be stored as true to count as true, so a
+ * half-written or hand-edited value falls back to the default rather than to
+ * the opposite of it.
  */
 export function loadPrefs(): IndexPrefs {
   if (typeof window === "undefined") return DEFAULT_PREFS;
@@ -44,7 +54,7 @@ export function loadPrefs(): IndexPrefs {
     if (!raw) return DEFAULT_PREFS;
     const parsed = JSON.parse(raw) as Partial<IndexPrefs>;
     return {
-      showBuiltIns: parsed?.showBuiltIns !== false,
+      showBuiltIns: parsed?.showBuiltIns === true,
       hiddenDecks: Array.isArray(parsed?.hiddenDecks)
         ? parsed.hiddenDecks.filter((slug) => typeof slug === "string")
         : [],

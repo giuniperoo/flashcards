@@ -158,18 +158,25 @@ Version 1 of `prefs:index` held `showBuiltIns` alone, and reads as a version 2
 with nothing hidden individually — the defaults are the migration, so there is
 nothing to write back.
 
-`prefs:index` is read twice: by `lib/prefs.ts`, and by a small inline script in
-`app/layout.tsx` that runs before paint and writes a `<style id="deck-prefs">`
-hiding whatever this reader has hidden. Without it, decks they have turned off
-flash up on every load, because the server has no way to know. `DeckIndex`
-removes that tag once it has read the preferences, or the rules would go on
-hiding a deck the reader un-hides. If the storage key or its shape changes,
-both readers change together.
+**The built-in decks are off by default** — `showBuiltIns` is false in
+`DEFAULT_PREFS`, and only a stored `true` turns them on. The decks in
+`content/` are the author's, and somebody arriving at this app has not asked
+for them; they are one press of "Show built-in decks" away, at the foot of the
+index. That default is also what the server prerenders, which is what keeps the
+index honest on load: it renders no built-in grid, so there is nothing to paint
+and then take away, and the grid arrives with the preferences the same way the
+imported decks do. A reader who has turned the decks on sees them appear on
+hydration; that is the trade, and it is the smaller one, because the reverse
+flashed content away on every load for everybody who had not chosen anything.
+An earlier version of this app kept a pre-paint inline script in
+`app/layout.tsx` that hid decks before they could flash. It had a job only
+while the server rendered decks the reader did not want; if the default is ever
+flipped back, it has to come back with it.
 
-The controls that change all this sit at the foot of the index, beside "Add
-your own deck", not above the grid. Someone who has hidden the built-in decks
-because none of them are theirs will never press "show" again, and a control
-they will not use should not sit in the middle of the page.
+The controls sit at the foot of the index, beside "Add your own deck", not
+above the grid. Someone who has hidden the built-in decks because none of them
+are theirs will never press "show" again, and a control they will not use
+should not sit in the middle of the page.
 
 Hiding is not deleting, and the copy has to keep saying so: the files are read
 off the filesystem at build time and the browser cannot remove them. That is

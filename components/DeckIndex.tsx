@@ -17,6 +17,10 @@ function count(n: number, noun: string) {
  * the server cannot see: the imported decks, and which built-in decks this
  * reader has hidden. It takes deck summaries rather than whole decks — a dozen
  * names and counts, not two hundred and sixty-four cards.
+ *
+ * The built-in decks are off until somebody asks for them, so the first render
+ * — the server's, and the browser's before it has read `localStorage` — is an
+ * index without them, and the grid below arrives with the preferences.
  */
 export default function DeckIndex({
   decks,
@@ -60,7 +64,7 @@ export default function DeckIndex({
       </p>
 
       {prefs.showBuiltIns && shown.length > 0 && (
-        <ul className="built-ins deck-grid mt-8 sm:mt-10">
+        <ul className="deck-grid mt-8 sm:mt-10">
           {/* The link carries the decks it is offering, so the card can
               count what it will actually deal rather than every deck in
               content/. Without a parameter the shuffle falls back to these
@@ -77,7 +81,7 @@ export default function DeckIndex({
             />
           </li>
           {shown.map((deck) => (
-            <li key={deck.slug} data-deck={deck.slug}>
+            <li key={deck.slug}>
               <DeckCard
                 deck={deck}
                 actions={
