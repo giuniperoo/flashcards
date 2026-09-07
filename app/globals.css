@@ -17,6 +17,13 @@
   /* Error text. Was written inline as #a32d2d in five places across
      four components. */
   --color-error: #a32d2d;
+  /* The cream the mark is printed on, so the sun behind it in `LogoSun` is
+     not a hex value guessing at the logo. Duplicated from `tools/wordmark.py`,
+     which is what actually writes `public/logo.svg` — change it there first,
+     then here. `app/page.tsx` writes the same colour inline as the shuffled
+     card's tint, which it cannot read from here: a tint is data, and goes
+     through hue maths that parse it. */
+  --color-mark: #e0d4bf;
   --color-question: #185fa5;
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;

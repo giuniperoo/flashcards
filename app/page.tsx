@@ -2,11 +2,14 @@ import Link from "next/link";
 import CustomDeckList from "@/components/CustomDeckList";
 import DeckIndex from "@/components/DeckIndex";
 import DeckVisibility from "@/components/DeckVisibility";
+import LogoSun from "@/components/LogoSun";
 import { decks, totalCards } from "@/lib/loadDecks";
 
 export default function Home() {
   return (
     <div>
+      <LogoSun />
+
       <DeckIndex
         decks={decks.map((deck) => ({
           slug: deck.slug,
