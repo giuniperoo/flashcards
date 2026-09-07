@@ -1,7 +1,10 @@
 # Tasks
 
-One task per commit, in this order. Each is independently useful and leaves the
-app working. Read `CLAUDE.md` first.
+One task per commit. Each is independently useful and leaves the app working.
+Read `CLAUDE.md` first.
+
+The spaced repetition tasks run in the order given — each depends on the one
+before it. The miscellaneous tasks don't, and can land whenever.
 
 Scope for this round is a personal deployment: local decks plus committed
 markdown decks. Accounts, publishing and moderation are out — see
@@ -9,95 +12,188 @@ markdown decks. Accounts, publishing and moderation are out — see
 
 ---
 
-## Task 1 — Stable card ids
+## Spaced repetition
 
-**Why now.** Progress is keyed by array index. Inserting a card at position 3
-silently reassigns every later card's history. Editing decks is about to become
-routine (task 2), so this has to land first, while there's little study history
-to migrate.
+Leitner boxes over the grading the reviewer already collects. Intervals stop
+being a sort key and start governing the session: a study session becomes what
+is due today, and it ends.
 
-**Do**
+### Task 1 — One progress store
 
-- Add `id: string` to the `Card` type — a uuid, generated once at creation or
-  import. Not a hash of the question text: a hash changes when you fix a typo,
-  which is exactly when progress should survive
-- Generate ids for the built-in decks and for decks created through `/new`
-- Key `progress` by `{deckSlug}:{cardId}` instead of `{deckSlug}:{index}`
-- Wrap both stores in a version envelope:
-
-```ts
-type ProgressStore = { version: 2; drafts: Record<string, string>;
-                       grades: Record<string, Grade> };
-type CustomDeckStore = { version: 1; decks: Deck[] };
-```
-
-- Migrate on read: a bare array or an unversioned progress object is version 1;
-  rewrite index keys to the card id at that index, then persist the new shape
-- Migration runs once and is idempotent
-
-**Done when** existing progress survives the upgrade, a card inserted mid-deck
-leaves later cards' grades intact, and `pnpm run build` passes.
-
----
-
-## Task 2 — Decks as markdown in `content/`
-
-**Why.** This is the feature that makes the deployment worth having: decks in the
-repo are available on every device, versioned in git, and diffable when you
-revise a card. It also collapses two code paths into one parser.
+**Why now.** `cardKey()` is already `{deckSlug}:{cardId}` — unique across the whole
+app on its own. The store it lands in is chosen by route, so the same key exists
+twice with two different values: `progress:all` from the shuffle, `progress:{slug}`
+from the deck. Nothing reconciles them. Today that shows up as a draft you wrote an
+hour ago reading as empty on the other route, and two tallies that disagree. Tasks 2
+onwards put a schedule in that store, and two schedules for one card is not a wart.
 
 **Do**
 
-- Create `content/` with one `.md` per deck, in the `Q:` / `A:` format
-  `lib/parseDeck.ts` already accepts, with front matter for title, tint, blurb
-- Convert the five built-in decks into that folder. Content must match the
-  current `lib/decks.ts` exactly — these decks mirror printed cards and must not
-  drift. Generate the files from the existing data rather than retyping
-- Add `lib/loadDecks.ts` reading the folder at build time with `node:fs` and
-  `parseDeck`. Server-only; never imported into a client component
-- Delete `lib/decks.ts` and `scripts/generate-decks.py`
-- Move `scripts/extract-cards.py` to `tools/` with a comment explaining it was a
-  one-off migration from the printed PDFs and isn't part of the build
-- Fail the build loudly on an unparseable file — a silently missing deck is worse
-  than a broken build
+- Collapse every `progress:*` key into one `progress`, keyed `{deckSlug}:{cardId}`.
+  No suffix — the suffix in `progress:{slug}` *was* the partition, and keeping one
+  implies a sibling store that is not coming
+- Version 3 envelope. Migrate on read as v1 → v2 already does, merging every legacy
+  key it finds. Persist once, idempotent
+- Conflict rule: **review beats held.** V2 carries no timestamps, so the tiebreak has
+  to be arbitrary; being wrong this way costs one extra review, being wrong the other
+  way loses the card
+- Deck deletion in `lib/customDecks.ts` drops a key *prefix*, not a key
+- Call `navigator.storage.persist()` where the store is first read. Chromium may grant
+  it; WebKit will probably ignore it. It earns its place by having no interface
 
-**Done when** all five decks render identically to before, adding a `.md` file
-produces a new deck with no other change, and the repo has no Python in its build
-path.
-
-**Watch for.** `Deck` is imported by client components. Keep the type in a
-module free of `node:fs` imports, or the client bundle will break.
+**Done when** the tally on `/study/all` and the tally on `/study/{slug}` agree for the
+same card, and `pnpm run test:progress` covers the merge.
 
 ---
 
-## Task 3 — In rotation
+### Task 2 — Boxes and due dates
 
-**Why.** With decks synced across devices, the index becomes a list you scroll
-past. Rotation is the set you're drilling this fortnight.
-
-The name matters: **"in rotation", not "favourites"**. Favourites only
-accumulate, because removing one reads as rejecting it. Rotation is expected to
-turn over, so "remove from rotation" is ordinary housekeeping.
+**Why.** Leitner, not SM-2 or FSRS. It takes exactly the binary signal the reviewer
+already collects, it is explainable in one sentence, and a box of dividers is a
+physical object — which is the same claim the print route makes. FSRS wants a trained
+model; 264 cards and one reader will never feed it.
 
 **Do**
 
-- Store rotation in `localStorage` as an array of deck slugs, versioned envelope
-  as in task 1
-- Add/remove control on every deck card, and an "In rotation" section at the top
-  of the index
-- A study route across everything in rotation, shuffled and interleaved. Reuse
-  the `/study/all` mechanism, scoped to the rotation set
-- If rotation is empty, show nothing rather than an empty-state box
+- The record becomes `{ draft, box, due, reviewed, seen }`. `due` and `reviewed` are
+  local `YYYY-MM-DD` strings, not epoch ms — a card graded at 11pm should come back at
+  6am, not at 11pm
+- `lib/schedule.ts`: `nextBox(box, grade)`, `dueOn(box, today)`, `isDue(record, today)`.
+  Boxes 1/2/4/8/16 days. Right promotes one box, wrong drops to box 1
+- Grading writes a box and a date. `Grade` stays two buttons
+- The progress strip colours by box instead of by grade: five steps interpolated
+  between `--color-review` and `--color-held`, so box 1 sits furthest forward and each
+  box up recedes. That is the ordering `globals.css` already argues for. Unseen stays
+  `--color-rule`
+- Migrate: `held` → box 2 due tomorrow, `review` → box 1 due today, ungraded → unseen
 
-**Done when** rotation survives a reload, and studying it interleaves cards from
-several decks.
+**Done when** grading a card sets a due date, and progress from task 6 migrates into
+boxes without losing a card.
 
-**Note.** Interleaving decks is better practice than drilling one at a time, so
-make the rotation route the prominent one on the index.
+**Watch for.** `reviewed` is unused at this point and goes in anyway: it is what a
+future sync needs to resolve a conflict, and the one field here that cannot be
+backfilled, since nothing else records *when* a review happened. `due` is not a
+substitute — a box-5 card reviewed a fortnight ago has a later `due` than a box-1 card
+reviewed this morning.
 
 ---
 
-## Task 4 — Import hardening
+### Task 3 — The queue builder
+
+**Why.** This is where the difficulty actually is. The algorithm is forty lines; the
+interaction between overdue cards, the daily intake cap and the unseen pool is what
+goes subtly wrong and only shows up after a week of real use. Isolating it as a pure
+function turns that week into test cases.
+
+**Do**
+
+- One function: `(records, today, cap) → ordered cards`. Overdue first, most overdue
+  leading; random within a due day; unseen last and capped
+- The cap holds back **new cards only**. Overdue is debt already owed and is never
+  trimmed, or a missed week compounds silently. 10–15 new cards a day is the right
+  order of magnitude for cards that each cost a written paragraph
+- Nothing calls it yet
+
+**Done when** its tests cover a backlog, a day with nothing due, a cap that bites, and
+a deck where every card is unseen.
+
+**Note.** The shuffle survives here as the tiebreak *within* a due day, and only there.
+Cards graded in one sitting share a due date, so without it they come back in the order
+you did them — which is the serial dependency the shuffle existed to break.
+
+---
+
+### Task 4 — The reviewer studies the queue
+
+**Why.** The largest change, and it is structural: a session becomes today's queue and
+it *ends*. Without that, the reviewer keeps grinding past the due cards into ones you
+know cold, which is the waste spaced repetition exists to remove — and this app taxes
+it harder than most, because every card costs a typed answer.
+
+**Do**
+
+- `/study/{slug}` opens what is due, not the deck. Cards leave the queue as they are
+  graded rather than a cursor advancing over a fixed array
+- A done state when the queue empties: what moved up, what went back to box 1, when the
+  deck returns. It is also the right home for a deck-wide box map, which the strip stops
+  showing (see below)
+- Nothing due opens "Study anyway", which deals the whole deck. No separate mode —
+  grading there still schedules normally
+- **No shuffle control in a scheduled session.** You only ever see one card, so
+  reordering the ones you have not reached is unobservable; the button only appears to
+  do something today because it resets to position 0. "Study anyway" keeps it, because
+  there is no schedule ordering those cards
+- The strip is today's queue, not the deck. It stops being a map and becomes a session
+  progress bar, which is the right reading once `position` marks a place in a queue
+
+**Done when** grading the last due card finishes the session instead of wrapping around,
+and `prefers-reduced-motion` still holds on the flip.
+
+---
+
+### Task 5 — Due counts on the index
+
+**Do**
+
+- "32 cards · 14 due" in the count label already at the top of every deck card, the due
+  number in the deck's ink. Not a badge — this app has no pills, and one shape for one
+  number costs more than it says
+- Counted client-side from the single store by slug prefix, against `DeckSummary.count`.
+  No card ids need to reach the index
+- A deck with nothing due shows the card count alone. No "0 due"
+
+**Done when** the number on a deck card matches what that deck actually opens with.
+
+---
+
+### Task 6 — The cross-deck due queue
+
+**Why.** A due queue across decks is interleaved for free — sort by date, tiebreak
+randomly, never sort by deck. `ARCHITECTURE.md` §8 already argues this route should be
+the prominent one.
+
+**Do**
+
+- `/study/all` draws what is due across decks rather than everything
+- The "everything" card on the index says what it will deal: "Everything, due today",
+  and a blurb naming the count and how many decks it spans
+- Replace `key={visible.length}` in `ShuffledSet.tsx`. It is safe today only because the
+  set size changes when preferences do; a due queue changes size nightly, and two
+  different queues of the same length will not remount
+
+**Done when** a day's cards from several decks interleave, and the queue changing size
+overnight does not break hydration.
+
+**Watch for.** This queue has no goal filter — it draws from every deck holding a due
+card. That is right until you are preparing for something specific and would rather not
+meet CAP cards while drilling React. Hiding is the wrong instrument: `CLAUDE.md` is
+explicit that hiding is about the index, and "not right now" is not "hidden". If it
+starts to bite, the answer is the deferred "in rotation" scoping this queue, not a
+change here.
+
+---
+
+### Task 7 — Docs
+
+Three documents describe a world without scheduling and stop being true at task 4.
+
+- `CLAUDE.md` — the Storage section: three keys now, `decks:custom`, `prefs:index` and
+  `progress`, the last at version 3. While in there: "What this is" still says five
+  built-in decks and 80 cards, and there are twelve and 264
+- `ARCHITECTURE.md` §8 — progress now carries a schedule; rotation is deferred, and
+  the build order in §9 lists it as step 4, so both say so
+- `ARCHITECTURE.md` §10 — retitled. It is not a Safari quirk: WebKit's seven-day timer,
+  DuckDuckGo's Fire Button (its browser wraps WebKit on macOS and iOS, so it inherits
+  the timer *and* adds the button), clear-on-exit settings, private windows and
+  Chromium's quota eviction are all one class — `localStorage` is not durable storage
+
+---
+
+## Miscellaneous
+
+Independent of the above and of each other.
+
+### Task 8 — Import hardening
 
 Small fixes to the import path, now that it's the main way decks get created.
 
@@ -118,7 +214,7 @@ print, and `pnpm run test:parser` still passes.
 
 ---
 
-## Task 5 — Housekeeping
+### Task 9 — Housekeeping
 
 - Add a `not-found.tsx` matching the app's visual language
 - Add `metadata` per route (deck name in the title, so browser tabs are useful)
@@ -130,6 +226,30 @@ print, and `pnpm run test:parser` still passes.
 ---
 
 ## Not now
+
+**Progress export/import, or any control for saving progress.** Considered and
+rejected: it only parses if you already know progress lives somewhere that can
+vanish, so the control is the thing that teaches the reader the app forgets. The
+footer row is placed deliberately and there is no settings screen to hide it in.
+The honest fix is the `progress` table in `ARCHITECTURE.md` §3. Until then,
+durability gets `navigator.storage.persist()` and nothing else. If the silent-loss
+case needs answering sooner, report a wipe *after* it happens — a marker cookie
+outliving script-writable storage tells you a store was cleared rather than never
+written — and not a warning beforehand, which can only fire while the reader is
+present, which is exactly when the timer has just reset.
+
+**In rotation.** Deferred as premature — not dropped on the merits, and *not*
+because the due queue replaces it. The two scope on different axes: rotation says
+which decks you are working on, the due queue says which cards you owe today, and
+the set worth studying is the intersection. Its original premise also still holds:
+decks have been on every device since `content/` landed, and there are twelve of
+them now rather than five.
+
+The reason to wait is that you cannot tell whether the queue needs a goal filter
+until you have lived with one that has none. Revive it when the due queue starts
+serving cards from decks you do not currently care about — most likely the first
+time you are preparing for something specific, since a schedule with no goal filter
+fights a deadline. Designed in `ARCHITECTURE.md` §8.
 
 Do not start on accounts, databases, publishing, forking, moderation, copyright
 terms or billing. They're designed in `ARCHITECTURE.md` and belong to a later
