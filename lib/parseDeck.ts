@@ -93,17 +93,23 @@ export function parseDeck(input: string): ParseResult {
     }
 
     // An `id:` line belongs to the card below it, so the card above is closed
-    // out first. Guarded on `field` so an answer that happens to begin "id:"
-    // stays part of that answer.
-    if (field !== "a") {
-      const idLine = CARD_ID.exec(line);
-      if (idLine) {
+    // out first.
+    //
+    // Mid-answer it has to be a uuid to count. The guard used to be `field !==
+    // "a"` alone, on the reasoning that an answer happening to begin "id:" is
+    // still an answer — but a deck written without a blank line between its
+    // cards is still mid-answer when the next card's id arrives, and every id
+    // after the first was swallowed into the answer above it and replaced with
+    // a fresh one. That silently rekeys a card on each parse, and progress is
+    // kept by card id.
+    const idLine = CARD_ID.exec(line);
+    if (idLine) {
+      const value = idLine[1].trim();
+      const isId = UUID.test(value);
+      if (isId || field !== "a") {
         flush();
-        const value = idLine[1].trim();
-        if (UUID.test(value)) {
-          pendingId = value.toLowerCase();
-        } else {
-          pendingId = null;
+        pendingId = isId ? value.toLowerCase() : null;
+        if (!isId) {
           result.warnings.push({
             line: lineNo,
             message: `Not a uuid, so a new id was generated: "${value.slice(0, 40)}"`,

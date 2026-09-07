@@ -108,6 +108,23 @@ A: B.
 id: this is prose, not a card id`,
    r => r.cards.length === 1 && r.cards[0].a.includes("this is prose")],
 
+  // Eight of the decks in content/ are written without blank lines between
+  // cards. Every id but the first then arrived while the answer above it was
+  // still open, was swallowed into that answer, and the card it belonged to
+  // was given a fresh one — so those cards were rekeyed on every parse, and
+  // progress is kept by card id.
+  ["ids are read with no blank line between the cards",
+`id: 11111111-2222-4333-8444-555555555555
+Q: A?
+A: B.
+id: 66666666-7777-4888-8999-aaaaaaaaaaaa
+Q: C?
+A: D.`,
+   r => r.cards.length === 2
+        && r.cards[0].id === "11111111-2222-4333-8444-555555555555"
+        && r.cards[1].id === "66666666-7777-4888-8999-aaaaaaaaaaaa"
+        && r.cards[0].a === "B."],
+
   ["ink and order front matter are read",
 `# Deck
 tint: #CBDDF2
