@@ -51,7 +51,10 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-paper font-sans antialiased">
-        <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-6 sm:px-8 sm:py-8 min-[1300px]:max-w-[75%] print:max-w-none print:p-0">
+        {/* `relative z-10` opens a stacking context, which is what lets the
+            index's `LogoSun` sit behind this on a negative z-index without
+            disappearing behind the body's own background. */}
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-6 sm:px-8 sm:py-8 min-[1300px]:max-w-[75%] print:max-w-none print:p-0">
           <header className="no-print mb-8 flex items-center justify-between border-b border-rule pb-4 sm:mb-10">
             <Link
               href="/"
@@ -71,6 +74,7 @@ export default function RootLayout({
               */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
+                data-wordmark
                 src="/logo.svg"
                 alt="Flashcards"
                 width={132}
