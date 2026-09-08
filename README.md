@@ -1,5 +1,5 @@
 <img src="public/logo.svg" alt="Flashcards" width="265">
-<br><br>
+<h2><a href="https://f.lash.cards">f.lash.cards</a></h2>
 
 A recall-first flashcard app. Twelve decks and 264 cards ship with it; four —
 React 19, CAP theorem, ACID and SOLID — mirror decks that exist as printed
@@ -11,8 +11,6 @@ your own material. One toggle at its foot brings the built-in decks in.
 The one rule the app enforces: you cannot turn a card over until you have
 written something. Recognising an answer feels like knowing it; producing one is
 the part that survives an interview.
-
-Live at **[f.lash.cards](https://f.lash.cards)**.
 
 ## Stack
 
