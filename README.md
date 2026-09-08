@@ -1,5 +1,4 @@
-<img src="public/logo.svg" alt="Flashcards" width="265">
-<h2><a href="https://f.lash.cards">f.lash.cards</a></h2>
+<h2><img src="public/logo.svg" alt="Flashcards" width="265" align="middle">&nbsp;&nbsp;<a href="https://f.lash.cards">f.lash.cards</a></h2>
 
 A recall-first flashcard app. Twelve decks and 264 cards ship with it; four —
 React 19, CAP theorem, ACID and SOLID — mirror decks that exist as printed
