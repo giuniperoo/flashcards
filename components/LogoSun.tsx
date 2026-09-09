@@ -256,7 +256,19 @@ export default function LogoSun() {
       window.removeEventListener("resize", onResize);
       window.removeEventListener("scroll", kick);
       still.removeEventListener("change", kick);
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      /* Deliberately no `WEBGL_lose_context` here, tidy as it looks. A canvas
+         whose context has been explicitly lost never gives back a live one:
+         `getContext` returns the same dead object for the life of the element.
+         React mounts a component, cleans it up and mounts it again in
+         development, so the call landed on the very element the second mount
+         was about to draw on — `compile` fails against a lost context and the
+         effect returns before it draws. The sun disappeared on every
+         client-side navigation back to the index, and silently, because that
+         path logs nothing. Production never double-mounts and never showed it.
+
+         Nothing leaks by leaving it out. A real unmount takes the canvas with
+         it and the context goes when that is collected; the one case where the
+         element outlives its own cleanup is the remount this was breaking. */
     };
   }, []);
 
