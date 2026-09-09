@@ -1,5 +1,6 @@
 import type { Card, Deck, StudyCard } from "./types";
 import { newCardId } from "./cardId";
+import { forgetDeck } from "./progress";
 import { nextTint, shadeForTint } from "./tint";
 
 export const CUSTOM_KEY = "decks:custom";
@@ -119,11 +120,9 @@ export function saveCustomDeck(input: {
 
 export function deleteCustomDeck(slug: string) {
   persist(loadCustomDecks().filter((d) => d.slug !== slug));
-  try {
-    window.localStorage.removeItem(`progress:${slug}`);
-  } catch {
-    // Nothing to clean up if storage is unavailable.
-  }
+  // Progress lives in one store for the whole app, so this deck's share of it
+  // is a key prefix rather than a key. `lib/progress.ts` owns that layout.
+  forgetDeck(slug);
 }
 
 export function getCustomDeck(slug: string): Deck | undefined {

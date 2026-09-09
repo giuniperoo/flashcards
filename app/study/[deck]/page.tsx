@@ -49,7 +49,7 @@ export default async function StudyPage({
           title={title}
         />
       ) : (
-        <Reviewer cards={cards} storageKey={`progress:${slug}`} />
+        <Reviewer cards={cards} />
       )}
     </div>
   );

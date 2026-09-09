@@ -76,13 +76,7 @@ function isTyping(target: EventTarget | null) {
   return !!el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT");
 }
 
-export default function Reviewer({
-  cards,
-  storageKey,
-}: {
-  cards: StudyCard[];
-  storageKey: string;
-}) {
+export default function Reviewer({ cards }: { cards: StudyCard[] }) {
   const [order, setOrder] = useState(cards);
   const [position, setPosition] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -102,15 +96,17 @@ export default function Reviewer({
     cardsRef.current = cards;
   }, [cards]);
 
+  // One store for every deck, so there is no key to take as a prop and no
+  // second record of this card to disagree with.
   useEffect(() => {
-    setSaved(loadProgress(storageKey, cardsRef.current));
+    setSaved(loadProgress(cardsRef.current));
     setReady(true);
-  }, [storageKey]);
+  }, []);
 
   useEffect(() => {
     if (!ready) return;
-    saveProgress(storageKey, saved);
-  }, [saved, storageKey, ready]);
+    saveProgress(saved);
+  }, [saved, ready]);
 
   // Read through a ref so committing a draft — which replaces saved.drafts —
   // does not count as a card change and turn the card back over.

@@ -88,7 +88,5 @@ export default function ShuffledSet({
   // Reviewer takes its order from `cards` once, on mount, so a narrowed set
   // has to arrive as a new Reviewer rather than as a new prop. The key only
   // changes when the set actually does.
-  return (
-    <Reviewer key={visible.length} cards={visible} storageKey="progress:all" />
-  );
+  return <Reviewer key={visible.length} cards={visible} />;
 }
