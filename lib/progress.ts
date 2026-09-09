@@ -1,40 +1,65 @@
 import type { StudyCard } from "./types";
+import { FIRST_BOX, addDays, type Grade } from "./schedule";
 
-export type Grade = "held" | "review";
+/**
+ * What the app remembers about one card: what you wrote, and when it comes back.
+ *
+ * `box`, `due` and `reviewed` mean nothing while `seen` is false — a card you
+ * have typed an answer into but never graded has no place in the schedule yet.
+ * `seen` is the authority on that, not a sentinel box or an empty date.
+ *
+ * `reviewed` is not read anywhere yet. It goes in now because it is the one
+ * field here that cannot be backfilled later: nothing else records *when* a
+ * review happened, and `due` is no substitute, since a box-5 card reviewed a
+ * fortnight ago carries a later `due` than a box-1 card done this morning. It
+ * is what a future sync would need to resolve a conflict, and it is empty on
+ * every record migrated from an older store, because those stores never knew.
+ */
+export type CardProgress = {
+  draft: string;
+  box: number;
+  due: string;
+  reviewed: string;
+  seen: boolean;
+};
 
 /**
  * One store for the whole app, keyed `{deckSlug}:{cardId}`.
  *
  * Version 1 was an unversioned `{ drafts, grades }` keyed by `{deckSlug}:{index}`,
  * which reassigned every later card's history whenever a card was inserted.
- * Version 2 keys by `{deckSlug}:{cardId}` instead, which is unique across the
- * whole app on its own — but it still lived under one key per route,
- * `progress:all` from the shuffle and `progress:{slug}` from the deck. The same
- * card therefore had two records with two different values, and nothing
- * reconciled them: a draft written an hour ago read as empty on the other route,
- * and the two tallies disagreed.
+ * Version 2 keyed by `{deckSlug}:{cardId}` instead, but still lived under one
+ * key per route, so the same card had two records and nothing reconciled them.
+ * Version 3 collapsed those into this single key.
  *
- * Version 3 drops the partition. The record shape is unchanged; there is simply
- * one key. No suffix either — the suffix *was* the partition, and keeping one
- * would imply a sibling store that is not coming.
+ * Version 4 replaces the two parallel maps with one record per card. A grade
+ * was a verdict; a record is a schedule, and the two halves of a card's history
+ * cannot be kept in step when they are stored apart.
  */
 export type ProgressStore = {
-  version: 3;
-  drafts: Record<string, string>;
-  grades: Record<string, Grade>;
+  version: 4;
+  cards: Record<string, CardProgress>;
 };
 
 export const PROGRESS_KEY = "progress";
-export const CURRENT_VERSION = 3;
+export const CURRENT_VERSION = 4;
 
 /** What versions 1 and 2 were keyed by: `progress:all` and `progress:{slug}`. */
 const LEGACY_PREFIX = "progress:";
 
-export const emptyProgress: ProgressStore = {
-  version: CURRENT_VERSION,
-  drafts: {},
-  grades: {},
+/** The versions that stored `{ drafts, grades }` already keyed by card id. */
+const ID_KEYED = [2, 3];
+
+/** A card that has been written on but never graded. Spread, never mutated. */
+export const unseenCard: CardProgress = {
+  draft: "",
+  box: FIRST_BOX,
+  due: "",
+  reviewed: "",
+  seen: false,
 };
+
+export const emptyProgress: ProgressStore = { version: CURRENT_VERSION, cards: {} };
 
 export function cardKey(card: StudyCard) {
   return `${card.deck.slug}:${card.id}`;
@@ -59,14 +84,14 @@ function asGrade(value: unknown): Grade | undefined {
   return value === "held" || value === "review" ? value : undefined;
 }
 
-/** The two maps, without the envelope. What merging actually operates on. */
+/** The two maps every version before 4 stored. What merging operates on. */
 type Entries = { drafts: Record<string, string>; grades: Record<string, Grade> };
 
 /**
- * Review beats held. Versions 1 and 2 carry no timestamps, so a card graded
- * both ways in two stores has no better tiebreak than an arbitrary one. Being
- * wrong this way costs one extra review; being wrong the other way retires a
- * card that was never learned.
+ * Review beats held. Versions 1 to 3 carry no timestamps, so a card graded both
+ * ways in two stores has no better tiebreak than an arbitrary one. Being wrong
+ * this way costs one extra review; being wrong the other way retires a card
+ * that was never learned.
  */
 function mergeGrade(a: Grade | undefined, b: Grade): Grade {
   return a === "review" || b === "review" ? "review" : b;
@@ -85,7 +110,13 @@ function mergeDraft(a: string | undefined, b: string): string {
  * Both rules are order-independent, which is what lets a read fold in however
  * many legacy keys it finds without caring which it saw first.
  */
-function take(into: Entries, key: string, drafts: Record<string, unknown>, grades: Record<string, unknown>, from: string) {
+function take(
+  into: Entries,
+  key: string,
+  drafts: Record<string, unknown>,
+  grades: Record<string, unknown>,
+  from: string,
+) {
   const draft = drafts[from];
   if (typeof draft === "string") into.drafts[key] = mergeDraft(into.drafts[key], draft);
   const grade = asGrade(grades[from]);
@@ -98,7 +129,7 @@ function usable(drafts: Record<string, unknown>, grades: Record<string, unknown>
 }
 
 /**
- * Folds one stored value into `into`, and reports what could not be placed.
+ * Folds one pre-version-4 value into `into`, and reports what could not be placed.
  *
  * A version 2 or 3 store is already keyed by card id, so all of it lands. An
  * unversioned one is keyed by position and needs the deck's cards to rewrite,
@@ -117,7 +148,7 @@ function fold(raw: unknown, cards: StudyCard[], into: Entries) {
   const grades = isRecord(raw.grades) ? raw.grades : {};
   const keys = new Set([...Object.keys(drafts), ...Object.keys(grades)]);
 
-  if (raw.version === 2 || raw.version === CURRENT_VERSION) {
+  if (typeof raw.version === "number" && ID_KEYED.includes(raw.version)) {
     let taken = 0;
     for (const key of keys) {
       if (!usable(drafts, grades, key)) continue;
@@ -146,6 +177,66 @@ function fold(raw: unknown, cards: StudyCard[], into: Entries) {
   }
 
   return { left: leftAny ? left : null, taken };
+}
+
+/**
+ * A grade becomes a place in the schedule.
+ *
+ * Held comes back tomorrow in box 2, review comes back today in box 1, and a
+ * card carrying only a draft has not been graded at all. Held deliberately does
+ * *not* get box 2's two days: the old stores never recorded when a card was
+ * graded, so an interval has nothing to count from. Bringing everything back
+ * within a day and letting the first real grade set a real date is the reading
+ * that cannot silently hide a card. `reviewed` stays empty for the same reason.
+ */
+function scheduleFor(grade: Grade | undefined, today: string) {
+  if (!grade) return { box: FIRST_BOX, due: "", reviewed: "", seen: false };
+  if (grade === "review") {
+    return { box: FIRST_BOX, due: today, reviewed: "", seen: true };
+  }
+  return { box: FIRST_BOX + 1, due: addDays(today, 1), reviewed: "", seen: true };
+}
+
+function toRecords(entries: Entries, today: string) {
+  const out: Record<string, CardProgress> = {};
+  const keys = new Set([...Object.keys(entries.drafts), ...Object.keys(entries.grades)]);
+  for (const key of keys) {
+    // Draft first, to match `readRecords`. A record built two ways should
+    // serialise to the same string, or a second read rewrites the store and
+    // the migration stops being idempotent in the only way you can observe.
+    out[key] = {
+      draft: entries.drafts[key] ?? "",
+      ...scheduleFor(entries.grades[key], today),
+    };
+  }
+  return out;
+}
+
+/**
+ * A version 4 record beats one migrated from an older store, because it is the
+ * one this version wrote and the only one carrying a real schedule. The older
+ * store can still contribute a draft the newer record does not have.
+ */
+function mergeRecord(a: CardProgress | undefined, b: CardProgress): CardProgress {
+  if (!a) return b;
+  const draft = mergeDraft(a.draft, b.draft);
+  return a.seen ? { ...a, draft } : { ...b, draft };
+}
+
+function readRecords(value: unknown): Record<string, CardProgress> {
+  const out: Record<string, CardProgress> = {};
+  if (!isRecord(value)) return out;
+  for (const [key, entry] of Object.entries(value)) {
+    if (!isRecord(entry)) continue;
+    out[key] = {
+      draft: typeof entry.draft === "string" ? entry.draft : "",
+      box: typeof entry.box === "number" ? entry.box : FIRST_BOX,
+      due: typeof entry.due === "string" ? entry.due : "",
+      reviewed: typeof entry.reviewed === "string" ? entry.reviewed : "",
+      seen: entry.seen === true,
+    };
+  }
+  return out;
 }
 
 function readKey(key: string): unknown {
@@ -195,24 +286,36 @@ function requestPersistence() {
 }
 
 /**
- * Reads the store, folding in every legacy key it finds on the way through and
- * persisting the result immediately so the migration happens once.
+ * Reads the store, migrating everything older on the way through and persisting
+ * the result immediately so it happens once.
  *
- * Idempotent: once the legacy keys are consumed there is nothing left to take,
- * and a read stops writing. `cards` is needed only to rewrite version 1's
- * position keys onto card ids.
+ * Every version before 4 reduces to drafts and grades first, wherever it was
+ * stored, and converts to records in one place — so the route-merge rules and
+ * the schedule rules stay separate and each is only written once. `cards` is
+ * needed only to rewrite version 1's position keys onto card ids.
+ *
+ * Idempotent: once the older shapes are consumed there is nothing left to take,
+ * and a read stops writing.
  */
-export function loadProgress(cards: StudyCard[]): ProgressStore {
+export function loadProgress(cards: StudyCard[], today: string): ProgressStore {
   if (typeof window === "undefined") return emptyProgress;
 
   requestPersistence();
 
-  const into: Entries = { drafts: {}, grades: {} };
-  fold(readKey(PROGRESS_KEY), cards, into);
+  const raw = readKey(PROGRESS_KEY);
+  const current = isRecord(raw) && raw.version === CURRENT_VERSION;
+  const records = current ? readRecords((raw as { cards?: unknown }).cards) : {};
 
+  const older: Entries = { drafts: {}, grades: {} };
   let changed = false;
+
+  if (!current && raw !== null) {
+    fold(raw, cards, older);
+    changed = true;
+  }
+
   for (const key of legacyKeys()) {
-    const { left, taken } = fold(readKey(key), cards, into);
+    const { left, taken } = fold(readKey(key), cards, older);
     if (!left) {
       remove(key);
       changed = true;
@@ -222,7 +325,11 @@ export function loadProgress(cards: StudyCard[]): ProgressStore {
     }
   }
 
-  const store: ProgressStore = { version: CURRENT_VERSION, ...into };
+  for (const [key, migrated] of Object.entries(toRecords(older, today))) {
+    records[key] = mergeRecord(records[key], migrated);
+  }
+
+  const store: ProgressStore = { version: CURRENT_VERSION, cards: records };
   if (changed) saveProgress(store);
   return store;
 }
@@ -249,7 +356,7 @@ export function saveProgress(store: ProgressStore) {
 
 /**
  * Drops everything belonging to a deck — a key *prefix*, not a key. One store
- * holds every deck now, so deleting an imported deck means removing the entries
+ * holds every deck, so deleting an imported deck means removing the entries
  * whose key leads with its slug rather than removing a store of its own.
  *
  * Its own legacy key goes too, in case no read has folded it in yet. Nothing
@@ -262,13 +369,19 @@ export function forgetDeck(slug: string) {
   const prefix = `${slug}:`;
   const raw = readKey(PROGRESS_KEY);
   if (isRecord(raw)) {
-    const keep = (map: Record<string, unknown>) =>
-      Object.fromEntries(Object.entries(map).filter(([key]) => !key.startsWith(prefix)));
-    write(PROGRESS_KEY, {
-      version: CURRENT_VERSION,
-      drafts: keep(isRecord(raw.drafts) ? raw.drafts : {}),
-      grades: keep(isRecord(raw.grades) ? raw.grades : {}),
-    });
+    /* Every map the store has ever had is keyed the same way, so the prefix is
+       dropped from whichever are present and the envelope is left alone. A deck
+       can be deleted before any read has migrated the store, and that is not
+       the moment to rewrite it into a shape this function has not checked. */
+    const next: Record<string, unknown> = { ...raw };
+    for (const map of ["cards", "drafts", "grades"]) {
+      const value = next[map];
+      if (!isRecord(value)) continue;
+      next[map] = Object.fromEntries(
+        Object.entries(value).filter(([key]) => !key.startsWith(prefix)),
+      );
+    }
+    write(PROGRESS_KEY, next);
   }
 
   remove(`${LEGACY_PREFIX}${slug}`);

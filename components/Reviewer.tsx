@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { StudyCard } from "@/lib/types";
-import type { Grade, ProgressStore } from "@/lib/progress";
+import type { CardProgress, ProgressStore } from "@/lib/progress";
 import {
   cardKey,
   emptyProgress,
   loadProgress,
   saveProgress,
+  unseenCard,
 } from "@/lib/progress";
+import { FIRST_BOX, dayKey, dueOn, nextBox, type Grade } from "@/lib/schedule";
 
 function shuffled<T>(items: T[]) {
   const copy = [...items];
@@ -71,6 +73,18 @@ function columnsFor(count: number, width: number) {
   return best;
 }
 
+/**
+ * The verdict the strip and the tally have always shown, now derived rather
+ * than stored: box 1 is where a card you got wrong lands, anything above it is
+ * a card you have held. A freshly migrated store therefore looks exactly as it
+ * did before, which is the point — task 2 changes no pixels. Task 4 replaces
+ * this with the box ramp, and it is the only thing standing in the way.
+ */
+function verdictOf(record: CardProgress | undefined): Grade | undefined {
+  if (!record?.seen) return undefined;
+  return record.box === FIRST_BOX ? "review" : "held";
+}
+
 function isTyping(target: EventTarget | null) {
   const el = target as HTMLElement | null;
   return !!el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT");
@@ -97,33 +111,42 @@ export default function Reviewer({ cards }: { cards: StudyCard[] }) {
   }, [cards]);
 
   // One store for every deck, so there is no key to take as a prop and no
-  // second record of this card to disagree with.
+  // second record of this card to disagree with. The day is read once, here:
+  // a session that runs past midnight should keep the date it opened with
+  // rather than move a card's due date under the reader mid-deck.
+  const [today] = useState(dayKey);
   useEffect(() => {
-    setSaved(loadProgress(cardsRef.current));
+    setSaved(loadProgress(cardsRef.current, today));
     setReady(true);
-  }, []);
+  }, [today]);
 
   useEffect(() => {
     if (!ready) return;
     saveProgress(saved);
   }, [saved, ready]);
 
-  // Read through a ref so committing a draft — which replaces saved.drafts —
+  // Read through a ref so committing a draft — which replaces saved.cards —
   // does not count as a card change and turn the card back over.
-  const draftsRef = useRef(saved.drafts);
+  const recordsRef = useRef(saved.cards);
   useEffect(() => {
-    draftsRef.current = saved.drafts;
-  }, [saved.drafts]);
+    recordsRef.current = saved.cards;
+  }, [saved.cards]);
 
   useEffect(() => {
-    setDraft(draftsRef.current[key] ?? "");
+    setDraft(recordsRef.current[key]?.draft ?? "");
     setFlipped(false);
     setError(false);
   }, [key, ready]);
 
   const commitDraft = useCallback(
     (value: string) => {
-      setSaved((prev) => ({ ...prev, drafts: { ...prev.drafts, [key]: value } }));
+      setSaved((prev) => ({
+        ...prev,
+        cards: {
+          ...prev.cards,
+          [key]: { ...(prev.cards[key] ?? unseenCard), draft: value },
+        },
+      }));
     },
     [key],
   );
@@ -152,10 +175,28 @@ export default function Reviewer({ cards }: { cards: StudyCard[] }) {
 
   const grade = useCallback(
     (value: Grade) => {
-      setSaved((prev) => ({ ...prev, grades: { ...prev.grades, [key]: value } }));
+      setSaved((prev) => {
+        const before = prev.cards[key] ?? unseenCard;
+        // An unseen card sits at box 1, so held promotes it to 2 and review
+        // leaves it there. The two buttons still say the same two things.
+        const box = nextBox(before.box, value);
+        return {
+          ...prev,
+          cards: {
+            ...prev.cards,
+            [key]: {
+              ...before,
+              box,
+              due: dueOn(box, today),
+              reviewed: today,
+              seen: true,
+            },
+          },
+        };
+      });
       move(1);
     },
-    [key, move],
+    [key, move, today],
   );
 
   const shuffle = useCallback(() => {
@@ -217,12 +258,12 @@ export default function Reviewer({ cards }: { cards: StudyCard[] }) {
   );
 
   const tally = useMemo(() => {
-    const values = order.map((c) => saved.grades[cardKey(c)]);
+    const values = order.map((c) => verdictOf(saved.cards[cardKey(c)]));
     return {
       held: values.filter((v) => v === "held").length,
       review: values.filter((v) => v === "review").length,
     };
-  }, [order, saved.grades]);
+  }, [order, saved.cards]);
 
   return (
     <div>
@@ -310,7 +351,7 @@ export default function Reviewer({ cards }: { cards: StudyCard[] }) {
             <div className="mt-5 border-t border-rule pt-4">
               <p className="label text-muted">You wrote</p>
               <p className="mt-2 text-[15px] leading-relaxed text-muted">
-                {saved.drafts[key]}
+                {saved.cards[key]?.draft}
               </p>
             </div>
             {/* mt-auto pins the row to the bottom edge on every card, so the
@@ -384,7 +425,7 @@ export default function Reviewer({ cards }: { cards: StudyCard[] }) {
         aria-hidden
       >
         {order.map((c, i) => {
-          const g = saved.grades[cardKey(c)];
+          const g = verdictOf(saved.cards[cardKey(c)]);
           /* The current card is full row height rather than a wider dash:
              at 8px there is no width to spare, and a taller mark stays
              findable in several hundred of them. */
