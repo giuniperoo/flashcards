@@ -61,14 +61,15 @@ model; 264 cards and one reader will never feed it.
 - `lib/schedule.ts`: `nextBox(box, grade)`, `dueOn(box, today)`, `isDue(record, today)`.
   Boxes 1/2/4/8/16 days. Right promotes one box, wrong drops to box 1
 - Grading writes a box and a date. `Grade` stays two buttons
-- The progress strip colours by box instead of by grade: five steps interpolated
-  between `--color-review` and `--color-held`, so box 1 sits furthest forward and each
-  box up recedes. That is the ordering `globals.css` already argues for. Unseen stays
-  `--color-rule`
 - Migrate: `held` → box 2 due tomorrow, `review` → box 1 due today, ungraded → unseen
 
-**Done when** grading a card sets a due date, and progress from task 6 migrates into
+**Done when** grading a card sets a due date, and progress from task 1 migrates into
 boxes without losing a card.
+
+**Note.** Nothing on screen moves here. The strip keeps its two-colour verdict until
+task 4, which is now where every visible change lives. That is deliberate: the data
+can land without settling the interface question, and the interface change stays one
+commit — one to compare against, and one to revert.
 
 **Watch for.** `reviewed` is unused at this point and goes in anyway: it is what a
 future sync needs to resolve a conflict, and the one field here that cannot be
@@ -123,8 +124,12 @@ it harder than most, because every card costs a typed answer.
   reordering the ones you have not reached is unobservable; the button only appears to
   do something today because it resets to position 0. "Study anyway" keeps it, because
   there is no schedule ordering those cards
-- The strip is today's queue, not the deck. It stops being a map and becomes a session
-  progress bar, which is the right reading once `position` marks a place in a queue
+- The strip changes twice over, and both halves land here. It colours by box rather
+  than by grade: five steps interpolated between `--color-review` and `--color-held`,
+  so box 1 sits furthest forward and each box up recedes, which is the ordering
+  `globals.css` already argues for; unseen stays `--color-rule`. And it holds today's
+  queue rather than the deck, so it stops being a map and becomes a session progress
+  bar — the right reading once `position` marks a place in a queue
 
 **Done when** grading the last due card finishes the session instead of wrapping around,
 and `prefers-reduced-motion` still holds on the flip.

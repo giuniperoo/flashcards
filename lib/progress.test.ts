@@ -17,6 +17,10 @@ const store = new Map<string, string>();
   },
 };
 
+// The day every case is read on, so a due date can be asserted exactly.
+const TODAY = "2026-09-09";
+const TOMORROW = "2026-09-10";
+
 function deckOf(slug: string, ids: string[]): Deck {
   return {
     slug,
@@ -30,6 +34,10 @@ function deckOf(slug: string, ids: string[]): Deck {
 
 function studyCards(deck: Deck): StudyCard[] {
   return deck.cards.map((card, index) => ({ ...card, deck, index }));
+}
+
+function read(cards: StudyCard[]) {
+  return loadProgress(cards, TODAY);
 }
 
 function stored() {
@@ -48,12 +56,78 @@ const cases: Array<[string, () => boolean]> = [
           grades: { "d:0": "held", "d:1": "review" },
         }),
       );
-      const cards = studyCards(deckOf("d", ["aaa", "bbb"]));
-      const p = loadProgress(cards);
+      const p = read(studyCards(deckOf("d", ["aaa", "bbb"])));
       return (
-        p.version === 3 &&
-        p.drafts["d:aaa"] === "first" &&
-        p.grades["d:bbb"] === "review"
+        p.version === 4 &&
+        p.cards["d:aaa"].draft === "first" &&
+        p.cards["d:bbb"].draft === "second" &&
+        p.cards["d:bbb"].box === 1
+      );
+    },
+  ],
+
+  [
+    "a v3 store becomes records: held to box 2 tomorrow, review to box 1 today",
+    () => {
+      store.clear();
+      store.set(
+        PROGRESS_KEY,
+        JSON.stringify({
+          version: 3,
+          drafts: { "d:aaa": "kept", "d:ccc": "written but never graded" },
+          grades: { "d:aaa": "held", "d:bbb": "review" },
+        }),
+      );
+      const p = read(studyCards(deckOf("d", ["aaa", "bbb", "ccc"])));
+
+      const held = p.cards["d:aaa"];
+      const review = p.cards["d:bbb"];
+      const unseen = p.cards["d:ccc"];
+
+      return (
+        held.seen &&
+        held.box === 2 &&
+        held.due === TOMORROW &&
+        held.draft === "kept" &&
+        review.seen &&
+        review.box === 1 &&
+        review.due === TODAY &&
+        !unseen.seen &&
+        unseen.due === "" &&
+        unseen.draft === "written but never graded"
+      );
+    },
+  ],
+
+  [
+    "the migration invents no review date, because the old store never had one",
+    () => {
+      store.clear();
+      store.set(
+        PROGRESS_KEY,
+        JSON.stringify({ version: 3, drafts: {}, grades: { "d:aaa": "held" } }),
+      );
+      return read(studyCards(deckOf("d", ["aaa"]))).cards["d:aaa"].reviewed === "";
+    },
+  ],
+
+  [
+    "no card is lost on the way from v3 to v4",
+    () => {
+      store.clear();
+      const ids = ["aaa", "bbb", "ccc", "ddd", "eee"];
+      store.set(
+        PROGRESS_KEY,
+        JSON.stringify({
+          version: 3,
+          drafts: Object.fromEntries(ids.map((id) => [`d:${id}`, `draft ${id}`])),
+          grades: { "d:aaa": "held", "d:ccc": "review", "d:eee": "held" },
+        }),
+      );
+      const p = read(studyCards(deckOf("d", ids)));
+      return (
+        Object.keys(p.cards).length === ids.length &&
+        ids.every((id) => p.cards[`d:${id}`].draft === `draft ${id}`)
       );
     },
   ],
@@ -63,10 +137,10 @@ const cases: Array<[string, () => boolean]> = [
     () => {
       store.clear();
       store.set("progress:d", JSON.stringify({ drafts: { "d:0": "x" }, grades: {} }));
-      loadProgress(studyCards(deckOf("d", ["aaa"])));
+      read(studyCards(deckOf("d", ["aaa"])));
       return (
-        stored().version === 3 &&
-        stored().drafts["d:aaa"] === "x" &&
+        stored().version === 4 &&
+        stored().cards["d:aaa"].draft === "x" &&
         !store.has("progress:d")
       );
     },
@@ -78,9 +152,9 @@ const cases: Array<[string, () => boolean]> = [
       store.clear();
       store.set("progress:d", JSON.stringify({ drafts: { "d:0": "x" }, grades: {} }));
       const cards = studyCards(deckOf("d", ["aaa"]));
-      const once = JSON.stringify(loadProgress(cards));
-      const twice = JSON.stringify(loadProgress(cards));
-      const thrice = JSON.stringify(loadProgress(cards));
+      const once = JSON.stringify(read(cards));
+      const twice = JSON.stringify(read(cards));
+      const thrice = JSON.stringify(read(cards));
       return once === twice && twice === thrice;
     },
   ],
@@ -98,17 +172,17 @@ const cases: Array<[string, () => boolean]> = [
         }),
       );
       const before = studyCards(deckOf("d", ["aaa", "bbb", "ccc"]));
-      loadProgress(before);
+      read(before);
 
       // Now insert a new card at position 1, as editing a deck file would.
       const after = studyCards(deckOf("d", ["aaa", "xxx", "bbb", "ccc"]));
-      const p = loadProgress(after);
+      const p = read(after);
 
       return (
-        p.grades["d:aaa"] === "held" &&
-        p.grades["d:bbb"] === "review" &&
-        p.grades["d:ccc"] === "held" &&
-        p.grades["d:xxx"] === undefined
+        p.cards["d:aaa"].box === 2 &&
+        p.cards["d:bbb"].box === 1 &&
+        p.cards["d:ccc"].box === 2 &&
+        p.cards["d:xxx"] === undefined
       );
     },
   ],
@@ -121,8 +195,8 @@ const cases: Array<[string, () => boolean]> = [
         "progress:d",
         JSON.stringify({ drafts: {}, grades: { "d:0": "held", "d:9": "review" } }),
       );
-      const p = loadProgress(studyCards(deckOf("d", ["aaa"])));
-      return Object.keys(p.grades).length === 1 && p.grades["d:aaa"] === "held";
+      const p = read(studyCards(deckOf("d", ["aaa"])));
+      return Object.keys(p.cards).length === 1 && p.cards["d:aaa"].box === 2;
     },
   ],
 
@@ -139,10 +213,10 @@ const cases: Array<[string, () => boolean]> = [
         "progress:all",
         JSON.stringify({ version: 2, drafts: {}, grades: { "d:aaa": "held" } }),
       );
-      const p = loadProgress(studyCards(deckOf("d", ["aaa"])));
+      const p = read(studyCards(deckOf("d", ["aaa"])));
       return (
-        p.drafts["d:aaa"] === "on the deck" &&
-        p.grades["d:aaa"] === "held" &&
+        p.cards["d:aaa"].draft === "on the deck" &&
+        p.cards["d:aaa"].box === 2 &&
         !store.has("progress:d") &&
         !store.has("progress:all")
       );
@@ -152,31 +226,21 @@ const cases: Array<[string, () => boolean]> = [
   [
     "review beats held when two stores disagree",
     () => {
-      store.clear();
-      store.set(
-        "progress:all",
-        JSON.stringify({ version: 2, drafts: {}, grades: { "d:aaa": "review" } }),
-      );
-      store.set(
-        "progress:d",
-        JSON.stringify({ version: 2, drafts: {}, grades: { "d:aaa": "held" } }),
-      );
-      const held = loadProgress(studyCards(deckOf("d", ["aaa"]))).grades["d:aaa"];
-
-      // The other way round in storage order, to show the merge does not
-      // depend on which key was read first.
-      store.clear();
-      store.set(
-        "progress:all",
-        JSON.stringify({ version: 2, drafts: {}, grades: { "d:aaa": "held" } }),
-      );
-      store.set(
-        "progress:d",
-        JSON.stringify({ version: 2, drafts: {}, grades: { "d:aaa": "review" } }),
-      );
-      const review = loadProgress(studyCards(deckOf("d", ["aaa"]))).grades["d:aaa"];
-
-      return held === "review" && review === "review";
+      const boxAfter = (all: string, deck: string) => {
+        store.clear();
+        store.set(
+          "progress:all",
+          JSON.stringify({ version: 2, drafts: {}, grades: { "d:aaa": all } }),
+        );
+        store.set(
+          "progress:d",
+          JSON.stringify({ version: 2, drafts: {}, grades: { "d:aaa": deck } }),
+        );
+        return read(studyCards(deckOf("d", ["aaa"]))).cards["d:aaa"].box;
+      };
+      // Either way round in storage order: the merge does not depend on which
+      // key was read first, and review lands the card in box 1.
+      return boxAfter("review", "held") === 1 && boxAfter("held", "review") === 1;
     },
   ],
 
@@ -192,8 +256,9 @@ const cases: Array<[string, () => boolean]> = [
         "progress:d",
         JSON.stringify({ version: 2, drafts: { "d:aaa": "short" }, grades: {} }),
       );
-      return loadProgress(studyCards(deckOf("d", ["aaa"]))).drafts["d:aaa"] ===
-        "a fuller answer";
+      return (
+        read(studyCards(deckOf("d", ["aaa"]))).cards["d:aaa"].draft === "a fuller answer"
+      );
     },
   ],
 
@@ -211,30 +276,30 @@ const cases: Array<[string, () => boolean]> = [
 
       // Studying only deck one. Its entry migrates; deck two's has no cards to
       // rewrite against and stays where it is rather than being thrown away.
-      const first = loadProgress(studyCards(deckOf("one", ["a1"])));
+      const first = read(studyCards(deckOf("one", ["a1"])));
       const parked = JSON.parse(store.get("progress:all")!);
       const parkedRight =
-        first.grades["one:a1"] === "held" &&
-        first.grades["two:b1"] === undefined &&
+        first.cards["one:a1"].box === 2 &&
+        first.cards["two:b1"] === undefined &&
         parked.grades["two:0"] === "review" &&
         parked.grades["one:0"] === undefined;
 
       // Later, on a route that can see both decks.
-      const second = loadProgress([
+      const second = read([
         ...studyCards(deckOf("one", ["a1"])),
         ...studyCards(deckOf("two", ["b1"])),
       ]);
       return (
         parkedRight &&
-        second.grades["one:a1"] === "held" &&
-        second.grades["two:b1"] === "review" &&
+        second.cards["one:a1"].box === 2 &&
+        second.cards["two:b1"].box === 1 &&
         !store.has("progress:all")
       );
     },
   ],
 
   [
-    "a grade changed after a partial migration is not overwritten by the leftovers",
+    "a scheduled record is not overwritten by the leftovers of a partial migration",
     () => {
       store.clear();
       store.set(
@@ -245,17 +310,27 @@ const cases: Array<[string, () => boolean]> = [
         }),
       );
       const one = studyCards(deckOf("one", ["a1"]));
-      loadProgress(one);
+      read(one);
 
-      // The reader studies the card again and now holds it.
-      const after = loadProgress(one);
-      after.grades["one:a1"] = "held";
+      // The reader studies the card again and works it up to box 4.
+      const after = read(one);
+      after.cards["one:a1"] = {
+        draft: "",
+        box: 4,
+        due: "2026-09-17",
+        reviewed: TODAY,
+        seen: true,
+      };
       store.set(PROGRESS_KEY, JSON.stringify(after));
 
       // Deck two's entry is still parked, so this read touches the legacy key
-      // again. It must not resurrect the old review grade for deck one.
-      const p = loadProgress([...one, ...studyCards(deckOf("two", ["b1"]))]);
-      return p.grades["one:a1"] === "held" && p.grades["two:b1"] === "review";
+      // again. It must not drag deck one back to box 1.
+      const p = read([...one, ...studyCards(deckOf("two", ["b1"]))]);
+      return (
+        p.cards["one:a1"].box === 4 &&
+        p.cards["one:a1"].due === "2026-09-17" &&
+        p.cards["two:b1"].box === 1
+      );
     },
   ],
 
@@ -265,11 +340,26 @@ const cases: Array<[string, () => boolean]> = [
       store.clear();
       store.set(
         PROGRESS_KEY,
-        JSON.stringify({ version: 3, drafts: { "d:aaa": "kept" }, grades: {} }),
+        JSON.stringify({
+          version: 4,
+          cards: {
+            "d:aaa": {
+              draft: "kept",
+              box: 3,
+              due: "2026-09-13",
+              reviewed: "2026-09-09",
+              seen: true,
+            },
+          },
+        }),
       );
       const before = store.get(PROGRESS_KEY);
-      const p = loadProgress(studyCards(deckOf("d", ["aaa"])));
-      return p.drafts["d:aaa"] === "kept" && store.get(PROGRESS_KEY) === before;
+      const p = read(studyCards(deckOf("d", ["aaa"])));
+      return (
+        p.cards["d:aaa"].draft === "kept" &&
+        p.cards["d:aaa"].box === 3 &&
+        store.get(PROGRESS_KEY) === before
+      );
     },
   ],
 
@@ -278,8 +368,8 @@ const cases: Array<[string, () => boolean]> = [
     () => {
       store.clear();
       store.set(PROGRESS_KEY, "{not json");
-      const p = loadProgress(studyCards(deckOf("d", ["aaa"])));
-      return Object.keys(p.drafts).length === 0 && Object.keys(p.grades).length === 0;
+      const p = read(studyCards(deckOf("d", ["aaa"])));
+      return Object.keys(p.cards).length === 0;
     },
   ],
 
@@ -290,9 +380,11 @@ const cases: Array<[string, () => boolean]> = [
       store.set(
         PROGRESS_KEY,
         JSON.stringify({
-          version: 3,
-          drafts: { "mine:aaa": "gone", "yours:bbb": "kept" },
-          grades: { "mine:aaa": "held", "yours:bbb": "review" },
+          version: 4,
+          cards: {
+            "mine:aaa": { draft: "gone", box: 2, due: TOMORROW, reviewed: "", seen: true },
+            "yours:bbb": { draft: "kept", box: 1, due: TODAY, reviewed: "", seen: true },
+          },
         }),
       );
       store.set("progress:mine", JSON.stringify({ drafts: { "mine:0": "x" }, grades: {} }));
@@ -300,11 +392,33 @@ const cases: Array<[string, () => boolean]> = [
       forgetDeck("mine");
       const left = stored();
       return (
+        left.cards["mine:aaa"] === undefined &&
+        left.cards["yours:bbb"].draft === "kept" &&
+        !store.has("progress:mine")
+      );
+    },
+  ],
+
+  [
+    "forgetting a deck before the store has been migrated keeps the other decks",
+    () => {
+      store.clear();
+      store.set(
+        PROGRESS_KEY,
+        JSON.stringify({
+          version: 3,
+          drafts: { "mine:aaa": "gone", "yours:bbb": "kept" },
+          grades: { "mine:aaa": "held", "yours:bbb": "review" },
+        }),
+      );
+      forgetDeck("mine");
+      const left = stored();
+      return (
+        left.version === 3 &&
         left.drafts["mine:aaa"] === undefined &&
         left.grades["mine:aaa"] === undefined &&
         left.drafts["yours:bbb"] === "kept" &&
-        left.grades["yours:bbb"] === "review" &&
-        !store.has("progress:mine")
+        left.grades["yours:bbb"] === "review"
       );
     },
   ],
@@ -316,15 +430,18 @@ const cases: Array<[string, () => boolean]> = [
       store.set(
         PROGRESS_KEY,
         JSON.stringify({
-          version: 3,
-          drafts: { "react:aaa": "gone", "react-19:bbb": "kept" },
-          grades: {},
+          version: 4,
+          cards: {
+            "react:aaa": { draft: "gone", box: 1, due: TODAY, reviewed: "", seen: true },
+            "react-19:bbb": { draft: "kept", box: 1, due: TODAY, reviewed: "", seen: true },
+          },
         }),
       );
       forgetDeck("react");
       const left = stored();
       return (
-        left.drafts["react:aaa"] === undefined && left.drafts["react-19:bbb"] === "kept"
+        left.cards["react:aaa"] === undefined &&
+        left.cards["react-19:bbb"].draft === "kept"
       );
     },
   ],

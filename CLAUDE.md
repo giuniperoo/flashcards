@@ -24,6 +24,7 @@ pnpm run lint         # ESLint flat config, next/core-web-vitals
 pnpm run test         # both suites below
 pnpm run test:parser  # deck parser test cases
 pnpm run test:progress # storage migration test cases
+pnpm run test:schedule # box and due date test cases, under a fixed timezone
 ```
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
@@ -80,6 +81,7 @@ lib/
   print.ts              sheet pagination and column mirroring
   customDecks.ts        localStorage store for imported decks
   progress.ts           the one progress store, card keys, and its migrations
+  schedule.ts           Leitner boxes: next box, due date, and whether it is due
   cardId.ts             uuid for new cards
   apiKey.ts             the user's own Anthropic key, its own localStorage key
   prefs.ts              index preferences; so far, showing the built-in decks
@@ -150,12 +152,26 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 `localStorage`, three keys, each wrapped in a version envelope:
 
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
-- `progress` — `{ version: 3, drafts, grades }`, keyed by `{deckSlug}:{cardId}`
+- `progress` — `{ version: 4, cards }`, keyed by `{deckSlug}:{cardId}`
 - `prefs:index` — `{ version: 2, showBuiltIns, hiddenDecks }`
 
 Version 1 of `prefs:index` held `showBuiltIns` alone, and reads as a version 2
 with nothing hidden individually — the defaults are the migration, so there is
 nothing to write back.
+
+A card's record is `{ draft, box, due, reviewed, seen }`. `box`, `due` and
+`reviewed` mean nothing while `seen` is false — a card written on but never
+graded has no place in the schedule — and `seen` is the authority on that
+rather than a sentinel box or an empty date. Version 3 held two parallel maps,
+`drafts` and `grades`; a grade was a verdict, a record is a schedule, and the
+two halves of a card's history cannot be kept in step when they are stored
+apart.
+
+**`reviewed` is written and never read.** It is the one field that cannot be
+backfilled later: nothing else records *when* a review happened, and `due` is
+no substitute, since a box-5 card reviewed a fortnight ago carries a later
+`due` than a box-1 card done this morning. It is empty on every record migrated
+from an older store, because those stores never knew.
 
 **Progress is one store for the whole app, and the key carries no suffix.**
 Versions 1 and 2 held a store per route — `progress:all` from the shuffle,
@@ -212,8 +228,10 @@ free to change.
 
 Both stores migrate on read, in `lib/progress.ts` and `lib/customDecks.ts`: a
 read of `progress` folds in every `progress:*` key it finds, rewriting version
-1's index keys onto card ids on the way; a bare `Deck[]` predates the envelope
-and gets ids backfilled. Both migrations persist immediately and are idempotent.
+1's index keys onto card ids on the way, and every shape before version 4
+reduces to drafts and grades first and converts to records in one place, so the
+route-merge rules and the schedule rules stay separate; a bare `Deck[]`
+predates the envelope and gets ids backfilled. Both migrations persist immediately and are idempotent.
 `lib/progress.test.ts` covers them, including the case that motivated all of
 this — a card inserted mid-deck leaving later cards' grades intact.
 
@@ -224,6 +242,11 @@ because a draft is writing the reader did and the fuller attempt is the better
 guess at which they would want back. Neither has anything better to go on —
 versions 1 and 2 carry no timestamps. Both are order-independent, which is what
 lets one read fold in however many keys it finds without caring which came first.
+
+Held becomes box 2 due tomorrow and review becomes box 1 due today. Held does
+*not* get box 2's two days: the old stores never recorded when a card was
+graded, so an interval has nothing to count from, and bringing everything back
+within a day is the reading that cannot silently hide a card.
 
 A version 1 key can only be rewritten where the deck's cards are in hand, and a
 read only holds the cards for the route it was called from. So entries for a
