@@ -58,7 +58,7 @@ lib/
   loadDecks.ts           reads content/*.md at build time — server only
   parseDeck.ts           one parser for files, pastes and generated text
   print.ts               sheet pagination and column mirroring
-  progress.ts            drafts and grades, keyed by card id
+  progress.ts            one store of drafts and grades, keyed by card id
   customDecks.ts         imported decks in localStorage
   prefs.ts               which built-in decks this reader wants to see
   tint.ts                a deck's colour, picked furthest from those in use
@@ -172,7 +172,7 @@ counted, imported ones are.
 ## Storage
 
 Everything the app remembers lives in `localStorage`, under four keys:
-`decks:custom` for imported decks, `progress:*` for drafts and grades,
+`decks:custom` for imported decks, `progress` for drafts and grades,
 `prefs:index` for what the index shows, and `llm:key` for your Anthropic key if
 you have set one. There is no account and nothing syncs, so a deck imported on
 your laptop is not on your phone, and a `/study/your-deck` link will not open

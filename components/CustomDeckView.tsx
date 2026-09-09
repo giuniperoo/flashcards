@@ -79,7 +79,7 @@ export default function CustomDeckView({
           </Link>
         </div>
       </div>
-      <Reviewer cards={cards} storageKey={`progress:${deck.slug}`} />
+      <Reviewer cards={cards} />
     </div>
   );
 }

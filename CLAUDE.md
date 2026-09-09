@@ -79,7 +79,7 @@ lib/
   parseDeck.ts          one parser for uploads, pastes and (after task 2) files
   print.ts              sheet pagination and column mirroring
   customDecks.ts        localStorage store for imported decks
-  progress.ts           progress store, card keys, and v1 to v2 migration
+  progress.ts           the one progress store, card keys, and its migrations
   cardId.ts             uuid for new cards
   apiKey.ts             the user's own Anthropic key, its own localStorage key
   prefs.ts              index preferences; so far, showing the built-in decks
@@ -147,16 +147,25 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 
 ## Storage
 
-`localStorage`, two kinds of key, both wrapped in a version envelope:
+`localStorage`, three keys, each wrapped in a version envelope:
 
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
-- `progress:{slug}` — `{ version: 2, drafts, grades }`, keyed by
-  `{deckSlug}:{cardId}`
+- `progress` — `{ version: 3, drafts, grades }`, keyed by `{deckSlug}:{cardId}`
 - `prefs:index` — `{ version: 2, showBuiltIns, hiddenDecks }`
 
 Version 1 of `prefs:index` held `showBuiltIns` alone, and reads as a version 2
 with nothing hidden individually — the defaults are the migration, so there is
 nothing to write back.
+
+**Progress is one store for the whole app, and the key carries no suffix.**
+Versions 1 and 2 held a store per route — `progress:all` from the shuffle,
+`progress:{slug}` from the deck — so a card studied both ways had two records
+with two values and nothing reconciled them: a draft written an hour ago read
+as empty on the other route, and the two tallies disagreed. `cardKey()` was
+already unique across the app on its own, so the partition was the suffix and
+both went together. Reintroducing a suffix implies a sibling store, and there
+isn't one. Deleting an imported deck therefore drops a key *prefix* rather than
+a key, which is what `forgetDeck()` is for.
 
 **The built-in decks are off by default** — `showBuiltIns` is false in
 `DEFAULT_PREFS`, and only a stored `true` turns them on. The decks in
@@ -201,12 +210,27 @@ Every card carries a uuid `id`, assigned once when it is written into
 fixing a typo is exactly when progress should survive. Card order is therefore
 free to change.
 
-Both stores migrate on read, in `lib/progress.ts` and `lib/customDecks.ts`: an
-unversioned progress object is version 1 and gets its index keys rewritten onto
-card ids; a bare `Deck[]` predates the envelope and gets ids backfilled. Both
-migrations persist immediately and are idempotent. `lib/progress.test.ts` covers
-them, including the case that motivated all of this — a card inserted mid-deck
-leaving later cards' grades intact.
+Both stores migrate on read, in `lib/progress.ts` and `lib/customDecks.ts`: a
+read of `progress` folds in every `progress:*` key it finds, rewriting version
+1's index keys onto card ids on the way; a bare `Deck[]` predates the envelope
+and gets ids backfilled. Both migrations persist immediately and are idempotent.
+`lib/progress.test.ts` covers them, including the case that motivated all of
+this — a card inserted mid-deck leaving later cards' grades intact.
+
+Two rules settle a card held in two of the old stores at once. **Review beats
+held**, because being wrong that way costs one extra review and being wrong the
+other way retires a card that was never learned; and the **longer draft wins**,
+because a draft is writing the reader did and the fuller attempt is the better
+guess at which they would want back. Neither has anything better to go on —
+versions 1 and 2 carry no timestamps. Both are order-independent, which is what
+lets one read fold in however many keys it finds without caring which came first.
+
+A version 1 key can only be rewritten where the deck's cards are in hand, and a
+read only holds the cards for the route it was called from. So entries for a
+deck this route *can* see and still cannot place are dropped as unreachable,
+while entries for a deck it has never seen are written back to the legacy key
+for a later route to finish. Each entry is consumed exactly once; that is what
+stops a second read from merging a stale grade back over a newer one.
 
 ## Conventions
 
