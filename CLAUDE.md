@@ -25,6 +25,7 @@ pnpm run test         # both suites below
 pnpm run test:parser  # deck parser test cases
 pnpm run test:progress # storage migration test cases
 pnpm run test:schedule # box and due date test cases, under a fixed timezone
+pnpm run test:queue    # what a session deals: a backlog, then the new cards
 ```
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
@@ -82,6 +83,8 @@ lib/
   customDecks.ts        localStorage store for imported decks
   progress.ts           the one progress store, card keys, and its migrations
   schedule.ts           Leitner boxes: next box, due date, and whether it is due
+  queue.ts              what a session deals — due cards, then the unseen ones
+  shuffle.ts            Fisher-Yates, shared by the reviewer and the queue
   cardId.ts             uuid for new cards
   apiKey.ts             the user's own Anthropic key, its own localStorage key
   prefs.ts              index preferences; so far, showing the built-in decks

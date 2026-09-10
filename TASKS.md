@@ -81,26 +81,45 @@ reviewed this morning.
 
 ### Task 3 — The queue builder
 
-**Why.** This is where the difficulty actually is. The algorithm is forty lines; the
-interaction between overdue cards, the daily intake cap and the unseen pool is what
-goes subtly wrong and only shows up after a week of real use. Isolating it as a pure
-function turns that week into test cases.
+**Why.** This is where the difficulty actually is. The algorithm is short; what goes
+subtly wrong is the interaction between a backlog and the unseen pool, and it only
+shows up after a week of real use. Isolating it as a pure function turns that week
+into test cases.
 
 **Do**
 
-- One function: `(records, today, cap) → ordered cards`. Overdue first, most overdue
-  leading; random within a due day; unseen last and capped
-- The cap holds back **new cards only**. Overdue is debt already owed and is never
-  trimmed, or a missed week compounds silently. 10–15 new cards a day is the right
-  order of magnitude for cards that each cost a written paragraph
+- One function: `(cards, records, today) → ordered cards`. Overdue first, most overdue
+  leading; random within a due day; unseen last, in deck order
+- Nothing is trimmed. A backlog is debt already owed, and holding any of it back lets a
+  missed week compound silently
 - Nothing calls it yet
 
-**Done when** its tests cover a backlog, a day with nothing due, a cap that bites, and
-a deck where every card is unseen.
+**Done when** its tests cover a backlog, a day with nothing due, and a deck where every
+card is unseen.
 
 **Note.** The shuffle survives here as the tiebreak *within* a due day, and only there.
 Cards graded in one sitting share a due date, so without it they come back in the order
 you did them — which is the serial dependency the shuffle existed to break.
+
+**No daily intake cap, and this is the second time it has been considered.** The
+original plan held new cards back at 10–15 a day so a fresh deck would enter the
+schedule over several days rather than as one lump that then moves through the boxes
+together. It does not survive contact with two facts.
+
+A card enters the schedule when it is *graded*, not when it is dealt. An unseen card
+offered and skipped, or written into and never turned over, stays unseen and comes
+back as new. So intake is already bounded by what the reader chooses to do, and a cap
+only bounds it by making that choice for them.
+
+And a cap on this function is not a cap on a day. It is per call, so it multiplies by
+however many decks are opened and however many times each is reopened, and it
+contradicts `/study/all`, which calls the same function once and would get a single
+allowance across every deck. Making it mean a day needs a *first seen* date on the
+record, which the store does not keep — `reviewed` is the last review, and a card met
+this morning is indistinguishable from one known for a month and got wrong.
+
+If the lumping does bite after a few imports, bring it back with that field and not
+without it.
 
 ---
 
