@@ -11,15 +11,7 @@ import {
   unseenCard,
 } from "@/lib/progress";
 import { FIRST_BOX, dayKey, dueOn, nextBox, type Grade } from "@/lib/schedule";
-
-function shuffled<T>(items: T[]) {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
+import { shuffled } from "@/lib/shuffle";
 
 /* The progress strip's geometry: how many dashes go in a row.
  *
