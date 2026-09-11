@@ -317,7 +317,40 @@ interview horizon at a time, not twelve.
 
 ---
 
-### Task 8 — Docs
+### Task 8 — An empty box when a card comes back
+
+**Why.** When a card returns, the answer you wrote last time is already sitting in
+the box. You read it instead of recalling it. That is the one thing this app exists
+to stop.
+
+The draft is there for a good reason, though. Write half an answer, move on, come
+back to it in the same sitting, and you want your text where you left it. So the rule
+is about *returning*, not about drafts in general: keep the draft inside a session,
+clear it when the card comes back in a later one.
+
+**Do**
+
+- The box starts empty when the card has been graded since the draft was written.
+  `reviewed` already records the day of the last grade, so the reviewer can tell
+- Inside one session the draft behaves as it does now
+- The old answer is not thrown away. Show it on the back of the card, under the one
+  you just wrote, so you can see whether this attempt was better
+- That means the record keeps two drafts rather than one: this attempt and the last.
+  Two is enough. A full history is a different feature and nobody asked for it
+- The setting goes beside the schedule switch at the foot of the index
+
+**Consider not having a setting.** Showing the old answer on a returning card is
+straightforwardly against the rule the app is built on, and a default nobody should
+want is usually a default that should not exist. If it ships as a setting, it ships
+switched to empty.
+
+**Done when** a card graded yesterday opens with an empty box, a card you half
+answered ten minutes ago still has your text, and the back of the card shows both
+attempts.
+
+---
+
+### Task 9 — Docs
 
 Three documents describe a world without scheduling and stop being true at task 4.
 
@@ -339,7 +372,7 @@ Three documents describe a world without scheduling and stop being true at task 
 
 Independent of the above and of each other.
 
-### Task 9 — Import hardening
+### Task 10 — Import hardening
 
 Small fixes to the import path, now that it's the main way decks get created.
 
@@ -360,7 +393,7 @@ print, and `pnpm run test:parser` still passes.
 
 ---
 
-### Task 10 — Housekeeping
+### Task 11 — Housekeeping
 
 - Add a `not-found.tsx` matching the app's visual language
 - Add `metadata` per route (deck name in the title, so browser tabs are useful)
