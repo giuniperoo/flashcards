@@ -49,7 +49,7 @@ export default async function StudyPage({
           title={title}
         />
       ) : (
-        <Reviewer cards={cards} />
+        <Reviewer cards={cards} schedulable />
       )}
     </div>
   );

@@ -87,7 +87,8 @@ lib/
   shuffle.ts            Fisher-Yates, shared by the reviewer and the queue
   cardId.ts             uuid for new cards
   apiKey.ts             the user's own Anthropic key, its own localStorage key
-  prefs.ts              index preferences; so far, showing the built-in decks
+  prefs.ts              index preferences: the built-in decks, and the mode
+  studyMode.ts          the `?scheduled` parameter, and links that carry it
   useCustomDecks.ts     the imported decks, kept in step with localStorage
   usePrefs.ts           index preferences, shared by the grid and the controls
   generateDeck.ts       browser-direct call to Anthropic — CLIENT ONLY
@@ -156,11 +157,19 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
 - `progress` — `{ version: 4, cards }`, keyed by `{deckSlug}:{cardId}`
-- `prefs:index` — `{ version: 2, showBuiltIns, hiddenDecks }`
+- `prefs:index` — `{ version: 3, showBuiltIns, hiddenDecks, scheduled }`
 
-Version 1 of `prefs:index` held `showBuiltIns` alone, and reads as a version 2
-with nothing hidden individually — the defaults are the migration, so there is
-nothing to write back.
+Version 1 of `prefs:index` held `showBuiltIns` alone and version 2 added
+`hiddenDecks`. Each reads as the version after it with the new field at its
+default — the defaults are the migration, so there is nothing to write back.
+
+`scheduled` is the spaced repetition switch, at the foot of the index and off
+until somebody presses it. It governs what the *index* draws and what it writes
+into its own study links; what the reviewer reads is `?scheduled` in the URL,
+never the preference. The two are separate on purpose: a link then says which
+reviewer it opens and a bookmark cannot change under the reader, and scrapping
+the experiment deletes a path rather than restoring a deleted one. `/study/all`
+is not scheduled yet — that is task 6. See `lib/studyMode.ts`.
 
 A card's record is `{ draft, box, due, reviewed, seen }`. `box`, `due` and
 `reviewed` mean nothing while `seen` is false — a card written on but never

@@ -3,6 +3,7 @@
 import DeckCard, { type DeckSummary } from "@/components/DeckCard";
 import { visibleDecks } from "@/lib/prefs";
 import { DECK_PARAM, deckParamFor } from "@/lib/deckFilter";
+import { studyHref } from "@/lib/studyMode";
 import { useCustomDecks } from "@/lib/useCustomDecks";
 import { usePrefs } from "@/lib/usePrefs";
 
@@ -84,6 +85,7 @@ export default function DeckIndex({
             <li key={deck.slug}>
               <DeckCard
                 deck={deck}
+                studyHref={studyHref(deck.slug, prefs.scheduled)}
                 actions={
                   <>
                     <a

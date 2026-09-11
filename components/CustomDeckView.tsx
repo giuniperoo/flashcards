@@ -79,7 +79,7 @@ export default function CustomDeckView({
           </Link>
         </div>
       </div>
-      <Reviewer cards={cards} />
+      <Reviewer cards={cards} schedulable />
     </div>
   );
 }
