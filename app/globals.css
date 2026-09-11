@@ -30,16 +30,19 @@
   --font-mono: var(--font-label), ui-monospace, monospace;
 }
 
-/* The box ramp, which the strip wears in a scheduled session instead of the
-   two grades above. Five steps, box 1 to box 5, keeping the ordering the
-   endpoints already carry: box 1 *is* `review`, box 5 *is* `held`, and each
-   box up recedes a little further.
+/* The four boxes, on the strip in a scheduled session.
 
-   The middle three are not a straight sRGB mix of the endpoints. That path
-   runs through a flat olive at box 3 which reads as darker than its
-   neighbours rather than further back. These take the long way round through
-   sand, so the ramp goes one direction to the eye at 3px tall, which is the
-   only size it is ever seen at.
+   Not a ramp any more, and not the two grades stretched into five steps.
+   These are four states named by colour the way anybody would name them: red
+   is the card you just got wrong, green is the one you have earned a week off
+   from, and orange and yellow are the two rungs between. The box number is how
+   well you know the card, so the colour runs from work owed to work done.
+
+   They are not matched for contrast against the paper, and should not be.
+   Yellow is intrinsically light, so forcing it to red's weight turns it into
+   an ochre nobody would call yellow. Hue does the identifying here; each one
+   only has to clear the ungraded dash at 1.55, and the faintest of them sits
+   at 1.96.
 
    `static` is load-bearing. Tailwind keeps a theme variable when its name
    appears literally in a source file, and these names never do: the strip
@@ -49,11 +52,10 @@
    survive a plain block only because `Reviewer.tsx` spells them out in full.
    Checked in the browser, not assumed. */
 @theme static {
-  --color-box-1: #d88f79;
-  --color-box-2: #dba884;
-  --color-box-3: #cfb890;
-  --color-box-4: #b7c39e;
-  --color-box-5: #9fc6b1;
+  --color-box-1: #c4442e;
+  --color-box-2: #dd8130;
+  --color-box-3: #d6ab35;
+  --color-box-4: #4f9e72;
 }
 
 html {

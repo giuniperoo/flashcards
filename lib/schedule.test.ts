@@ -36,21 +36,25 @@ const cases: Array<[string, () => boolean]> = [
   ],
 
   [
-    "the intervals are 1, 2, 4, 8 and 16 days",
+    "the intervals are 1, 2, 4 and 7 days, and stop at a week",
     () => {
       const from = "2026-09-09";
-      const got = [1, 2, 3, 4, 5].map((box) => dueOn(box, from));
+      const got = [1, 2, 3, 4].map((box) => dueOn(box, from));
       return (
         JSON.stringify(got) ===
           JSON.stringify([
             "2026-09-10",
             "2026-09-11",
             "2026-09-13",
-            "2026-09-17",
-            "2026-09-25",
-          ]) && JSON.stringify(INTERVALS) === JSON.stringify([1, 2, 4, 8, 16])
+            "2026-09-16",
+          ]) && JSON.stringify(INTERVALS) === JSON.stringify([1, 2, 4, 7])
       );
     },
+  ],
+
+  [
+    "a box above the ladder is pulled back onto it rather than indexing off the end",
+    () => dueOn(9, "2026-09-09") === "2026-09-16" && LAST_BOX === 4,
   ],
 
   [
@@ -59,7 +63,7 @@ const cases: Array<[string, () => boolean]> = [
       addDays("2026-09-30", 1) === "2026-10-01" &&
       addDays("2026-12-31", 1) === "2027-01-01" &&
       addDays("2028-02-28", 1) === "2028-02-29" &&
-      dueOn(5, "2026-12-20") === "2027-01-05",
+      dueOn(4, "2026-12-28") === "2027-01-04",
   ],
 
   [

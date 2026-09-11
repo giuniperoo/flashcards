@@ -89,9 +89,11 @@ function verdictOf(record: CardProgress | undefined): Grade | undefined {
 }
 
 /**
- * A dash's colour. Two colours outside a scheduled session, five inside one —
- * where the box is what the reader is actually working against, and a verdict
- * throws away four fifths of what the store knows.
+ * A dash's colour. Two outside a scheduled session, four inside one: red for a
+ * card you just got wrong, green for one you have earned a week off from, and
+ * orange and yellow for the rungs between. Inside a session the box is what the
+ * reader is working against, and a verdict throws away three quarters of what
+ * the store knows.
  */
 function dashColor(record: CardProgress | undefined, scheduled: boolean) {
   if (!record?.seen) return "var(--color-rule)";

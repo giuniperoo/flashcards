@@ -60,6 +60,9 @@ model; 264 cards and one reader will never feed it.
   6am, not at 11pm
 - `lib/schedule.ts`: `nextBox(box, grade)`, `dueOn(box, today)`, `isDue(record, today)`.
   Boxes 1/2/4/8/16 days. Right promotes one box, wrong drops to box 1
+  *(shortened at task 4 to four boxes of 1/2/4/7 days — a fortnight is outside
+  the horizon of interview preparation, and the long tail was buying load
+  relief rather than memory. See `lib/schedule.ts`.)*
 - Grading writes a box and a date. `Grade` stays two buttons
 - Migrate: `held` → box 2 due tomorrow, `review` → box 1 due today, ungraded → unseen
 
@@ -172,11 +175,14 @@ than restoring a deleted one.
   do something today because it resets to position 0. "Study anyway" keeps it, because
   there is no schedule ordering those cards. With the switch off it never left
 - The strip changes twice over inside a scheduled session, and both halves land here.
-  It colours by box rather than by grade: five steps from `--color-review` to
-  `--color-held`, so box 1 sits furthest forward and each box up recedes, which is the
-  ordering `globals.css` already argues for; unseen stays `--color-rule`. And it holds
-  today's queue rather than the deck, so it stops being a map and becomes a session
-  progress bar — the right reading once `position` marks a place in a queue
+  It colours by box rather than by grade, in four named colours rather than a ramp:
+  red is the card you just got wrong, green is the one you have earned a week off
+  from, orange and yellow are the rungs between, and unseen stays `--color-rule`.
+  The interpolated ramp between `--color-review` and `--color-held` was tried first
+  and abandoned: five near-neighbour hues at a constant lightness are one colour at
+  three pixels tall. And the strip holds today's queue rather than the deck, so it
+  stops being a map and becomes a session progress bar — the right reading once
+  `position` marks a place in a queue
 
 **Done when** grading the last due card finishes the session instead of wrapping
 around, `/study/{slug}` without the parameter is the reviewer it is today, and
