@@ -46,13 +46,17 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
       </button>
       {/* Off by default, and only ever a decision. What it changes is which
           reviewer the links on this page open; a link that already exists
-          keeps opening what it always did. */}
+          keeps opening what it always did.
+
+          No styling for the on state, and that is not an omission. The label
+          names where the button takes you, so "Study whole decks" only appears
+          while you are not studying whole decks — the same way "Hide built-in
+          decks" tells you they are currently shown. Emphasis on those words
+          says the opposite of what they mean. */}
       <button
         type="button"
         onClick={() => update({ ...prefs, scheduled: !prefs.scheduled })}
-        className={`label inline-flex min-h-11 items-center hover:text-ink ${
-          prefs.scheduled ? "text-ink underline underline-offset-4" : "text-muted"
-        }`}
+        className="label inline-flex min-h-11 items-center text-muted hover:text-ink"
       >
         {prefs.scheduled ? "Study whole decks" : "Study on a schedule"}
       </button>
