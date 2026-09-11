@@ -90,6 +90,39 @@ body {
  * Both the built-in grid and "your decks" use this, so the two cannot drift
  * apart as breakpoints are added.
  */
+/* The row of actions at the foot of a deck card.
+
+   The layout lives here rather than on each link because the padding used to
+   be written out four times across three components, and the fourth action on
+   an imported deck — Delete, two characters longer than the built-in decks'
+   Hide — then overflowed a three-column card and was clipped by the card's own
+   overflow-hidden. One place to set it now, and wrap as a backstop, so a
+   longer action can end up tight but never cut off.
+
+   The narrowest a card ever gets is 287px, which is two columns just past
+   640px; three columns just past 1300px is 296px and nearly as tight. Four
+   actions have to fit in 287, and at 0.75rem of side padding they did not —
+   they cleared the three-column case and wrapped in the two-column one. */
+.deck-actions {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--color-rule);
+}
+
+.deck-actions > * {
+  padding: 0.75rem 0.625rem;
+}
+
+/* Study takes the slack, and its left edge lines up with the card body. */
+.deck-actions > :first-child {
+  flex: 1;
+  padding-left: 1.25rem;
+}
+
+.deck-actions > * + * {
+  border-left: 1px solid var(--color-rule);
+}
+
 .deck-grid {
   display: grid;
   gap: 0.75rem;

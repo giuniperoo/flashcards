@@ -56,14 +56,14 @@ export default function CustomDeckList() {
                   <button
                     type="button"
                     onClick={() => download(deck)}
-                    className="label border-l border-rule px-4 py-3 text-muted hover:text-ink"
+                    className="label text-muted hover:text-ink"
                   >
                     Export
                   </button>
                   <button
                     type="button"
                     onClick={() => remove(deck)}
-                    className="label border-l border-rule px-4 py-3 text-muted hover:text-error"
+                    className="label text-muted hover:text-error"
                   >
                     Delete
                   </button>

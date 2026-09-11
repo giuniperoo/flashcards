@@ -55,17 +55,11 @@ export default function DeckCard({
       {/* The grid stretches every card in a row to the tallest one. Without
           this the actions would sit under the blurb with the slack below
           them, floating mid-card on anything with a short blurb. */}
-      <div className="flex border-t border-rule">
-        <Link
-          href={study}
-          className="label flex-1 px-5 py-3 text-muted hover:text-ink"
-        >
+      <div className="deck-actions">
+        <Link href={study} className="label text-muted hover:text-ink">
           Study
         </Link>
-        <Link
-          href={print}
-          className="label border-l border-rule px-4 py-3 text-muted hover:text-ink"
-        >
+        <Link href={print} className="label text-muted hover:text-ink">
           Print
         </Link>
         {actions}

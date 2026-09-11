@@ -91,14 +91,14 @@ export default function DeckIndex({
                     <a
                       href={`/export/${deck.slug}`}
                       download={`${deck.slug}.md`}
-                      className="label border-l border-rule px-4 py-3 text-muted hover:text-ink"
+                      className="label text-muted hover:text-ink"
                     >
                       Export
                     </a>
                     <button
                       type="button"
                       onClick={() => hide(deck.slug)}
-                      className="label border-l border-rule px-4 py-3 text-muted hover:text-ink"
+                      className="label text-muted hover:text-ink"
                     >
                       Hide
                     </button>
