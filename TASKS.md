@@ -253,13 +253,79 @@ change here.
 
 ---
 
-### Task 7 — Docs
+### Task 7 — A first interval shorter than a day
+
+**Why.** Box 1 is a day, and the day before an interview a day is too long. A card
+you have just got wrong is the one you most want back this afternoon, and the ladder
+has no rung below tomorrow. One setting, from an hour to a day, and it moves box 1
+alone — the rungs above it are already inside the horizon and the morning is the
+right time for all of them.
+
+**Do**
+
+- A choice, not a slider: 1, 2, 4, 8 hours or a day. The difference between five
+  hours and six is noise, and a control with twenty-four positions invites the reader
+  to tune something that does not repay tuning
+- Its own key, `prefs:schedule`, `{ version: 1, firstInterval }` in hours, default 24.
+  Not `prefs:index`: the reviewer is what reads this, and `lib/prefs.ts` says in its
+  first paragraph what that key is for. `scheduled` lives there because the *index*
+  acts on it
+- The control sits beside the schedule switch at the foot of the index, and only
+  while scheduling is on. Off, it governs nothing and should not be on the page
+
+**The representation is the whole task.** `due` is a local `YYYY-MM-DD` string, and
+that is argued for twice — in `lib/schedule.ts` and in `CLAUDE.md` — on the grounds
+that a card graded at eleven at night should come back in the morning rather than at
+eleven the following night. An hour cannot be said in a day key. Two ways out:
+
+1. **Timestamps throughout.** One model, and the largest blast radius: the migration,
+   `isDue`'s string compare, the queue's grouping, and every line of copy that says
+   "Thursday". It also brings the eleven o'clock problem back for every box.
+2. **A day key, plus a `dueAt` that only box 1 carries.** `isDue` reads `dueAt` when
+   it is there and `due` when it is not. Boxes 2 to 4 keep the morning and keep their
+   argument intact. Box 1 is the one rung where "back in three hours" is what the
+   reader actually meant.
+
+Take the second. The first is tidier on paper and reverses a decision that was right
+for four of the five cases.
+
+**Watch for.**
+
+**A card graded in this session must not return in this session**, however short the
+interval. The reviewer reads the day once, on mount, so cards cannot move under the
+reader mid-deck; an hourly interval breaks that assumption in a new way rather than an
+old one. Re-dealing a card somebody answered twenty minutes ago is not review, it is
+the same answer twice. So the queue is still built once and the short interval means
+"the next session", not "this one".
+
+**The queue's tiebreak disappears if you are not careful.** `buildQueue` groups by
+`record.due` and shuffles inside each group, which is what stops a deck coming back in
+the order it was last studied. Timestamps at minute resolution make every group one
+card long, and the shuffle silently stops existing. Group box 1 cards by the day they
+fall on even when they carry a `dueAt`.
+
+**The copy has no sub-day vocabulary.** "ACID comes back tomorrow" and "Nothing due
+today" are both wrong when the deck returns at four o'clock. `returnsIn` needs an
+hours branch, and the nothing-due panel needs to stop claiming the day.
+
+**Done when** a card graded wrong with the setting at three hours comes back three
+hours later rather than the next morning, a card graded right still comes back in the
+morning, and `pnpm run test:schedule` covers both under a fixed timezone.
+
+**Not this.** A duration per deck. One setting for the app: the reader has one
+interview horizon at a time, not twelve.
+
+---
+
+### Task 8 — Docs
 
 Three documents describe a world without scheduling and stop being true at task 4.
 
-- `CLAUDE.md` — the Storage section: three keys now, `decks:custom`, `prefs:index` and
-  `progress`, the last at version 3. While in there: "What this is" still says five
-  built-in decks and 80 cards, and there are twelve and 264
+- `CLAUDE.md` — the Storage section: `decks:custom`, `prefs:index` at version 3,
+  `progress` at version 4, and `prefs:schedule` once task 7 lands, which is four keys
+  rather than the three that section is written around. While in there: "What this is"
+  still says five built-in decks and 80 cards, and there are twelve and 264, and it
+  still describes a ladder of five boxes running to sixteen days
 - `ARCHITECTURE.md` §8 — progress now carries a schedule; rotation is deferred, and
   the build order in §9 lists it as step 4, so both say so
 - `ARCHITECTURE.md` §10 — retitled. It is not a Safari quirk: WebKit's seven-day timer,
@@ -273,7 +339,7 @@ Three documents describe a world without scheduling and stop being true at task 
 
 Independent of the above and of each other.
 
-### Task 8 — Import hardening
+### Task 9 — Import hardening
 
 Small fixes to the import path, now that it's the main way decks get created.
 
@@ -294,7 +360,7 @@ print, and `pnpm run test:parser` still passes.
 
 ---
 
-### Task 9 — Housekeeping
+### Task 10 — Housekeeping
 
 - Add a `not-found.tsx` matching the app's visual language
 - Add `metadata` per route (deck name in the title, so browser tabs are useful)
