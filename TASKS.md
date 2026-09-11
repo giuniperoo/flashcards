@@ -125,15 +125,43 @@ without it.
 
 ### Task 4 — The reviewer studies the queue
 
-**Why.** The largest change, and it is structural: a session becomes today's queue and
-it *ends*. Without that, the reviewer keeps grinding past the due cards into ones you
-know cold, which is the waste spaced repetition exists to remove — and this app taxes
-it harder than most, because every card costs a typed answer.
+**Why.** The largest change, and it is structural: a session becomes today's queue
+and it *ends*. Without that, the reviewer keeps grinding past the due cards into ones
+you know cold, which is the waste spaced repetition exists to remove — and this app
+taxes it harder than most, because every card costs a typed answer.
+
+**Scheduling is a mode, and it is off by default.** The app as it stands is the one
+that keeps working: the whole-deck reviewer, its shuffle button and its two-colour
+strip are what `/study/{slug}` opens until somebody asks for the other reviewer, and
+what it goes back to when they stop asking. Everything below lands beside today's
+reviewer rather than on top of it.
+
+The reason is that nobody has yet lived with a scheduled session in this app, and
+whether this should *present* as a spaced repetition app is not a question the code
+should answer on its own. The switch is what buys the fortnight needed to answer it,
+and it is the escape hatch as well: scrapping the experiment deletes a path rather
+than restoring a deleted one.
 
 **Do**
 
-- `/study/{slug}` opens what is due, not the deck. Cards leave the queue as they are
-  graded rather than a cursor advancing over a fixed array
+- `lib/studyMode.ts`: the parameter, and reading it off `window.location`. Same
+  technique and the same reason as `ShuffledSet` — `useSearchParams` on a prerendered
+  route needs a Suspense boundary, and a boundary around a reviewer left the whole
+  subtree unhydrated
+- `/study/{slug}?scheduled` opens what is due. `/study/{slug}` opens the deck, the way
+  it does today. No parameter, no scheduling — a bookmark somebody already has cannot
+  change what it opens under them
+- `prefs:index` goes to version 3 with a `scheduled` boolean, default false. A stored
+  version 2 reads as a version 3 with it off, so the defaults are the migration and
+  there is nothing to write back, exactly as version 1 already does
+- The switch sits in the row at the foot of the index that already holds "Add your own
+  deck" and the built-in deck controls. Each label names the mode it moves to: "Study
+  on a schedule", and "Study whole decks" to come back
+- The index writes the parameter into its own study links while the switch is on, the
+  way it already writes `?deck=a,b,c` into the shuffled card's. The preference is what
+  the index writes with; the parameter is what the reviewer reads
+- Cards leave the queue as they are graded rather than a cursor advancing over a fixed
+  array
 - A done state when the queue empties: what moved up, what went back to box 1, when the
   deck returns. It is also the right home for a deck-wide box map, which the strip stops
   showing (see below)
@@ -142,16 +170,28 @@ it harder than most, because every card costs a typed answer.
 - **No shuffle control in a scheduled session.** You only ever see one card, so
   reordering the ones you have not reached is unobservable; the button only appears to
   do something today because it resets to position 0. "Study anyway" keeps it, because
-  there is no schedule ordering those cards
-- The strip changes twice over, and both halves land here. It colours by box rather
-  than by grade: five steps interpolated between `--color-review` and `--color-held`,
-  so box 1 sits furthest forward and each box up recedes, which is the ordering
-  `globals.css` already argues for; unseen stays `--color-rule`. And it holds today's
-  queue rather than the deck, so it stops being a map and becomes a session progress
-  bar — the right reading once `position` marks a place in a queue
+  there is no schedule ordering those cards. With the switch off it never left
+- The strip changes twice over inside a scheduled session, and both halves land here.
+  It colours by box rather than by grade: five steps from `--color-review` to
+  `--color-held`, so box 1 sits furthest forward and each box up recedes, which is the
+  ordering `globals.css` already argues for; unseen stays `--color-rule`. And it holds
+  today's queue rather than the deck, so it stops being a map and becomes a session
+  progress bar — the right reading once `position` marks a place in a queue
 
-**Done when** grading the last due card finishes the session instead of wrapping around,
-and `prefers-reduced-motion` still holds on the flip.
+**Done when** grading the last due card finishes the session instead of wrapping
+around, `/study/{slug}` without the parameter is the reviewer it is today, and
+`prefers-reduced-motion` still holds on the flip.
+
+**Not here.** `/study/all` stays unscheduled: the cross-deck queue is task 6, and it
+has a remount bug to fix before it can change size nightly. Due counts on the index are
+task 5. Both sit behind the same switch when they arrive.
+
+**Watch for.** The mode is read after mount, like `?deck=` before it, so a scheduled
+session is assembled in the browser a frame after the page paints. That is already true
+of everything the strip shows — progress is read in an effect — so there is nothing on
+screen to take away. It stops being true the moment anything the *server* renders
+depends on the mode, and at that point this stops being a parameter and starts being a
+route.
 
 ---
 
@@ -167,6 +207,11 @@ and `prefers-reduced-motion` still holds on the flip.
 - A deck with nothing due shows the card count alone. No "0 due"
 
 **Done when** the number on a deck card matches what that deck actually opens with.
+
+**Behind the switch.** With scheduling off the label is the card count it has always
+been. A due count is drawn by the index itself rather than by a route, which is the
+second reason task 4's preference exists alongside its parameter — a URL cannot reach
+a deck card.
 
 ---
 
@@ -187,6 +232,11 @@ the prominent one.
 
 **Done when** a day's cards from several decks interleave, and the queue changing size
 overnight does not break hydration.
+
+**Behind the switch**, like tasks 4 and 5. With scheduling off the card is "Everything,
+shuffled" and `/study/all` deals every card, unchanged. Print is not switched in either
+mode: a sheet of paper has no idea what day it is, so `/print/all` keeps dealing the
+whole set. Scheduling governs the session, not the paper.
 
 **Watch for.** This queue has no goal filter — it draws from every deck holding a due
 card. That is right until you are preparing for something specific and would rather not
