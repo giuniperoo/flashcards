@@ -3,6 +3,7 @@
 import DeckCard, { type DeckSummary } from "@/components/DeckCard";
 import { visibleDecks } from "@/lib/prefs";
 import { DECK_PARAM, deckParamFor } from "@/lib/deckFilter";
+import { studyHref } from "@/lib/studyMode";
 import { useCustomDecks } from "@/lib/useCustomDecks";
 import { usePrefs } from "@/lib/usePrefs";
 
@@ -84,19 +85,20 @@ export default function DeckIndex({
             <li key={deck.slug}>
               <DeckCard
                 deck={deck}
+                studyHref={studyHref(deck.slug, prefs.scheduled)}
                 actions={
                   <>
                     <a
                       href={`/export/${deck.slug}`}
                       download={`${deck.slug}.md`}
-                      className="label border-l border-rule px-4 py-3 text-muted hover:text-ink"
+                      className="label text-muted hover:text-ink"
                     >
                       Export
                     </a>
                     <button
                       type="button"
                       onClick={() => hide(deck.slug)}
-                      className="label border-l border-rule px-4 py-3 text-muted hover:text-ink"
+                      className="label text-muted hover:text-ink"
                     >
                       Hide
                     </button>

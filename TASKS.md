@@ -3,8 +3,10 @@
 One task per commit. Each is independently useful and leaves the app working.
 Read `CLAUDE.md` first.
 
-The spaced repetition tasks run in the order given — each depends on the one
-before it. The miscellaneous tasks don't, and can land whenever.
+The spaced repetition tasks mostly run in order. Tasks 1 to 4 each depend on
+the one before. After that, 6 needs 5, and 7, 8 and 9 need only 4 — which is why
+8 has already landed ahead of 5. Docs, task 10, goes last. The miscellaneous
+tasks depend on nothing and can land whenever.
 
 Scope for this round is a personal deployment: local decks plus committed
 markdown decks. Accounts, publishing and moderation are out — see
@@ -18,7 +20,40 @@ Leitner boxes over the grading the reviewer already collects. Intervals stop
 being a sort key and start governing the session: a study session becomes what
 is due today, and it ends.
 
+**Where it stands**
+
+| Task | Status |
+|---|---|
+| 1 — One progress store | merged |
+| 2 — Boxes and due dates | merged |
+| 3 — The queue builder | merged |
+| 4 — The reviewer studies the queue | built on `reviewer-studies-the-queue`, not merged |
+| 5 — Due counts on the index | next |
+| 6 — The cross-deck due queue | not started |
+| 7 — A first interval shorter than a day | not started |
+| 8 — An empty box when a card comes back | built on `reviewer-studies-the-queue`, not merged |
+| 9 — Say what the colours mean, once | not started |
+| 10 — Docs | not started |
+
+**The ladder as built.** Four boxes. A right answer moves a card up one box, a wrong
+answer sends it to box 1. On a schedule the strip colours each card by its box:
+
+| Box | Colour | Means | Comes back in |
+|---|---|---|---|
+| — | grey | not answered yet | — |
+| 1 | red | wrong last time | 1 day |
+| 2 | orange | one right in a row | 2 days |
+| 3 | yellow | two right in a row | 3 days |
+| 4 | green | three or more right in a row | 4 days |
+
+With the switch off, the strip is two colours: green for a card last answered right,
+red for one last answered wrong.
+
+---
+
 ### Task 1 — One progress store
+
+*Merged.*
 
 **Why now.** `cardKey()` is already `{deckSlug}:{cardId}` — unique across the whole
 app on its own. The store it lands in is chosen by route, so the same key exists
@@ -48,6 +83,8 @@ same card, and `pnpm run test:progress` covers the merge.
 
 ### Task 2 — Boxes and due dates
 
+*Merged.*
+
 **Why.** Leitner, not SM-2 or FSRS. It takes exactly the binary signal the reviewer
 already collects, it is explainable in one sentence, and a box of dividers is a
 physical object — which is the same claim the print route makes. FSRS wants a trained
@@ -57,9 +94,14 @@ model; 264 cards and one reader will never feed it.
 
 - The record becomes `{ draft, box, due, reviewed, seen }`. `due` and `reviewed` are
   local `YYYY-MM-DD` strings, not epoch ms — a card graded at 11pm should come back at
-  6am, not at 11pm
+  6am, not at 11pm *(task 4 added `misses`, the count of wrong answers in a row. It is
+  written and not read; see `CardProgress` in `lib/progress.ts`.)*
 - `lib/schedule.ts`: `nextBox(box, grade)`, `dueOn(box, today)`, `isDue(record, today)`.
   Boxes 1/2/4/8/16 days. Right promotes one box, wrong drops to box 1
+  *(shortened at task 4 to four boxes of 1/2/3/4 days, in even steps — a
+  fortnight is outside the horizon of interview preparation, and doubling gaps
+  put a deck with a few stubborn cards most of a month out. See
+  `lib/schedule.ts`.)*
 - Grading writes a box and a date. `Grade` stays two buttons
 - Migrate: `held` → box 2 due tomorrow, `review` → box 1 due today, ungraded → unseen
 
@@ -74,12 +116,14 @@ commit — one to compare against, and one to revert.
 **Watch for.** `reviewed` is unused at this point and goes in anyway: it is what a
 future sync needs to resolve a conflict, and the one field here that cannot be
 backfilled, since nothing else records *when* a review happened. `due` is not a
-substitute — a box-5 card reviewed a fortnight ago has a later `due` than a box-1 card
+substitute — a box-4 card reviewed two days ago has a later `due` than a box-1 card
 reviewed this morning.
 
 ---
 
 ### Task 3 — The queue builder
+
+*Merged.*
 
 **Why.** This is where the difficulty actually is. The algorithm is short; what goes
 subtly wrong is the interaction between a backlog and the unseen pool, and it only
@@ -125,37 +169,102 @@ without it.
 
 ### Task 4 — The reviewer studies the queue
 
-**Why.** The largest change, and it is structural: a session becomes today's queue and
-it *ends*. Without that, the reviewer keeps grinding past the due cards into ones you
-know cold, which is the waste spaced repetition exists to remove — and this app taxes
-it harder than most, because every card costs a typed answer.
+*Built on `reviewer-studies-the-queue`, not yet merged.*
+
+**Why.** The largest change, and it is structural: a session becomes today's queue
+and it *ends*. Without that, the reviewer keeps grinding past the due cards into ones
+you know cold, which is the waste spaced repetition exists to remove — and this app
+taxes it harder than most, because every card costs a typed answer.
+
+**Scheduling is a mode, and it is off by default.** The app as it stands is the one
+that keeps working: the whole-deck reviewer, its shuffle button and its two-colour
+strip are what `/study/{slug}` opens until somebody asks for the other reviewer, and
+what it goes back to when they stop asking. Everything below lands beside today's
+reviewer rather than on top of it.
+
+The reason is that nobody has yet lived with a scheduled session in this app, and
+whether this should *present* as a spaced repetition app is not a question the code
+should answer on its own. The switch is what buys the fortnight needed to answer it,
+and it is the escape hatch as well: scrapping the experiment deletes a path rather
+than restoring a deleted one.
 
 **Do**
 
-- `/study/{slug}` opens what is due, not the deck. Cards leave the queue as they are
-  graded rather than a cursor advancing over a fixed array
-- A done state when the queue empties: what moved up, what went back to box 1, when the
-  deck returns. It is also the right home for a deck-wide box map, which the strip stops
-  showing (see below)
+- `lib/studyMode.ts`: the parameter, and reading it off `window.location`. Same
+  technique and the same reason as `ShuffledSet` — `useSearchParams` on a prerendered
+  route needs a Suspense boundary, and a boundary around a reviewer left the whole
+  subtree unhydrated
+- `/study/{slug}?scheduled` opens what is due. `/study/{slug}` opens the deck, the way
+  it does today. No parameter, no scheduling — a bookmark somebody already has cannot
+  change what it opens under them
+- `prefs:index` goes to version 3 with a `scheduled` boolean, default false. A stored
+  version 2 reads as a version 3 with it off, so the defaults are the migration and
+  there is nothing to write back, exactly as version 1 already does
+- The switch sits in the row at the foot of the index that already holds "Add your own
+  deck" and the built-in deck controls. Each label names the mode it moves to: "Study
+  on a schedule", and "Study whole decks" to come back
+- The index writes the parameter into its own study links while the switch is on, the
+  way it already writes `?deck=a,b,c` into the shuffled card's. The preference is what
+  the index writes with; the parameter is what the reviewer reads
+- Cards leave the queue as they are graded rather than a cursor advancing over a fixed
+  array
+- A done state when the queue empties: how many you got right and how many need review,
+  in the buttons' own words, and when the deck comes back. It is also the right home for
+  a map of the whole deck by box, which the strip stops showing (see below). Its button
+  reads "Study the whole deck", because that is what it deals
 - Nothing due opens "Study anyway", which deals the whole deck. No separate mode —
   grading there still schedules normally
 - **No shuffle control in a scheduled session.** You only ever see one card, so
   reordering the ones you have not reached is unobservable; the button only appears to
   do something today because it resets to position 0. "Study anyway" keeps it, because
-  there is no schedule ordering those cards
-- The strip changes twice over, and both halves land here. It colours by box rather
-  than by grade: five steps interpolated between `--color-review` and `--color-held`,
-  so box 1 sits furthest forward and each box up recedes, which is the ordering
-  `globals.css` already argues for; unseen stays `--color-rule`. And it holds today's
-  queue rather than the deck, so it stops being a map and becomes a session progress
-  bar — the right reading once `position` marks a place in a queue
+  there is no schedule ordering those cards. With the switch off it never left
+- The strip changes twice over inside a scheduled session, and both halves land here.
+  It colours by box rather than by grade, in four named colours: red for box 1, then
+  orange, yellow, and green at the top, so green means three right in a row; unseen
+  stays `--color-rule`. Two other versions were tried. A ramp between
+  `--color-review` and `--color-held` was five near-neighbour hues at one lightness,
+  which is one colour at three pixels tall. Colouring by misses turned a card green on
+  its first right answer, so a deck could go all green in one pass — recognition
+  passing for knowledge, which is what the app is built against. The miss count it
+  needed is still written. And the strip holds today's queue rather than the deck, so
+  it stops being a map and becomes a session progress bar — the right reading once
+  `position` marks a place in a queue
 
-**Done when** grading the last due card finishes the session instead of wrapping around,
-and `prefers-reduced-motion` still holds on the flip.
+**Done when** grading the last due card finishes the session instead of wrapping
+around, `/study/{slug}` without the parameter is the reviewer it is today, and
+`prefers-reduced-motion` still holds on the flip.
+
+**Not here.** `/study/all` stays unscheduled: the cross-deck queue is task 6, and it
+has a remount bug to fix before it can change size nightly. Due counts on the index are
+task 5. Both sit behind the same switch when they arrive.
+
+**Also on this branch.** Fixes and changes that came up while living with task 4:
+
+- The ladder went to four boxes of 1, 2, 3 and 4 days (see task 2)
+- Grading from the keyboard works after Cmd+Enter. The answer box used to keep focus
+  once the card had turned, so 1 and 2 were typed into the hidden answer instead of
+  grading. The turned-away face is now `inert`
+- On a phone the card being studied fits the screen, so "Turn card over" needs no
+  scrolling. The card takes the height that is left rather than a fixed 484px, and the
+  grading buttons sit side by side at every width. Checked in a desktop browser at
+  phone sizes only — see task 12
+- The whole-deck strip is green and red, the same green and red as the scheduled strip
+- On the index: Delete no longer gets cut off on a narrow imported deck card, and the
+  schedule switch has no underline when it is on, since its label names the mode it
+  moves to rather than the one you are in
+
+**Watch for.** The mode is read after mount, like `?deck=` before it, so a scheduled
+session is assembled in the browser a frame after the page paints. That is already true
+of everything the strip shows — progress is read in an effect — so there is nothing on
+screen to take away. It stops being true the moment anything the *server* renders
+depends on the mode, and at that point this stops being a parameter and starts being a
+route.
 
 ---
 
 ### Task 5 — Due counts on the index
+
+*Not started. Next.*
 
 **Do**
 
@@ -168,9 +277,16 @@ and `prefers-reduced-motion` still holds on the flip.
 
 **Done when** the number on a deck card matches what that deck actually opens with.
 
+**Behind the switch.** With scheduling off the label is the card count it has always
+been. A due count is drawn by the index itself rather than by a route, which is the
+second reason task 4's preference exists alongside its parameter — a URL cannot reach
+a deck card.
+
 ---
 
 ### Task 6 — The cross-deck due queue
+
+*Not started.*
 
 **Why.** A due queue across decks is interleaved for free — sort by date, tiebreak
 randomly, never sort by deck. `ARCHITECTURE.md` §8 already argues this route should be
@@ -188,6 +304,17 @@ the prominent one.
 **Done when** a day's cards from several decks interleave, and the queue changing size
 overnight does not break hydration.
 
+**Behind the switch**, like tasks 4 and 5. With scheduling off the card is "Everything,
+shuffled" and `/study/all` deals every card, unchanged. Print is not switched in either
+mode: a sheet of paper has no idea what day it is, so `/print/all` keeps dealing the
+whole set. Scheduling governs the session, not the paper.
+
+**Watch for the volume.** The longest gap sets how many cards come back each day once
+things settle. At four days, all 264 cards is about 66 a day, and every one costs a
+typed answer. One deck at a time it is six to eight. If the cross-deck queue feels
+like too much, that number is why, and the lever is the longest gap in
+`lib/schedule.ts`.
+
 **Watch for.** This queue has no goal filter — it draws from every deck holding a due
 card. That is right until you are preparing for something specific and would rather not
 meet CAP cards while drilling React. Hiding is the wrong instrument: `CLAUDE.md` is
@@ -197,13 +324,181 @@ change here.
 
 ---
 
-### Task 7 — Docs
+### Task 7 — A first interval shorter than a day
 
-Three documents describe a world without scheduling and stop being true at task 4.
+*Not started.*
 
-- `CLAUDE.md` — the Storage section: three keys now, `decks:custom`, `prefs:index` and
-  `progress`, the last at version 3. While in there: "What this is" still says five
-  built-in decks and 80 cards, and there are twelve and 264
+**Why.** Box 1 is a day, and the day before an interview a day is too long. A card
+you have just got wrong is the one you most want back this afternoon, and the ladder
+has no rung below tomorrow. One setting, from an hour to a day, and it moves box 1
+alone — the rungs above it are already inside the horizon and the morning is the
+right time for all of them.
+
+**Do**
+
+- A choice, not a slider: 1, 2, 4, 8 hours or a day. The difference between five
+  hours and six is noise, and a control with twenty-four positions invites the reader
+  to tune something that does not repay tuning
+- Its own key, `prefs:schedule`, `{ version: 1, firstInterval }` in hours, default 24.
+  Not `prefs:index`: the reviewer is what reads this, and `lib/prefs.ts` says in its
+  first paragraph what that key is for. `scheduled` lives there because the *index*
+  acts on it
+- The control sits beside the schedule switch at the foot of the index, and only
+  while scheduling is on. Off, it governs nothing and should not be on the page
+
+**The representation is the whole task.** `due` is a local `YYYY-MM-DD` string, and
+that is argued for twice — in `lib/schedule.ts` and in `CLAUDE.md` — on the grounds
+that a card graded at eleven at night should come back in the morning rather than at
+eleven the following night. An hour cannot be said in a day key. Two ways out:
+
+1. **Timestamps throughout.** One model, and the largest blast radius: the migration,
+   `isDue`'s string compare, the queue's grouping, and every line of copy that says
+   "Thursday". It also brings the eleven o'clock problem back for every box.
+2. **A day key, plus a `dueAt` that only box 1 carries.** `isDue` reads `dueAt` when
+   it is there and `due` when it is not. Boxes 2 to 4 keep the morning and keep their
+   argument intact. Box 1 is the one rung where "back in three hours" is what the
+   reader actually meant.
+
+Take the second. The first is tidier on paper and reverses a decision that was right
+for four of the five cases.
+
+**Watch for.**
+
+**A card graded in this session must not return in this session**, however short the
+interval. The reviewer reads the day once, on mount, so cards cannot move under the
+reader mid-deck; an hourly interval breaks that assumption in a new way rather than an
+old one. Re-dealing a card somebody answered twenty minutes ago is not review, it is
+the same answer twice. So the queue is still built once and the short interval means
+"the next session", not "this one".
+
+**The queue's tiebreak disappears if you are not careful.** `buildQueue` groups by
+`record.due` and shuffles inside each group, which is what stops a deck coming back in
+the order it was last studied. Timestamps at minute resolution make every group one
+card long, and the shuffle silently stops existing. Group box 1 cards by the day they
+fall on even when they carry a `dueAt`.
+
+**The copy has no sub-day vocabulary.** "ACID comes back tomorrow" and "Nothing due
+today" are both wrong when the deck returns at four o'clock. `returnsIn` needs an
+hours branch, and the nothing-due panel needs to stop claiming the day.
+
+**Done when** a card graded wrong with the setting at three hours comes back three
+hours later rather than the next morning, a card graded right still comes back in the
+morning, and `pnpm run test:schedule` covers both under a fixed timezone.
+
+**Not this.** A duration per deck. One setting for the app: the reader has one
+interview horizon at a time, not twelve.
+
+**Undecided: same-day repeats.** Anki shows a new card again after a minute and then
+ten minutes before it starts spacing by days, and this app has nothing like it — the
+first answer always waits at least a day. That is the biggest reason a card cannot
+reach green quickly. This task could grow into it, or it could be its own task. Not
+agreed yet either way.
+
+---
+
+### Task 8 — An empty box when a card comes back
+
+*Built on `reviewer-studies-the-queue`, not yet merged. Landed early, alongside
+task 4, and narrower than first planned.*
+
+**Why.** When a card returns, the answer you wrote last time is already sitting in
+the box. You read it instead of recalling it. That is the one thing this app exists
+to stop.
+
+**What was built**
+
+- On a schedule, every card opens with an empty box, whatever you wrote last time.
+  With the switch off, nothing changes: the box opens with your saved draft
+- What you type during a visit survives it. Half an answer left for another card and
+  come back to is still there, and so is anything written before stepping out of the
+  queue into the whole deck
+- The old answer is not deleted to empty the box. It stays in the store until a new
+  one replaces it, and moving past a blank box does not write the blank over it
+- No old answer on the back of the card, and no setting
+
+**What changed from the plan.** The plan kept two drafts per card and showed the
+previous attempt under the new one for comparison. That came out on the grounds that
+no previous answer should be on screen at all while studying on a schedule, so the
+record still holds one draft. The plan also left the mode open; this only applies on
+a schedule, because the whole-deck reviewer is the one being kept as it was.
+
+---
+
+### Task 9 — Say what the colours mean, once
+
+*Not started.*
+
+**Why.** The strip is four colours and a grey and nothing on screen says what any of
+them mean. A reader who answers a new card correctly, sees orange, and expects green
+concludes the app is broken. That is not hypothetical — it happened, and the strip
+was briefly changed to go green on one right answer before being changed back.
+
+**Not a popup on first load.** At that point the reader has never seen a strip, so it
+explains a thing they have not met, and there is no other modal anywhere in this app.
+Show it when they press "Study on a schedule": that is the moment they opt into the
+thing that needs explaining, and the only moment the explanation is certainly wanted.
+Leave a "How does this work?" link beside the switch so it can be read again, and
+never show it unasked twice — `prefs:index` remembers.
+
+**Do**
+
+- A panel, in the app's own language: the card shape, a real strip rather than a
+  description of one, sentence case, no exclamation marks
+- The four colours are shown as dashes at the size they actually appear, each labelled
+  with what puts a card there. A legend of swatches at 3px is the thing being
+  explained, so it should not be redrawn larger and differently
+- Closing it leaves you on the index with the switch on. It appears when the switch is
+  pressed, where no deck has been chosen yet, so there is no session for it to start,
+  and it is not a gate in front of anything
+
+**The copy.**
+
+> **How this works**
+>
+> Every card climbs a ladder of four rungs, and its colour on the strip is the rung
+> it is on.
+>
+> - grey — not answered yet
+> - red — you marked it "Needs review"
+> - orange — one right answer in a row
+> - yellow — two right answers in a row
+> - green — three right answers in a row
+>
+> One wrong answer sends a card back to red from wherever it had got to. So green
+> means three in a row, not three in total.
+>
+> The rung also sets when the card comes back: red the next day, orange in two days,
+> yellow in three, green in four.
+>
+> Nobody is checking your answers but you.
+
+**What changed from the first draft.** "Answer each question 3 times correctly"
+became "three times in a row", because a wrong answer drops a card to red from any
+rung, and that is the whole of the ladder. And the interval paragraph came out: it
+described task 7, which is not built.
+
+**When task 7 lands**, this panel gains one line about the setting, saying plainly that
+it only changes how soon a red card comes back.
+
+**Done when** turning the switch on shows it once and never again unasked, the link
+beside the switch brings it back, and the dashes in it are the same three pixels tall
+as the ones in the reviewer.
+
+---
+
+### Task 10 — Docs
+
+*Not started.*
+
+Three documents are partly out of date. The Storage section of `CLAUDE.md` was kept
+current as tasks 1 to 4 and 8 landed — `prefs:index` at version 3, `progress` at
+version 4, the `misses` field — so what is left there is small.
+
+- `CLAUDE.md` — "What this is" still says five built-in decks and 80 cards; there are
+  twelve and 264. The Storage section says three keys: the API key has its own too,
+  and `prefs:schedule` makes another once task 7 lands. The `reviewed` paragraph's
+  example is "a box-5 card reviewed a fortnight ago", from before the ladder became
+  four boxes of up to four days, and `lib/progress.ts` has the same example
 - `ARCHITECTURE.md` §8 — progress now carries a schedule; rotation is deferred, and
   the build order in §9 lists it as step 4, so both say so
 - `ARCHITECTURE.md` §10 — retitled. It is not a Safari quirk: WebKit's seven-day timer,
@@ -217,7 +512,7 @@ Three documents describe a world without scheduling and stop being true at task 
 
 Independent of the above and of each other.
 
-### Task 8 — Import hardening
+### Task 11 — Import hardening
 
 Small fixes to the import path, now that it's the main way decks get created.
 
@@ -238,7 +533,7 @@ print, and `pnpm run test:parser` still passes.
 
 ---
 
-### Task 9 — Housekeeping
+### Task 12 — Housekeeping
 
 - Add a `not-found.tsx` matching the app's visual language
 - Add `metadata` per route (deck name in the title, so browser tabs are useful)
@@ -246,6 +541,10 @@ print, and `pnpm run test:parser` still passes.
   and currently sits in the shared bundle
 - Check the reviewer with a screen reader once; the live regions were written
   correctly but never tested with one
+- The action buttons on a deck card are 41px tall, and `CLAUDE.md` asks for 44px tap
+  targets. Raising them makes every deck card slightly taller, so it wants a decision
+- Check the phone fit from task 4 on a real phone, with Safari's address bar both
+  showing and hidden. It was only measured in a desktop browser at phone sizes
 
 ---
 

@@ -4,9 +4,14 @@ import type { Deck } from "@/lib/types";
 import DeckCard from "@/components/DeckCard";
 import { deleteCustomDeck, toDeckText } from "@/lib/customDecks";
 import { useCustomDecks } from "@/lib/useCustomDecks";
+import { usePrefs } from "@/lib/usePrefs";
+import { studyHref } from "@/lib/studyMode";
 
 export default function CustomDeckList() {
   const decks = useCustomDecks();
+  // An imported deck schedules like any other, so the switch reaches its links
+  // too — the store and the queue have never cared where a deck came from.
+  const [prefs] = usePrefs();
 
   // An imported deck only exists in this browser, so its export is built here
   // rather than fetched. The built-in decks go through `/export/[deck]`.
@@ -45,19 +50,20 @@ export default function CustomDeckList() {
                 tint: deck.tint,
                 count: deck.cards.length,
               }}
+              studyHref={studyHref(deck.slug, prefs.scheduled)}
               actions={
                 <>
                   <button
                     type="button"
                     onClick={() => download(deck)}
-                    className="label border-l border-rule px-4 py-3 text-muted hover:text-ink"
+                    className="label text-muted hover:text-ink"
                   >
                     Export
                   </button>
                   <button
                     type="button"
                     onClick={() => remove(deck)}
-                    className="label border-l border-rule px-4 py-3 text-muted hover:text-error"
+                    className="label text-muted hover:text-error"
                   >
                     Delete
                   </button>

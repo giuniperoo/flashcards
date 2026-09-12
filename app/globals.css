@@ -6,14 +6,18 @@
   --color-ink: #2c2c2a;
   --color-muted: #78776f;
   --color-rule: #ccc6b8;
-  /* The two grades a card can carry, in the progress strip.
-     Ordered by how far forward they should sit: ungraded `rule` is
-     flattest at S 16%/L 76%, `held` next, and `review` furthest
-     forward — it is the one you still owe work to. They used to be a
-     mint and a pink written inline in Reviewer, with review at L 86%,
-     lighter than ungraded, so the cards to revisit receded. */
-  --color-held: #9fc6b1;
-  --color-review: #d88f79;
+  /* The two grades a card can carry, on the whole-deck strip: green for
+     "I had it", red for "Needs review".
+
+     The same green and red as the scheduled strip's top and bottom boxes, on
+     purpose, so a card last answered wrong is the same red in both modes. They used to
+     be a pale mint and a salmon, and the salmon read as yellow beside it —
+     which on this app now means something else. Before that they were a mint
+     and a pink written inline in Reviewer, with the pink lighter than the
+     ungraded dash, so the cards to revisit receded. Red is still the one
+     that sits furthest forward. */
+  --color-held: #4f9e72;
+  --color-review: #c4442e;
   /* Error text. Was written inline as #a32d2d in five places across
      four components. */
   --color-error: #a32d2d;
@@ -28,6 +32,35 @@
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-label), ui-monospace, monospace;
+}
+
+/* The four colours of the strip in a scheduled session, one per box.
+
+   red     box 1  wrong last time         back in 1 day
+   orange  box 2  one right in a row      back in 2 days
+   yellow  box 3  two right in a row      back in 3 days
+   green   box 4  three or more in a row  back in 4 days
+
+   The colour is how far up the ladder a card has climbed, so green is earned
+   over days rather than given for one right answer. A version that coloured
+   by misses instead turned a card green on its first right answer, and a deck
+   could go all green in a single pass. See `dashColor` in `Reviewer.tsx`.
+
+   They are not matched for contrast against the paper, and should not be.
+   Yellow is intrinsically light, so forcing it to red's weight turns it into
+   an ochre nobody would call yellow. Hue does the identifying; each only has
+   to clear the ungraded dash at 1.55, and the faintest sits at 1.96.
+
+   `static` so all four are emitted however they are referenced. Tailwind
+   keeps a theme variable only when its name appears in a source file, and an
+   earlier version built these names from a number at runtime: a plain `@theme`
+   block emitted none of them and every dash rendered transparent. The names
+   are written out now, and `static` stays as the guard. */
+@theme static {
+  --color-box-1: #c4442e;
+  --color-box-2: #dd8130;
+  --color-box-3: #d6ab35;
+  --color-box-4: #4f9e72;
 }
 
 html {
@@ -62,6 +95,39 @@ body {
  * Both the built-in grid and "your decks" use this, so the two cannot drift
  * apart as breakpoints are added.
  */
+/* The row of actions at the foot of a deck card.
+
+   The layout lives here rather than on each link because the padding used to
+   be written out four times across three components, and the fourth action on
+   an imported deck — Delete, two characters longer than the built-in decks'
+   Hide — then overflowed a three-column card and was clipped by the card's own
+   overflow-hidden. One place to set it now, and wrap as a backstop, so a
+   longer action can end up tight but never cut off.
+
+   The narrowest a card ever gets is 287px, which is two columns just past
+   640px; three columns just past 1300px is 296px and nearly as tight. Four
+   actions have to fit in 287, and at 0.75rem of side padding they did not —
+   they cleared the three-column case and wrapped in the two-column one. */
+.deck-actions {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--color-rule);
+}
+
+.deck-actions > * {
+  padding: 0.75rem 0.625rem;
+}
+
+/* Study takes the slack, and its left edge lines up with the card body. */
+.deck-actions > :first-child {
+  flex: 1;
+  padding-left: 1.25rem;
+}
+
+.deck-actions > * + * {
+  border-left: 1px solid var(--color-rule);
+}
+
 .deck-grid {
   display: grid;
   gap: 0.75rem;
@@ -125,6 +191,48 @@ body {
 
 .face-back {
   transform: rotateX(180deg);
+}
+
+/* On a phone, a card being studied fits the screen: no scrolling down to
+   reach "Turn card over".
+
+   The card used to take its height from the 30.25rem minimum above, which
+   is what keeps every card one size so the buttons do not move between
+   cards. On a phone that fixed number was taller than the space the screen
+   had left, so the buttons sat below the fold. Here the card takes whatever
+   height is left instead, and the answer box on the front, which already
+   grows into spare room, takes up the difference. Every card is still one
+   size, because the size now comes from the screen rather than a number.
+
+   Layout does this, not script measuring the window. Every box between the
+   page and the card becomes a column that grows into the space below it —
+   `main`, and the wrappers marked `fit` — and `dvh` rather than `vh` sizes
+   the page, because on a phone `vh` is the height with the browser's address
+   bar hidden, so a page that tall still scrolls while the bar is showing.
+
+   Nothing shrinks below its content (`flex-shrink` is 0 throughout). On a
+   screen too short for a long answer and a long draft together, the card
+   grows and the page scrolls, which is what it did before for everything.
+
+   `:has(.flip)` scopes it to while a card is on screen: the end-of-session
+   panels and the loading line keep their natural height, and every other
+   route is untouched. The on-screen keyboard does not change `dvh` on
+   either iOS or Android Chrome, so typing does not reflow the card. */
+@media (max-width: 639px) {
+  .shell:has(.flip) {
+    min-height: 100dvh;
+  }
+
+  .shell:has(.flip) :is(main, .fit) {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+
+  .shell:has(.flip) .flip {
+    flex: 1 0 auto;
+    min-height: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

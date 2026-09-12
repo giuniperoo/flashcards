@@ -5,7 +5,16 @@
  * it has to be set from outside. London puts the clocks forward on 30 March
  * 2025 and back on 26 October 2025, which is what the boundary cases straddle.
  */
-import { INTERVALS, LAST_BOX, addDays, dayKey, dueOn, isDue, nextBox } from "./schedule";
+import {
+  INTERVALS,
+  LAST_BOX,
+  addDays,
+  dayKey,
+  dueOn,
+  isDue,
+  nextBox,
+  nextMisses,
+} from "./schedule";
 
 function scheduled(seen: boolean, due: string) {
   return { seen, due };
@@ -28,6 +37,19 @@ const cases: Array<[string, () => boolean]> = [
   ],
 
   [
+    "a right answer clears the misses and a wrong one adds one",
+    () =>
+      nextMisses(0, "review") === 1 &&
+      nextMisses(2, "review") === 3 &&
+      nextMisses(7, "held") === 0,
+  ],
+
+  [
+    "a stray miss count is pulled back to a count rather than trusted",
+    () => nextMisses(Number.NaN, "review") === 1 && nextMisses(-4, "review") === 1,
+  ],
+
+  [
     "a box off the ladder is pulled back onto it",
     () =>
       nextBox(0, "held") === 2 &&
@@ -36,21 +58,25 @@ const cases: Array<[string, () => boolean]> = [
   ],
 
   [
-    "the intervals are 1, 2, 4, 8 and 16 days",
+    "the intervals are 1, 2, 3 and 4 days, in even steps",
     () => {
       const from = "2026-09-09";
-      const got = [1, 2, 3, 4, 5].map((box) => dueOn(box, from));
+      const got = [1, 2, 3, 4].map((box) => dueOn(box, from));
       return (
         JSON.stringify(got) ===
           JSON.stringify([
             "2026-09-10",
             "2026-09-11",
+            "2026-09-12",
             "2026-09-13",
-            "2026-09-17",
-            "2026-09-25",
-          ]) && JSON.stringify(INTERVALS) === JSON.stringify([1, 2, 4, 8, 16])
+          ]) && JSON.stringify(INTERVALS) === JSON.stringify([1, 2, 3, 4])
       );
     },
+  ],
+
+  [
+    "a box above the ladder is pulled back onto it rather than indexing off the end",
+    () => dueOn(9, "2026-09-09") === "2026-09-13" && LAST_BOX === 4,
   ],
 
   [
@@ -59,7 +85,7 @@ const cases: Array<[string, () => boolean]> = [
       addDays("2026-09-30", 1) === "2026-10-01" &&
       addDays("2026-12-31", 1) === "2027-01-01" &&
       addDays("2028-02-28", 1) === "2028-02-29" &&
-      dueOn(5, "2026-12-20") === "2027-01-05",
+      dueOn(4, "2026-12-28") === "2027-01-01",
   ],
 
   [
@@ -75,7 +101,7 @@ const cases: Array<[string, () => boolean]> = [
     () =>
       addDays("2025-10-25", 1) === "2025-10-26" &&
       addDays("2025-10-26", 1) === "2025-10-27" &&
-      dueOn(3, "2025-10-24") === "2025-10-28",
+      dueOn(3, "2025-10-24") === "2025-10-27",
   ],
 
   [

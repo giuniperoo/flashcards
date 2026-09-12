@@ -100,6 +100,49 @@ const cases: Array<[string, () => boolean]> = [
   ],
 
   [
+    "an old review becomes one miss and an old held becomes none",
+    () => {
+      store.clear();
+      store.set(
+        PROGRESS_KEY,
+        JSON.stringify({
+          version: 3,
+          drafts: {},
+          grades: { "d:aaa": "review", "d:bbb": "held" },
+        }),
+      );
+      const p = read(studyCards(deckOf("d", ["aaa", "bbb"])));
+      return p.cards["d:aaa"].misses === 1 && p.cards["d:bbb"].misses === 0;
+    },
+  ],
+
+  [
+    "a version 4 record from before misses reads its count off the box, and is not rewritten for it",
+    () => {
+      store.clear();
+      store.set(
+        PROGRESS_KEY,
+        JSON.stringify({
+          version: 4,
+          cards: {
+            "d:aaa": { draft: "", box: 1, due: TODAY, reviewed: TODAY, seen: true },
+            "d:bbb": { draft: "", box: 3, due: TODAY, reviewed: TODAY, seen: true },
+            "d:ccc": { draft: "typed", box: 1, due: "", reviewed: "", seen: false },
+          },
+        }),
+      );
+      const before = store.get(PROGRESS_KEY);
+      const p = read(studyCards(deckOf("d", ["aaa", "bbb", "ccc"])));
+      return (
+        p.cards["d:aaa"].misses === 1 &&
+        p.cards["d:bbb"].misses === 0 &&
+        p.cards["d:ccc"].misses === 0 &&
+        store.get(PROGRESS_KEY) === before
+      );
+    },
+  ],
+
+  [
     "the migration invents no review date, because the old store never had one",
     () => {
       store.clear();
@@ -317,6 +360,7 @@ const cases: Array<[string, () => boolean]> = [
       after.cards["one:a1"] = {
         draft: "",
         box: 4,
+        misses: 0,
         due: "2026-09-17",
         reviewed: TODAY,
         seen: true,

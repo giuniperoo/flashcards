@@ -12,18 +12,28 @@
  * The master switch does not disturb the per-deck list, so turning the decks
  * back on restores exactly the selection that was there before.
  *
+ * `scheduled` is a third and it is not about decks at all: it is whether this
+ * reader wants the spaced repetition app or the whole-deck one. It lives here
+ * because the index is what acts on it — it writes `?scheduled` into its own
+ * study links, and from task 5 it draws due counts. What the reviewer reads is
+ * the parameter, never this; see `lib/studyMode.ts` for why they are separate.
+ *
  * Its own storage key, for the same reason as `lib/apiKey.ts`: `decks:custom`
  * is what the export button serialises, and a display preference has no
  * business riding along inside somebody's deck file.
  */
 
 export const PREFS_KEY = "prefs:index";
-export const PREFS_VERSION = 2;
+export const PREFS_VERSION = 3;
 
 /** Fired on the window so anything showing a deck count can recount. */
 export const PREFS_EVENT = "index-prefs-changed";
 
-export type IndexPrefs = { showBuiltIns: boolean; hiddenDecks: string[] };
+export type IndexPrefs = {
+  showBuiltIns: boolean;
+  hiddenDecks: string[];
+  scheduled: boolean;
+};
 
 /**
  * The decks in `content/` are mine rather than the reader's, so a first visit
@@ -34,11 +44,19 @@ export type IndexPrefs = { showBuiltIns: boolean; hiddenDecks: string[] };
  * This is also what the server renders, since it is what the server can know,
  * which is what keeps the index from flashing decks away on load.
  *
- * Version 1 held `showBuiltIns` alone. It reads as a version 2 with nothing
- * hidden individually, so there is nothing to migrate and nothing to write
- * back — the defaults do the work.
+ * Scheduling is off for the same kind of reason and a stronger one: nobody has
+ * asked this app to become a spaced repetition app, so it is the app it already
+ * was until they do.
+ *
+ * Version 1 held `showBuiltIns` alone and version 2 added `hiddenDecks`. Each
+ * reads as the version after it with the new field at its default, so there is
+ * nothing to migrate and nothing to write back — the defaults do the work.
  */
-export const DEFAULT_PREFS: IndexPrefs = { showBuiltIns: false, hiddenDecks: [] };
+export const DEFAULT_PREFS: IndexPrefs = {
+  showBuiltIns: false,
+  hiddenDecks: [],
+  scheduled: false,
+};
 
 /**
  * A first visit is also the answer whenever storage is unreadable — a private
@@ -58,6 +76,7 @@ export function loadPrefs(): IndexPrefs {
       hiddenDecks: Array.isArray(parsed?.hiddenDecks)
         ? parsed.hiddenDecks.filter((slug) => typeof slug === "string")
         : [],
+      scheduled: parsed?.scheduled === true,
     };
   } catch {
     return DEFAULT_PREFS;
