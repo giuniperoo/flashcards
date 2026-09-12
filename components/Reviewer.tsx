@@ -418,7 +418,7 @@ export default function Reviewer({
         records={saved.cards}
         returns={nextReturn(cards, saved.cards)}
         today={today}
-        onStudyRest={session.cards.length < cards.length ? studyEverything : undefined}
+        onStudyDeck={studyEverything}
       />
     );
   }
@@ -715,7 +715,7 @@ function SessionDone({
   records,
   returns,
   today,
-  onStudyRest,
+  onStudyDeck,
 }: {
   session: Session;
   deck: string;
@@ -723,7 +723,7 @@ function SessionDone({
   records: Record<string, CardProgress>;
   returns: string;
   today: string;
-  onStudyRest?: () => void;
+  onStudyDeck: () => void;
 }) {
   const total = session.cards.length;
   /* Only the halves that happened. A card graded at the top box moves neither
@@ -748,15 +748,17 @@ function SessionDone({
       />
       <p className="label mt-4 text-muted">The whole deck, by box</p>
       <div className="mt-5 flex flex-wrap gap-2">
-        {onStudyRest && (
-          <button
-            type="button"
-            onClick={onStudyRest}
-            className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-          >
-            Study the rest of the deck
-          </button>
-        )}
+        {/* It deals every card, including the ones just done, so it says so.
+            It used to read "the rest of the deck" and hide itself when the
+            queue had been the whole deck, which was two ways of being wrong
+            about the same button. */}
+        <button
+          type="button"
+          onClick={onStudyDeck}
+          className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        >
+          Study the whole deck
+        </button>
         <AllDecks />
       </div>
     </Panel>
