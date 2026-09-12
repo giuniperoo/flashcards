@@ -30,32 +30,34 @@
   --font-mono: var(--font-label), ui-monospace, monospace;
 }
 
-/* The four boxes, on the strip in a scheduled session.
+/* The four colours of the strip in a scheduled session, by how many times
+   running a card has been answered wrong.
 
-   Not a ramp any more, and not the two grades stretched into five steps.
-   These are four states named by colour the way anybody would name them: red
-   is the card you just got wrong, green is the one you have earned the longest
-   gap on, and orange and yellow are the two rungs between. The box number is how
-   well you know the card, so the colour runs from work owed to work done.
+   green   right last time
+   yellow  missed once running
+   orange  missed twice
+   red     missed three times or more
+
+   They report your answers, not the box. The box decides when a card comes
+   back and is not shown; an earlier version coloured by it, and a new card
+   answered correctly went orange — the colour for trouble — because a right
+   answer only climbs one box. See `dashColor` in `Reviewer.tsx`.
 
    They are not matched for contrast against the paper, and should not be.
    Yellow is intrinsically light, so forcing it to red's weight turns it into
-   an ochre nobody would call yellow. Hue does the identifying here; each one
-   only has to clear the ungraded dash at 1.55, and the faintest of them sits
-   at 1.96.
+   an ochre nobody would call yellow. Hue does the identifying; each only has
+   to clear the ungraded dash at 1.55, and the faintest sits at 1.96.
 
-   `static` is load-bearing. Tailwind keeps a theme variable when its name
-   appears literally in a source file, and these names never do: the strip
-   interpolates the box number into `var(--color-box-N)` at runtime, so a
-   plain `@theme` block emits none of them, every dash in a scheduled session
-   resolves to transparent, and the strip vanishes. The two grades above
-   survive a plain block only because `Reviewer.tsx` spells them out in full.
-   Checked in the browser, not assumed. */
+   `static` so all four are emitted however they are referenced. Tailwind
+   keeps a theme variable only when its name appears in a source file, and an
+   earlier version built these names from a number at runtime: a plain `@theme`
+   block emitted none of them and every dash rendered transparent. The names
+   are written out now, and `static` stays as the guard. */
 @theme static {
-  --color-box-1: #c4442e;
-  --color-box-2: #dd8130;
-  --color-box-3: #d6ab35;
-  --color-box-4: #4f9e72;
+  --color-miss-0: #4f9e72;
+  --color-miss-1: #d6ab35;
+  --color-miss-2: #dd8130;
+  --color-miss-3: #c4442e;
 }
 
 html {

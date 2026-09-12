@@ -171,10 +171,21 @@ reviewer it opens and a bookmark cannot change under the reader, and scrapping
 the experiment deletes a path rather than restoring a deleted one. `/study/all`
 is not scheduled yet — that is task 6. See `lib/studyMode.ts`.
 
-A card's record is `{ draft, box, due, reviewed, seen }`. `box`, `due` and
-`reviewed` mean nothing while `seen` is false — a card written on but never
+A card's record is `{ draft, box, misses, due, reviewed, seen }`. `box`,
+`misses`, `due` and `reviewed` mean nothing while `seen` is false — a card written on but never
 graded has no place in the schedule — and `seen` is the authority on that
-rather than a sentinel box or an empty date. Version 3 held two parallel maps,
+rather than a sentinel box or an empty date.
+
+`box` and `misses` are two different things and neither derives the other. The
+box is how far a card has climbed and sets when it comes back; `misses` is how
+many times running it has been answered wrong, and is what a scheduled strip
+colours by. A wrong answer always sends a card to box 1, so the box cannot tell
+one miss from five. `misses` was added inside version 4 rather than as version
+5: a missing count reads as 1 in box 1 and 0 above it, and bumping the envelope
+would have sent every version 4 store down the path for older shapes, which
+reduces a record to a verdict and loses its box.
+
+Version 3 held two parallel maps,
 `drafts` and `grades`; a grade was a verdict, a record is a schedule, and the
 two halves of a card's history cannot be kept in step when they are stored
 apart.

@@ -4,9 +4,17 @@ import { FIRST_BOX, addDays, type Grade } from "./schedule";
 /**
  * What the app remembers about one card: what you wrote, and when it comes back.
  *
- * `box`, `due` and `reviewed` mean nothing while `seen` is false — a card you
- * have typed an answer into but never graded has no place in the schedule yet.
- * `seen` is the authority on that, not a sentinel box or an empty date.
+ * `box`, `misses`, `due` and `reviewed` mean nothing while `seen` is false — a
+ * card you have typed an answer into but never graded has no place in the
+ * schedule yet. `seen` is the authority on that, not a sentinel box or an empty
+ * date.
+ *
+ * `misses` is how many times running the card has been answered wrong, and it is
+ * what the strip colours by. It is not the box. The box is how far the card has
+ * climbed and decides when it comes back; `misses` is how much trouble it is
+ * giving you, and goes to nothing the moment you get it right. The two cannot
+ * be derived from each other: a wrong answer always sends a card to box 1, so
+ * the box alone cannot tell a card missed once from one missed five times.
  *
  * `reviewed` is not read anywhere yet. It goes in now because it is the one
  * field here that cannot be backfilled later: nothing else records *when* a
@@ -18,6 +26,7 @@ import { FIRST_BOX, addDays, type Grade } from "./schedule";
 export type CardProgress = {
   draft: string;
   box: number;
+  misses: number;
   due: string;
   reviewed: string;
   seen: boolean;
@@ -54,6 +63,7 @@ const ID_KEYED = [2, 3];
 export const unseenCard: CardProgress = {
   draft: "",
   box: FIRST_BOX,
+  misses: 0,
   due: "",
   reviewed: "",
   seen: false,
@@ -188,13 +198,23 @@ function fold(raw: unknown, cards: StudyCard[], into: Entries) {
  * graded, so an interval has nothing to count from. Bringing everything back
  * within a day and letting the first real grade set a real date is the reading
  * that cannot silently hide a card. `reviewed` stays empty for the same reason.
+ *
+ * A review becomes one miss rather than none or many: the old stores knew the
+ * last verdict and not how many times it had been given, and one is the fewest
+ * that is still true.
  */
 function scheduleFor(grade: Grade | undefined, today: string) {
-  if (!grade) return { box: FIRST_BOX, due: "", reviewed: "", seen: false };
+  if (!grade) return { box: FIRST_BOX, misses: 0, due: "", reviewed: "", seen: false };
   if (grade === "review") {
-    return { box: FIRST_BOX, due: today, reviewed: "", seen: true };
+    return { box: FIRST_BOX, misses: 1, due: today, reviewed: "", seen: true };
   }
-  return { box: FIRST_BOX + 1, due: addDays(today, 1), reviewed: "", seen: true };
+  return {
+    box: FIRST_BOX + 1,
+    misses: 0,
+    due: addDays(today, 1),
+    reviewed: "",
+    seen: true,
+  };
 }
 
 function toRecords(entries: Entries, today: string) {
@@ -223,17 +243,38 @@ function mergeRecord(a: CardProgress | undefined, b: CardProgress): CardProgress
   return a.seen ? { ...a, draft } : { ...b, draft };
 }
 
+/**
+ * `misses` arrived after version 4 did, and is read in without a version of its
+ * own. A missing count has one right answer, so there is nothing to migrate —
+ * and bumping the envelope would send every version 4 store down the path for
+ * the older shapes, which reduces a record to a verdict and throws its box away.
+ *
+ * A record without it is read the way `scheduleFor` reads an old grade: a card
+ * sitting in box 1 was last answered wrong, which is one miss; any other card
+ * was last answered right, which is none. Reading does not write it back, so
+ * `loadProgress` still leaves an untouched store alone. The next save does write
+ * it, and in practice that is the reviewer opening, since it saves what it
+ * loaded — which is harmless, because what it writes is what a read derives.
+ */
 function readRecords(value: unknown): Record<string, CardProgress> {
   const out: Record<string, CardProgress> = {};
   if (!isRecord(value)) return out;
   for (const [key, entry] of Object.entries(value)) {
     if (!isRecord(entry)) continue;
+    const box = typeof entry.box === "number" ? entry.box : FIRST_BOX;
+    const seen = entry.seen === true;
     out[key] = {
       draft: typeof entry.draft === "string" ? entry.draft : "",
-      box: typeof entry.box === "number" ? entry.box : FIRST_BOX,
+      box,
+      misses:
+        typeof entry.misses === "number" && Number.isFinite(entry.misses)
+          ? Math.max(0, Math.trunc(entry.misses))
+          : seen && box === FIRST_BOX
+            ? 1
+            : 0,
       due: typeof entry.due === "string" ? entry.due : "",
       reviewed: typeof entry.reviewed === "string" ? entry.reviewed : "",
-      seen: entry.seen === true,
+      seen,
     };
   }
   return out;

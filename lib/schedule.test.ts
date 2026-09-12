@@ -5,7 +5,16 @@
  * it has to be set from outside. London puts the clocks forward on 30 March
  * 2025 and back on 26 October 2025, which is what the boundary cases straddle.
  */
-import { INTERVALS, LAST_BOX, addDays, dayKey, dueOn, isDue, nextBox } from "./schedule";
+import {
+  INTERVALS,
+  LAST_BOX,
+  addDays,
+  dayKey,
+  dueOn,
+  isDue,
+  nextBox,
+  nextMisses,
+} from "./schedule";
 
 function scheduled(seen: boolean, due: string) {
   return { seen, due };
@@ -25,6 +34,19 @@ const cases: Array<[string, () => boolean]> = [
   [
     "review drops to box 1 from anywhere",
     () => nextBox(1, "review") === 1 && nextBox(LAST_BOX, "review") === 1,
+  ],
+
+  [
+    "a right answer clears the misses and a wrong one adds one",
+    () =>
+      nextMisses(0, "review") === 1 &&
+      nextMisses(2, "review") === 3 &&
+      nextMisses(7, "held") === 0,
+  ],
+
+  [
+    "a stray miss count is pulled back to a count rather than trusted",
+    () => nextMisses(Number.NaN, "review") === 1 && nextMisses(-4, "review") === 1,
   ],
 
   [

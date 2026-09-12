@@ -64,6 +64,16 @@ export function nextBox(box: number, grade: Grade) {
   return grade === "review" ? FIRST_BOX : Math.min(clampBox(box) + 1, LAST_BOX);
 }
 
+/**
+ * Times running a card has been answered wrong. Right clears it, wrong adds one.
+ * It is what the strip colours by, and it has no ceiling: three and thirty are
+ * the same red, but the store keeps the real number.
+ */
+export function nextMisses(misses: number, grade: Grade) {
+  if (grade === "held") return 0;
+  return (Number.isFinite(misses) ? Math.max(0, Math.trunc(misses)) : 0) + 1;
+}
+
 export function dueOn(box: number, today: string) {
   return addDays(today, INTERVALS[clampBox(box) - 1]);
 }

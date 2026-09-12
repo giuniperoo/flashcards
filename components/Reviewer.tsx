@@ -13,11 +13,11 @@ import {
 } from "@/lib/progress";
 import {
   FIRST_BOX,
-  clampBox,
   dayKey,
   daysBetween,
   dueOn,
   nextBox,
+  nextMisses,
   type Grade,
 } from "@/lib/schedule";
 import { buildQueue } from "@/lib/queue";
@@ -89,18 +89,35 @@ function verdictOf(record: CardProgress | undefined): Grade | undefined {
 }
 
 /**
- * A dash's colour. Two outside a scheduled session, four inside one: red for a
- * card you just got wrong, green for one you have earned the longest gap on, and
- * orange and yellow for the rungs between. Inside a session the box is what the
- * reader is working against, and a verdict throws away three quarters of what
- * the store knows.
+ * The four colours a scheduled session paints with, by misses running. Written
+ * out rather than built from the number, so the names appear in the source.
+ */
+const MISS_COLORS = [
+  "var(--color-miss-0)",
+  "var(--color-miss-1)",
+  "var(--color-miss-2)",
+  "var(--color-miss-3)",
+];
+
+/**
+ * A dash's colour.
+ *
+ * Outside a scheduled session it is the verdict it always was, two colours.
+ * Inside one it reports your answers, not the box: green the moment you get a
+ * card right, whatever box it sits in, and yellow, orange and red for a card you
+ * have missed once, twice, and three or more times running.
+ *
+ * It used to report the box, and that read as failure at exactly the wrong
+ * moment. A new card answered correctly goes to box 2, so it showed orange — the
+ * colour for "review needed" — straight after the reader got it right. The box
+ * still decides when a card comes back. It just is not what the strip shows.
  */
 function dashColor(record: CardProgress | undefined, scheduled: boolean) {
   if (!record?.seen) return "var(--color-rule)";
   if (!scheduled) {
     return record.box === FIRST_BOX ? "var(--color-review)" : "var(--color-held)";
   }
-  return `var(--color-box-${clampBox(record.box)})`;
+  return MISS_COLORS[Math.min(record.misses, MISS_COLORS.length - 1)];
 }
 
 /** The soonest day any card in this deck comes back, or "" if none is scheduled. */
@@ -151,8 +168,9 @@ type Session = {
   cards: StudyCard[];
   /** How many of them had never been seen. Part of the total, not extra to it. */
   fresh: number;
-  promoted: number;
-  reset: number;
+  /** Graded this session. Together they are every card graded, so they add up. */
+  right: number;
+  missed: number;
 };
 
 export default function Reviewer({
@@ -227,8 +245,8 @@ export default function Reviewer({
     setSession({
       cards: queue,
       fresh: queue.filter((c) => !saved.cards[cardKey(c)]?.seen).length,
-      promoted: 0,
-      reset: 0,
+      right: 0,
+      missed: 0,
     });
     setOrder(queue);
     setPosition(0);
@@ -306,6 +324,7 @@ export default function Reviewer({
       // leaves it there. The two buttons still say the same two things.
       const before = saved.cards[key] ?? unseenCard;
       const box = nextBox(before.box, value);
+      const misses = nextMisses(before.misses, value);
 
       setSaved((prev) => {
         const record = prev.cards[key] ?? unseenCard;
@@ -316,6 +335,7 @@ export default function Reviewer({
             [key]: {
               ...record,
               box,
+              misses,
               due: dueOn(box, today),
               reviewed: today,
               seen: true,
@@ -331,13 +351,12 @@ export default function Reviewer({
 
       /* In a session the card leaves the queue rather than the cursor moving
          past it, so the next card falls into this position on its own and the
-         session is over when there is nothing left to fall in. A card already
-         at the top box counts as held rather than promoted — it did not move. */
+         session is over when there is nothing left to fall in. */
       setSession((s) =>
         s && {
           ...s,
-          promoted: s.promoted + (box > before.box ? 1 : 0),
-          reset: s.reset + (value === "review" ? 1 : 0),
+          right: s.right + (value === "held" ? 1 : 0),
+          missed: s.missed + (value === "review" ? 1 : 0),
         },
       );
       commitDraft(draft);
@@ -726,12 +745,12 @@ function SessionDone({
   onStudyDeck: () => void;
 }) {
   const total = session.cards.length;
-  /* Only the halves that happened. A card graded at the top box moves neither
-     way, so the two numbers need not add up to the total — and "0 back to box
-     1" takes the same room as a real number while saying nothing. */
+  /* Only the halves that happened: "0 need review" takes the same room as a
+     real number while saying nothing. The words are the buttons' own, so the
+     sentence reads back what the reader pressed. */
   const moves = [
-    session.promoted > 0 && `${session.promoted} moved up a box`,
-    session.reset > 0 && `${session.reset} back to box 1`,
+    session.right > 0 && `${session.right} right`,
+    session.missed > 0 && `${session.missed} need${session.missed === 1 ? "s" : ""} review`,
   ].filter(Boolean);
   return (
     <Panel title="Done for today">
@@ -746,7 +765,7 @@ function SessionDone({
         currentKey=""
         scheduled
       />
-      <p className="label mt-4 text-muted">The whole deck, by box</p>
+      <p className="label mt-4 text-muted">The whole deck</p>
       <div className="mt-5 flex flex-wrap gap-2">
         {/* It deals every card, including the ones just done, so it says so.
             It used to read "the rest of the deck" and hide itself when the
