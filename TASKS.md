@@ -350,7 +350,64 @@ attempts.
 
 ---
 
-### Task 9 — Docs
+### Task 9 — Say what the colours mean, once
+
+**Why.** The strip is four colours and a grey and nothing on screen says what any of
+them mean. A reader who answers a new card correctly, sees orange, and expects green
+concludes the app is broken. That is not hypothetical — it is how this task got
+written.
+
+**Not a popup on first load.** At that point the reader has never seen a strip, so it
+explains a thing they have not met, and there is no other modal anywhere in this app.
+Show it when they press "Study on a schedule": that is the moment they opt into the
+thing that needs explaining, and the only moment the explanation is certainly wanted.
+Leave a "How does this work?" link beside the switch so it can be read again, and
+never show it unasked twice — `prefs:index` remembers.
+
+**Do**
+
+- A panel, in the app's own language: the card shape, a real strip rather than a
+  description of one, sentence case, no exclamation marks
+- The four colours are shown as dashes at the size they actually appear, each labelled
+  with what puts a card there. A legend of swatches at 3px is the thing being
+  explained, so it should not be redrawn larger and differently
+- Dismissing it starts the session. It is not a gate in front of the deck
+
+**The copy, corrected.** Two things in the first draft were wrong, and both matter:
+
+> **How this works**
+>
+> Every card sits on a ladder of four rungs, and its colour on the strip is the rung.
+>
+> - grey — not answered yet
+> - red — you marked it "Needs review"
+> - orange — one right answer
+> - yellow — two right answers in a row
+> - green — three right answers in a row
+>
+> One wrong answer sends a card back to red from wherever it had got to. So green
+> means three in a row, not three in total.
+>
+> The rung also sets when the card comes back: red tomorrow, orange in two days,
+> yellow in four, green in a week.
+>
+> Nobody is checking your answers but you.
+
+**What changed from the draft.** "Answer each question 3 times correctly" became
+"three times in a row", because a wrong answer drops a card to red from any rung, and
+that is the whole of the ladder. And the interval paragraph came out: it described
+task 7, which is not built, and said the wait is a day, which is true only of red.
+
+**When task 7 lands**, this panel gains a line about the setting, saying plainly that
+it moves the red rung and nothing else.
+
+**Done when** turning the switch on shows it once and never again unasked, the link
+beside the switch brings it back, and the dashes in it are the same three pixels tall
+as the ones in the reviewer.
+
+---
+
+### Task 10 — Docs
 
 Three documents describe a world without scheduling and stop being true at task 4.
 
@@ -372,7 +429,7 @@ Three documents describe a world without scheduling and stop being true at task 
 
 Independent of the above and of each other.
 
-### Task 10 — Import hardening
+### Task 11 — Import hardening
 
 Small fixes to the import path, now that it's the main way decks get created.
 
@@ -393,7 +450,7 @@ print, and `pnpm run test:parser` still passes.
 
 ---
 
-### Task 11 — Housekeeping
+### Task 12 — Housekeeping
 
 - Add a `not-found.tsx` matching the app's visual language
 - Add `metadata` per route (deck name in the title, so browser tabs are useful)
