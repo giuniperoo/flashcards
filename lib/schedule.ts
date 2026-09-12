@@ -23,21 +23,25 @@ export type Grade = "held" | "review";
 /**
  * Days before a card in each box comes back. Box n is `INTERVALS[n - 1]`.
  *
- * Four boxes, stopping at a week. The ladder used to run 1/2/4/8/16, and the
- * top of it did not survive contact with what this app is for: preparing for
- * an interview is a matter of weeks, so a card parked a fortnight out may
- * never come back before the thing that motivated it.
+ * Four boxes of one, two, three and four days: even steps, and short.
  *
- * The tail was there for load rather than for memory. A card's top box sets
- * how often it returns for ever, so the steady cost of a library is its size
- * divided by the longest interval: 264 cards at 16 days is about 17 a day, and
- * at 4 days it is 66 — which, at a typed answer each, is not a session anybody
- * finishes. A week is the compromise. It is inside the horizon, and it holds
- * the cross-deck queue to something like 38 a day rather than 66.
+ * Most spaced repetition grows the gap every time, because a memory you have
+ * recalled lasts a little longer before it fades. That is the right model for a
+ * subject you mean to keep for years, and the wrong one for this app, whose
+ * horizon is an interview in days or weeks. On doubling gaps a card missed late
+ * in its climb falls back to the bottom and has to wait through the long gaps
+ * again, and a few of those in one deck put the whole deck most of a month out.
+ * Here a card answered right every time reaches the top box on day five, and a
+ * miss costs six days to recover rather than a week or more.
  *
- * Per deck it barely matters either way. It is `/study/all` that multiplies.
+ * The ladder has been shortened twice: 1/2/4/8/16, then 1/2/4/7, then this.
+ *
+ * The cost is volume, and it is taken knowingly. A card's top box sets how often
+ * it returns for as long as it is studied, so the steady load of a library is
+ * its size over the longest gap: 264 cards at four days is about 66 a day. That
+ * lands on the cross-deck queue. Studied one deck at a time it is six to eight.
  */
-export const INTERVALS = [1, 2, 4, 7];
+export const INTERVALS = [1, 2, 3, 4];
 
 export const FIRST_BOX = 1;
 export const LAST_BOX = INTERVALS.length;

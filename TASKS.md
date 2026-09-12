@@ -60,9 +60,10 @@ model; 264 cards and one reader will never feed it.
   6am, not at 11pm
 - `lib/schedule.ts`: `nextBox(box, grade)`, `dueOn(box, today)`, `isDue(record, today)`.
   Boxes 1/2/4/8/16 days. Right promotes one box, wrong drops to box 1
-  *(shortened at task 4 to four boxes of 1/2/4/7 days — a fortnight is outside
-  the horizon of interview preparation, and the long tail was buying load
-  relief rather than memory. See `lib/schedule.ts`.)*
+  *(shortened at task 4 to four boxes of 1/2/3/4 days, in even steps — a
+  fortnight is outside the horizon of interview preparation, and doubling gaps
+  put a deck with a few stubborn cards most of a month out. See
+  `lib/schedule.ts`.)*
 - Grading writes a box and a date. `Grade` stays two buttons
 - Migrate: `held` → box 2 due tomorrow, `review` → box 1 due today, ungraded → unseen
 
@@ -176,8 +177,8 @@ than restoring a deleted one.
   there is no schedule ordering those cards. With the switch off it never left
 - The strip changes twice over inside a scheduled session, and both halves land here.
   It colours by box rather than by grade, in four named colours rather than a ramp:
-  red is the card you just got wrong, green is the one you have earned a week off
-  from, orange and yellow are the rungs between, and unseen stays `--color-rule`.
+  red is the card you just got wrong, green is the one you have earned the longest gap
+  on, orange and yellow are the rungs between, and unseen stays `--color-rule`.
   The interpolated ramp between `--color-review` and `--color-held` was tried first
   and abandoned: five near-neighbour hues at a constant lightness are one colour at
   three pixels tall. And the strip holds today's queue rather than the deck, so it
@@ -389,7 +390,7 @@ never show it unasked twice — `prefs:index` remembers.
 > means three in a row, not three in total.
 >
 > The rung also sets when the card comes back: red tomorrow, orange in two days,
-> yellow in four, green in a week.
+> yellow in three, green in four.
 >
 > Nobody is checking your answers but you.
 

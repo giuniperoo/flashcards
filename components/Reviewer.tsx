@@ -90,7 +90,7 @@ function verdictOf(record: CardProgress | undefined): Grade | undefined {
 
 /**
  * A dash's colour. Two outside a scheduled session, four inside one: red for a
- * card you just got wrong, green for one you have earned a week off from, and
+ * card you just got wrong, green for one you have earned the longest gap on, and
  * orange and yellow for the rungs between. Inside a session the box is what the
  * reader is working against, and a verdict throws away three quarters of what
  * the store knows.
