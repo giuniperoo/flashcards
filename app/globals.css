@@ -6,14 +6,18 @@
   --color-ink: #2c2c2a;
   --color-muted: #78776f;
   --color-rule: #ccc6b8;
-  /* The two grades a card can carry, in the progress strip.
-     Ordered by how far forward they should sit: ungraded `rule` is
-     flattest at S 16%/L 76%, `held` next, and `review` furthest
-     forward — it is the one you still owe work to. They used to be a
-     mint and a pink written inline in Reviewer, with review at L 86%,
-     lighter than ungraded, so the cards to revisit receded. */
-  --color-held: #9fc6b1;
-  --color-review: #d88f79;
+  /* The two grades a card can carry, on the whole-deck strip: green for
+     "I had it", red for "Needs review".
+
+     The same green and red as the scheduled strip's `miss-0` and `miss-3`,
+     on purpose, so right and wrong look the same in both modes. They used to
+     be a pale mint and a salmon, and the salmon read as yellow beside it —
+     which on this app now means something else. Before that they were a mint
+     and a pink written inline in Reviewer, with the pink lighter than the
+     ungraded dash, so the cards to revisit receded. Red is still the one
+     that sits furthest forward. */
+  --color-held: #4f9e72;
+  --color-review: #c4442e;
   /* Error text. Was written inline as #a32d2d in five places across
      four components. */
   --color-error: #a32d2d;
