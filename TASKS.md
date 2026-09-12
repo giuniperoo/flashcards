@@ -176,16 +176,16 @@ than restoring a deleted one.
   do something today because it resets to position 0. "Study anyway" keeps it, because
   there is no schedule ordering those cards. With the switch off it never left
 - The strip changes twice over inside a scheduled session, and both halves land here.
-  It colours by your answers, not by box: green when the last answer was right, and
-  yellow, orange and red for a card missed once, twice, and three or more times
-  running; unseen stays `--color-rule`. That needs a count of misses on the record,
-  since a wrong answer always sends a card to box 1 and the box alone cannot tell once
-  from five times. Two earlier versions coloured by box — a ramp between
-  `--color-review` and `--color-held`, then four named colours — and both showed a
-  card as trouble straight after it was answered right, because a right answer only
-  climbs one box. And the strip holds today's queue rather than the deck, so it stops
-  being a map and becomes a session progress bar — the right reading once `position`
-  marks a place in a queue
+  It colours by box rather than by grade, in four named colours: red for box 1, then
+  orange, yellow, and green at the top, so green means three right in a row; unseen
+  stays `--color-rule`. Two other versions were tried. A ramp between
+  `--color-review` and `--color-held` was five near-neighbour hues at one lightness,
+  which is one colour at three pixels tall. Colouring by misses turned a card green on
+  its first right answer, so a deck could go all green in one pass — recognition
+  passing for knowledge, which is what the app is built against. The miss count it
+  needed is still written. And the strip holds today's queue rather than the deck, so
+  it stops being a map and becomes a session progress bar — the right reading once
+  `position` marks a place in a queue
 
 **Done when** grading the last due card finishes the session instead of wrapping
 around, `/study/{slug}` without the parameter is the reviewer it is today, and
@@ -350,9 +350,9 @@ a schedule, because the whole-deck reviewer is the one being kept as it was.
 ### Task 9 — Say what the colours mean, once
 
 **Why.** The strip is four colours and a grey and nothing on screen says what any of
-them mean. Green is readable without help; yellow, orange and red counting misses is
-not, and nor is the fact that a card's colour and when it comes back are two separate
-things.
+them mean. A reader who answers a new card correctly, sees orange, and expects green
+concludes the app is broken. That is not hypothetical — it happened, and the strip
+was briefly changed to go green on one right answer before being changed back.
 
 **Not a popup on first load.** At that point the reader has never seen a strip, so it
 explains a thing they have not met, and there is no other modal anywhere in this app.
@@ -374,30 +374,30 @@ never show it unasked twice — `prefs:index` remembers.
 
 > **How this works**
 >
-> Each dash on the strip is one card.
+> Every card climbs a ladder of four rungs, and its colour on the strip is the rung
+> it is on.
 >
 > - grey — not answered yet
-> - green — you got it right last time
-> - yellow — you have missed it once in a row
-> - orange — missed it twice in a row
-> - red — missed it three times or more
+> - red — you marked it "Needs review"
+> - orange — one right answer in a row
+> - yellow — two right answers in a row
+> - green — three right answers in a row
 >
-> Get a card right and it turns green straight away.
+> One wrong answer sends a card back to red from wherever it had got to. So green
+> means three in a row, not three in total.
 >
-> A card you get right comes back in two days, then three, then four, and stays at
-> four while you keep getting it right. A card you get wrong comes back the next day.
+> The rung also sets when the card comes back: red the next day, orange in two days,
+> yellow in three, green in four.
 >
 > Nobody is checking your answers but you.
 
-**What changed from the first draft.** That draft described the ladder: red for no
-right answers up to green for three, and "you must answer each question 3 times
-correctly". The strip no longer shows the ladder, so none of that is on screen to
-explain. The ladder is still there and still sets the gaps, which is why the copy
-describes the gaps in terms of right and wrong answers rather than colours. The
-interval paragraph came out too: it described task 7, which is not built.
+**What changed from the first draft.** "Answer each question 3 times correctly"
+became "three times in a row", because a wrong answer drops a card to red from any
+rung, and that is the whole of the ladder. And the interval paragraph came out: it
+described task 7, which is not built.
 
 **When task 7 lands**, this panel gains one line about the setting, saying plainly that
-it only changes how soon a card you got wrong comes back.
+it only changes how soon a red card comes back.
 
 **Done when** turning the switch on shows it once and never again unasked, the link
 beside the switch brings it back, and the dashes in it are the same three pixels tall

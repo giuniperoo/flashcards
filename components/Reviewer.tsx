@@ -13,6 +13,7 @@ import {
 } from "@/lib/progress";
 import {
   FIRST_BOX,
+  clampBox,
   dayKey,
   daysBetween,
   dueOn,
@@ -89,35 +90,38 @@ function verdictOf(record: CardProgress | undefined): Grade | undefined {
 }
 
 /**
- * The four colours a scheduled session paints with, by misses running. Written
+ * The four colours a scheduled session paints with, box 1 to box 4. Written
  * out rather than built from the number, so the names appear in the source.
  */
-const MISS_COLORS = [
-  "var(--color-miss-0)",
-  "var(--color-miss-1)",
-  "var(--color-miss-2)",
-  "var(--color-miss-3)",
+const BOX_COLORS = [
+  "var(--color-box-1)",
+  "var(--color-box-2)",
+  "var(--color-box-3)",
+  "var(--color-box-4)",
 ];
 
 /**
  * A dash's colour.
  *
- * Outside a scheduled session it is the verdict it always was, two colours.
- * Inside one it reports your answers, not the box: green the moment you get a
- * card right, whatever box it sits in, and yellow, orange and red for a card you
- * have missed once, twice, and three or more times running.
+ * Outside a scheduled session it is the verdict it always was: green for a
+ * card last answered right, red for one last answered wrong.
  *
- * It used to report the box, and that read as failure at exactly the wrong
- * moment. A new card answered correctly goes to box 2, so it showed orange — the
- * colour for "review needed" — straight after the reader got it right. The box
- * still decides when a card comes back. It just is not what the strip shows.
+ * Inside one it is the box, so the colour is how far up the ladder a card has
+ * climbed: red in box 1, then orange, yellow, and green at the top. A new card
+ * answered right goes orange, not green, because green means three right in a
+ * row, spread over days.
+ *
+ * For a while it reported misses instead, and one right answer turned any card
+ * green. That let a whole deck go green after a single pass, which is the
+ * feeling of knowing standing in for knowing — what this app is built against.
+ * The miss count is still written; see `CardProgress`.
  */
 function dashColor(record: CardProgress | undefined, scheduled: boolean) {
   if (!record?.seen) return "var(--color-rule)";
   if (!scheduled) {
     return record.box === FIRST_BOX ? "var(--color-review)" : "var(--color-held)";
   }
-  return MISS_COLORS[Math.min(record.misses, MISS_COLORS.length - 1)];
+  return BOX_COLORS[clampBox(record.box) - 1];
 }
 
 /** The soonest day any card in this deck comes back, or "" if none is scheduled. */

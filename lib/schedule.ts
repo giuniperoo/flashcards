@@ -65,9 +65,9 @@ export function nextBox(box: number, grade: Grade) {
 }
 
 /**
- * Times running a card has been answered wrong. Right clears it, wrong adds one.
- * It is what the strip colours by, and it has no ceiling: three and thirty are
- * the same red, but the store keeps the real number.
+ * Times running a card has been answered wrong. Right clears it, wrong adds one,
+ * with no ceiling. Nothing reads it at the moment; see `CardProgress` for why it
+ * is kept.
  */
 export function nextMisses(misses: number, grade: Grade) {
   if (grade === "held") return 0;

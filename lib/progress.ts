@@ -9,12 +9,17 @@ import { FIRST_BOX, addDays, type Grade } from "./schedule";
  * schedule yet. `seen` is the authority on that, not a sentinel box or an empty
  * date.
  *
- * `misses` is how many times running the card has been answered wrong, and it is
- * what the strip colours by. It is not the box. The box is how far the card has
- * climbed and decides when it comes back; `misses` is how much trouble it is
- * giving you, and goes to nothing the moment you get it right. The two cannot
- * be derived from each other: a wrong answer always sends a card to box 1, so
- * the box alone cannot tell a card missed once from one missed five times.
+ * `misses` is how many times running the card has been answered wrong. It is not
+ * the box. The box is how far the card has climbed, decides when it comes back,
+ * and is what the strip colours by; `misses` is how much trouble a card is giving
+ * you, and goes to nothing the moment you get it right. Neither derives the
+ * other: a wrong answer always sends a card to box 1, so the box alone cannot
+ * tell a card missed once from one missed five times.
+ *
+ * Nothing reads `misses` now. The strip coloured by it for a while and went back
+ * to the box, and the count stayed for the same reason as `reviewed` below: stop
+ * recording it and the history is gone for good. It is what you would want to
+ * find the cards you keep failing.
  *
  * `reviewed` is not read anywhere yet. It goes in now because it is the one
  * field here that cannot be backfilled later: nothing else records *when* a

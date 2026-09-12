@@ -9,8 +9,8 @@
   /* The two grades a card can carry, on the whole-deck strip: green for
      "I had it", red for "Needs review".
 
-     The same green and red as the scheduled strip's `miss-0` and `miss-3`,
-     on purpose, so right and wrong look the same in both modes. They used to
+     The same green and red as the scheduled strip's top and bottom boxes, on
+     purpose, so a card last answered wrong is the same red in both modes. They used to
      be a pale mint and a salmon, and the salmon read as yellow beside it —
      which on this app now means something else. Before that they were a mint
      and a pink written inline in Reviewer, with the pink lighter than the
@@ -34,18 +34,17 @@
   --font-mono: var(--font-label), ui-monospace, monospace;
 }
 
-/* The four colours of the strip in a scheduled session, by how many times
-   running a card has been answered wrong.
+/* The four colours of the strip in a scheduled session, one per box.
 
-   green   right last time
-   yellow  missed once running
-   orange  missed twice
-   red     missed three times or more
+   red     box 1  wrong last time         back in 1 day
+   orange  box 2  one right in a row      back in 2 days
+   yellow  box 3  two right in a row      back in 3 days
+   green   box 4  three or more in a row  back in 4 days
 
-   They report your answers, not the box. The box decides when a card comes
-   back and is not shown; an earlier version coloured by it, and a new card
-   answered correctly went orange — the colour for trouble — because a right
-   answer only climbs one box. See `dashColor` in `Reviewer.tsx`.
+   The colour is how far up the ladder a card has climbed, so green is earned
+   over days rather than given for one right answer. A version that coloured
+   by misses instead turned a card green on its first right answer, and a deck
+   could go all green in a single pass. See `dashColor` in `Reviewer.tsx`.
 
    They are not matched for contrast against the paper, and should not be.
    Yellow is intrinsically light, so forcing it to red's weight turns it into
@@ -58,10 +57,10 @@
    block emitted none of them and every dash rendered transparent. The names
    are written out now, and `static` stays as the guard. */
 @theme static {
-  --color-miss-0: #4f9e72;
-  --color-miss-1: #d6ab35;
-  --color-miss-2: #dd8130;
-  --color-miss-3: #c4442e;
+  --color-box-1: #c4442e;
+  --color-box-2: #dd8130;
+  --color-box-3: #d6ab35;
+  --color-box-4: #4f9e72;
 }
 
 html {

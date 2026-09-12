@@ -177,10 +177,16 @@ graded has no place in the schedule — and `seen` is the authority on that
 rather than a sentinel box or an empty date.
 
 `box` and `misses` are two different things and neither derives the other. The
-box is how far a card has climbed and sets when it comes back; `misses` is how
-many times running it has been answered wrong, and is what a scheduled strip
-colours by. A wrong answer always sends a card to box 1, so the box cannot tell
-one miss from five. `misses` was added inside version 4 rather than as version
+box is how far a card has climbed, sets when it comes back, and is what a
+scheduled strip colours by: red, orange, yellow, green for boxes 1 to 4.
+`misses` is how many times running it has been answered wrong. A wrong answer
+always sends a card to box 1, so the box cannot tell one miss from five.
+
+**`misses` is written and not read**, like `reviewed`. The strip coloured by it
+for a while, which turned a card green on its first right answer and let a whole
+deck go green in one pass; it went back to the box. The count stays because it
+cannot be rebuilt once it stops being recorded, and it is what finding the cards
+you keep failing would need. `misses` was added inside version 4 rather than as version
 5: a missing count reads as 1 in box 1 and 0 above it, and bumping the envelope
 would have sent every version 4 store down the path for older shapes, which
 reduces a record to a verdict and loses its box.
