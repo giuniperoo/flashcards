@@ -67,7 +67,7 @@ export default function CustomDeckView({
   }
 
   return (
-    <div>
+    <div className="fit">
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <h1 className="text-2xl font-medium tracking-tight">{deck.name}</h1>
         <div className="flex items-baseline gap-4">

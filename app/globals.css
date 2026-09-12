@@ -190,6 +190,48 @@ body {
   transform: rotateX(180deg);
 }
 
+/* On a phone, a card being studied fits the screen: no scrolling down to
+   reach "Turn card over".
+
+   The card used to take its height from the 30.25rem minimum above, which
+   is what keeps every card one size so the buttons do not move between
+   cards. On a phone that fixed number was taller than the space the screen
+   had left, so the buttons sat below the fold. Here the card takes whatever
+   height is left instead, and the answer box on the front, which already
+   grows into spare room, takes up the difference. Every card is still one
+   size, because the size now comes from the screen rather than a number.
+
+   Layout does this, not script measuring the window. Every box between the
+   page and the card becomes a column that grows into the space below it —
+   `main`, and the wrappers marked `fit` — and `dvh` rather than `vh` sizes
+   the page, because on a phone `vh` is the height with the browser's address
+   bar hidden, so a page that tall still scrolls while the bar is showing.
+
+   Nothing shrinks below its content (`flex-shrink` is 0 throughout). On a
+   screen too short for a long answer and a long draft together, the card
+   grows and the page scrolls, which is what it did before for everything.
+
+   `:has(.flip)` scopes it to while a card is on screen: the end-of-session
+   panels and the loading line keep their natural height, and every other
+   route is untouched. The on-screen keyboard does not change `dvh` on
+   either iOS or Android Chrome, so typing does not reflow the card. */
+@media (max-width: 639px) {
+  .shell:has(.flip) {
+    min-height: 100dvh;
+  }
+
+  .shell:has(.flip) :is(main, .fit) {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+
+  .shell:has(.flip) .flip {
+    flex: 1 0 auto;
+    min-height: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .flip {
     transition: none;

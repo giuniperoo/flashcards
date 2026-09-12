@@ -448,7 +448,7 @@ export default function Reviewer({
   const done = session ? session.cards.length - order.length : 0;
 
   return (
-    <div>
+    <div className="fit">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <span className="label text-muted">
           <span
@@ -496,7 +496,7 @@ export default function Reviewer({
         {flipped ? "Showing the answer." : "Showing the question."}
       </p>
 
-      <div className="[perspective:1600px]">
+      <div className="fit [perspective:1600px]">
         <div className="flip" data-face={flipped ? "back" : "front"}>
           <Face tint={card.deck.tint} className="flex flex-col" hidden={flipped}>
             <p className="label" style={{ color: "var(--color-question)" }}>
@@ -554,8 +554,13 @@ export default function Reviewer({
             </div>
             {/* mt-auto pins the row to the bottom edge on every card, so the
                 grading buttons sit in one place as you move through a deck.
-                pt-5 keeps a gap when a long answer leaves no slack to absorb. */}
-            <div className="mt-auto flex flex-col gap-2 pt-5 sm:flex-row">
+                pt-5 keeps a gap when a long answer leaves no slack to absorb.
+
+                Side by side at every width. They used to stack on a phone,
+                which cost the back of the card 52px it does not have once the
+                card is sized to fit the screen — on a short phone that was the
+                whole of the scroll. Both labels fit in half a phone's width. */}
+            <div className="mt-auto flex gap-2 pt-5">
               <button
                 type="button"
                 onClick={() => grade("held")}
