@@ -322,34 +322,28 @@ interview horizon at a time, not twelve.
 
 ### Task 8 — An empty box when a card comes back
 
+*Landed early, alongside task 4, and narrower than first planned.*
+
 **Why.** When a card returns, the answer you wrote last time is already sitting in
 the box. You read it instead of recalling it. That is the one thing this app exists
 to stop.
 
-The draft is there for a good reason, though. Write half an answer, move on, come
-back to it in the same sitting, and you want your text where you left it. So the rule
-is about *returning*, not about drafts in general: keep the draft inside a session,
-clear it when the card comes back in a later one.
+**What was built**
 
-**Do**
+- On a schedule, every card opens with an empty box, whatever you wrote last time.
+  With the switch off, nothing changes: the box opens with your saved draft
+- What you type during a visit survives it. Half an answer left for another card and
+  come back to is still there, and so is anything written before stepping out of the
+  queue into the whole deck
+- The old answer is not deleted to empty the box. It stays in the store until a new
+  one replaces it, and moving past a blank box does not write the blank over it
+- No old answer on the back of the card, and no setting
 
-- The box starts empty when the card has been graded since the draft was written.
-  `reviewed` already records the day of the last grade, so the reviewer can tell
-- Inside one session the draft behaves as it does now
-- The old answer is not thrown away. Show it on the back of the card, under the one
-  you just wrote, so you can see whether this attempt was better
-- That means the record keeps two drafts rather than one: this attempt and the last.
-  Two is enough. A full history is a different feature and nobody asked for it
-- The setting goes beside the schedule switch at the foot of the index
-
-**Consider not having a setting.** Showing the old answer on a returning card is
-straightforwardly against the rule the app is built on, and a default nobody should
-want is usually a default that should not exist. If it ships as a setting, it ships
-switched to empty.
-
-**Done when** a card graded yesterday opens with an empty box, a card you half
-answered ten minutes ago still has your text, and the back of the card shows both
-attempts.
+**What changed from the plan.** The plan kept two drafts per card and showed the
+previous attempt under the new one for comparison. That came out on the grounds that
+no previous answer should be on screen at all while studying on a schedule, so the
+record still holds one draft. The plan also left the mode open; this only applies on
+a schedule, because the whole-deck reviewer is the one being kept as it was.
 
 ---
 

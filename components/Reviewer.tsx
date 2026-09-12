@@ -259,15 +259,35 @@ export default function Reviewer({
     recordsRef.current = saved.cards;
   }, [saved.cards]);
 
+  /* Cards typed into since this reviewer opened.
+
+     On a schedule a card starts with an empty box, whatever you wrote last
+     time. A card coming back with your old answer already in it hands you the
+     answer to read, and recognising an answer is exactly what this app is
+     built to stop passing for knowing it. With the switch off, nothing here
+     applies and the box opens with your draft as it always has.
+
+     What survives is what you typed during this visit: half an answer, left
+     for the next card and come back to, is still where you left it, and so is
+     anything you wrote before stepping out of the queue into the whole deck.
+
+     The old answer is not deleted to make the box empty. It stays in the store
+     until you write a new one, which is why saving is skipped below for a card
+     you have not typed into: moving past a blank box would otherwise write the
+     blank over it. */
+  const typedRef = useRef(new Set<string>());
+
   useEffect(() => {
-    setDraft(recordsRef.current[key]?.draft ?? "");
+    const stored = recordsRef.current[key]?.draft ?? "";
+    setDraft(scheduled && !typedRef.current.has(key) ? "" : stored);
     setFlipped(false);
     setError(false);
-  }, [key, ready]);
+  }, [key, ready, scheduled]);
 
   const commitDraft = useCallback(
     (value: string) => {
       if (!key) return;
+      if (scheduled && !typedRef.current.has(key)) return;
       setSaved((prev) => ({
         ...prev,
         cards: {
@@ -276,7 +296,7 @@ export default function Reviewer({
         },
       }));
     },
-    [key],
+    [key, scheduled],
   );
 
   const move = useCallback(
@@ -514,6 +534,7 @@ export default function Reviewer({
               rows={4}
               value={draft}
               onChange={(event) => {
+                typedRef.current.add(key);
                 setDraft(event.target.value);
                 if (error) setError(false);
               }}
