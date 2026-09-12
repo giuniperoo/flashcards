@@ -281,6 +281,12 @@ export default function Reviewer({
       return;
     }
     commitDraft(draft);
+    /* Let go of the answer box before the card turns. Cmd+Enter flips from
+       inside it, and a box that keeps focus once it has turned away still
+       counts as typing: 1 and 2 went into the hidden answer instead of grading
+       the card, and the reader only found out on turning it back. The face is
+       also made inert below, but that alone is not relied on to move focus. */
+    inputRef.current?.blur();
     setFlipped(true);
   }, [flipped, draft, commitDraft]);
 
@@ -802,9 +808,14 @@ function Face({
   hidden: boolean;
   children: React.ReactNode;
 }) {
+  /* `inert` rather than `aria-hidden` alone. aria-hidden hides a face from a
+     screen reader but leaves everything on it focusable, so Tab reached the
+     grading buttons on the back while the question was showing, and the
+     answer box on the front kept taking keystrokes once it had turned away. */
   return (
     <div
       aria-hidden={hidden}
+      inert={hidden}
       className={`face cut relative overflow-hidden rounded-sm bg-card px-4 py-5 sm:px-8 sm:py-6 ${className}`}
     >
       <span
