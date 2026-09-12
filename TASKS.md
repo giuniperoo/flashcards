@@ -447,7 +447,9 @@ never show it unasked twice — `prefs:index` remembers.
 - The four colours are shown as dashes at the size they actually appear, each labelled
   with what puts a card there. A legend of swatches at 3px is the thing being
   explained, so it should not be redrawn larger and differently
-- Dismissing it starts the session. It is not a gate in front of the deck
+- Closing it leaves you on the index with the switch on. It appears when the switch is
+  pressed, where no deck has been chosen yet, so there is no session for it to start,
+  and it is not a gate in front of anything
 
 **The copy.**
 
