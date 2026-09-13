@@ -487,10 +487,13 @@ export default function Reviewer({
     <div className="fit">
       {counts && !session?.allNew && <QueueBar counts={counts} />}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <span className="label text-muted">
+        {/* Flex-centred rather than `align-middle`, which centres on the
+            lowercase x-height. This label is all capitals, so the swatch sat
+            below the middle of the letters beside it. */}
+        <span className="label inline-flex items-center text-muted">
           <span
             aria-hidden
-            className="mr-2 inline-block h-2 w-2 rounded-[2px] align-middle"
+            className="mr-2 inline-block h-2 w-2 shrink-0 rounded-[2px]"
             style={{ background: card.deck.ink }}
           />
           {/* The card's place in its own deck, not in today's queue: on
