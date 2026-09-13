@@ -75,6 +75,7 @@ components/
   DeckCard.tsx          one deck on the index; both lists render through it
   DeckVisibility.tsx    the show/hide controls, at the foot of the index
   DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
+  QueueBar.tsx          a scheduled session's breakdown, in the title row if it fits
   PrintSheets.tsx       shared by the built-in and custom print paths
 lib/
   loadDecks.ts          reads content/*.md at build time — SERVER ONLY

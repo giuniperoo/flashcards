@@ -32,10 +32,16 @@ export default async function StudyPage({
     <div className="fit mx-auto w-full max-w-3xl">
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <h1 className="text-2xl font-medium tracking-tight">{title}</h1>
+        {/* Where a scheduled session puts its queue bar, if the bar fits. See
+            `components/QueueBar.tsx`. Empty otherwise, and takes no room. */}
+        <div data-queue-slot className="flex min-w-0 flex-1 justify-center self-center" />
         <div className="flex items-baseline gap-4">
           <Link href={`/print/${slug}`} className="label text-muted hover:text-ink">
             Print
           </Link>
+          <span aria-hidden className="label text-muted">
+            ·
+          </span>
           <Link href="/" className="label text-muted hover:text-ink">
             All decks
           </Link>

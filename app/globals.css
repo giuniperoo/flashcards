@@ -131,6 +131,7 @@ body {
 
 .queue-bar {
   display: flex;
+  width: 100%;
   height: 1.375rem;
   border: 1px solid var(--color-rule);
   border-radius: 2px;
@@ -154,6 +155,17 @@ body {
 
 .queue-bar > span + span {
   border-left: 1px solid var(--color-rule);
+}
+
+/* The hidden copy `QueueBar` measures to decide whether the bar fits in the
+   title row: its natural width, out of the way and out of the layout. */
+.queue-bar.queue-measure {
+  position: fixed;
+  top: 0;
+  left: -10000px;
+  width: max-content;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .queue-done,

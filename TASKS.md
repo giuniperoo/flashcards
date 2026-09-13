@@ -33,7 +33,7 @@ is due today, and it ends.
 | 7 — A first interval shorter than a day | not started |
 | 8 — An empty box when a card comes back | merged |
 | 9 — Say what the colours mean, once | not started |
-| 10 — The queue bar | built, not merged |
+| 10 — The queue bar | merged |
 | 11 — Docs | not started |
 
 **Spaced repetition is the default.** The switch at the foot of the index starts on,
@@ -508,7 +508,7 @@ as the ones in the reviewer.
 
 ### Task 10 — The queue bar
 
-*Built, not yet merged.*
+*Merged, in #25. Moved into the title row afterwards.*
 
 **Why.** A scheduled session opened with a small "0/32 today · 32 new" in the corner
 and nothing else to say what the day held. How many cards are overdue, how many are
@@ -517,8 +517,17 @@ it was on screen.
 
 **What was built**
 
-- A slim bar under the deck's name, about 22px, on a schedule only. Free study has no
-  queue to split up and keeps its count
+- A slim bar, 22px, on a schedule only. Free study has no queue to split up and keeps
+  its count
+- **It sits in the title row**, between the deck's name and its links, when it fits
+  there, and below the title row when it does not: a long deck name, labels that need
+  more room than the gap, or a screen under 640px. Whether it fits is measured, not
+  guessed — a hidden copy at its natural width against the gap — and measured again on
+  resize and as the counts change. The server draws the title row before any progress
+  exists, so the row holds an empty `[data-queue-slot]` and the bar is portalled in.
+  See `components/QueueBar.tsx`
+- **At most 9rem per segment shown.** One segment saying "16 new" is a short bar, not a
+  line across the page
 - It replaces the corner count rather than sitting beside it. The strip is already a
   progress bar, and a third progress indicator on one screen is too many
 - Five segments across the whole deck, in the order the queue deals: done, overdue,
