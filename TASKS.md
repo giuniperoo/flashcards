@@ -601,6 +601,22 @@ print, and `pnpm run test:parser` still passes.
 - Check the phone fit from task 4 on a real phone, with Safari's address bar both
   showing and hidden. It was only measured in a desktop browser at phone sizes
 
+**Accessibility, in this order.** Not a project, three fixes. Most of this helps any
+reader, not only someone using a screen reader: the keyboard grading bug fixed in task
+4 was an accessibility bug.
+
+- **Give the strip a signal besides colour.** Both strips tell cards apart by colour
+  alone, and the colours that matter most are red and green, the pair roughly 1 in 12
+  men cannot easily separate. They are also too close in brightness to fall back on,
+  1.5:1 against each other. Give a red dash a second cue, such as a different height
+  or a hollow shape, and check both strips with a colour-blindness simulator. This
+  matters more than the other two put together
+- **Darken the muted text a touch.** `--color-muted` is 4.1:1 on the paper and 4.35:1
+  on the card, under the 4.5:1 small text wants, and the labels it colours are small
+  capitals. Nudge it until it clears 4.5:1 on both
+- **Run an automated check once.** Lighthouse or axe on the index, a scheduled
+  session and free study, and fix what it flags
+
 ---
 
 ## Not now
