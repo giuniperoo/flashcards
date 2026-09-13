@@ -26,6 +26,8 @@ pnpm run test:parser  # deck parser test cases
 pnpm run test:progress # storage migration test cases
 pnpm run test:schedule # box and due date test cases, under a fixed timezone
 pnpm run test:queue    # what a session deals: a backlog, then the new cards
+pnpm run test:filter   # which decks the shuffled set draws from
+pnpm run test:prefs    # index preferences, and the switch's default
 ```
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
@@ -157,14 +159,24 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
 - `progress` — `{ version: 4, cards }`, keyed by `{deckSlug}:{cardId}`
-- `prefs:index` — `{ version: 3, showBuiltIns, hiddenDecks, scheduled }`
+- `prefs:index` — `{ version: 4, showBuiltIns, hiddenDecks, scheduled }`
 
 Version 1 of `prefs:index` held `showBuiltIns` alone and version 2 added
 `hiddenDecks`. Each reads as the version after it with the new field at its
 default — the defaults are the migration, so there is nothing to write back.
+Version 4 is where `scheduled` became on by default, and it is the one place
+the defaults are not enough: every version 3 store holds a `scheduled`, since
+saving any preference wrote all three, so a version 3 `false` may never have
+been a choice. It reads as the new default. From version 4 a stored `false` is
+kept. `lib/prefs.test.ts` covers it.
 
-`scheduled` is the spaced repetition switch, at the foot of the index and off
-until somebody presses it. It governs what the *index* draws and what it writes
+`scheduled` is the spaced repetition switch, at the foot of the index and **on
+by default**: spaced repetition is the app, and free study is what you switch
+to. It started off, while the scheduled reviewer was new; it flipped on 13
+September 2026 once it had been lived with. The sun on the index says which
+mode you are in — the mark's cream on a schedule, a faint sage
+(`--color-sun-free`) in free study — because the switch's label names where it
+takes you, not where you are. It governs what the *index* draws and what it writes
 into its own study links; what the reviewer reads is `?scheduled` in the URL,
 never the preference. The two are separate on purpose: a link then says which
 reviewer it opens and a bookmark cannot change under the reader, and scrapping

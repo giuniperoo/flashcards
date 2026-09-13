@@ -21,13 +21,35 @@ export const metadata: Metadata = {
   description: "Interview flashcard decks, drilled by recall.",
 };
 
+/*
+ * Marks the page as free study before it paints, on the study routes, so the
+ * sage mark is there from the first frame instead of the cream one flashing
+ * first. It only has to answer from the address: a study route is free study
+ * unless it carries `?scheduled`, and `/study/all` is never scheduled yet. The
+ * reviewer then keeps the attribute in step — "Study anyway" drops into free
+ * study without a page load — and removes it when it goes. On the index the
+ * mode is a stored preference instead, and `LogoSun` sets it; that is the same
+ * trade the built-in decks already make there, appearing on hydration.
+ *
+ * `suppressHydrationWarning` on `<html>` is for this attribute: it is set
+ * before React arrives, so React would otherwise report it as a mismatch.
+ */
+const MODE_BEFORE_PAINT = `(function(){try{var p=location.pathname;if(p.indexOf("/study/")!==0)return;var all=p==="/study/all";if(all||!new URLSearchParams(location.search).has("scheduled"))document.documentElement.setAttribute("data-mode","free")}catch(e){}})()`;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${body.variable} ${label.variable}`}>
+    <html
+      lang="en"
+      className={`${body.variable} ${label.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: MODE_BEFORE_PAINT }} />
+      </head>
       <body className="bg-paper font-sans antialiased">
         {/* `relative z-10` opens a stacking context, which is what lets the
             index's `LogoSun` sit behind this on a negative z-index without
@@ -49,16 +71,33 @@ export default function RootLayout({
                 behave as one clickable object rather than as content sitting
                 inside a link: no text caret over it, no drag ghost, and the
                 pointer does not depend on a browser's default for a link.
+
+                Two marks, and CSS shows one: cream on a schedule and anywhere
+                else, sage while the page is in free study, keyed off
+                `data-mode` on <html>. Both come out of `tools/wordmark.py`.
+                `data-wordmark` sits on the wrapper because `LogoSun` measures
+                it, and a hidden image measures as nothing.
               */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                data-wordmark
-                src="/logo.svg"
-                alt="Flashcards"
-                width={132}
-                height={38}
-                draggable={false}
-              />
+              <span data-wordmark className="inline-flex">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="wordmark-schedule"
+                  src="/logo.svg"
+                  alt="Flashcards"
+                  width={132}
+                  height={38}
+                  draggable={false}
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="wordmark-free"
+                  src="/logo-free.svg"
+                  alt="Flashcards"
+                  width={132}
+                  height={38}
+                  draggable={false}
+                />
+              </span>
             </Link>
             <span className="label text-muted">Recall, then flip</span>
           </header>

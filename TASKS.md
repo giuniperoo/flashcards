@@ -35,6 +35,10 @@ is due today, and it ends.
 | 9 — Say what the colours mean, once | not started |
 | 10 — Docs | not started |
 
+**Spaced repetition is the default.** The switch at the foot of the index starts on,
+and free study is what you turn to. On the index the sun shows which mode you are in:
+cream rays on a schedule, faint sage rays in free study.
+
 **The ladder as built.** Four boxes. A right answer moves a card up one box, a wrong
 answer sends it to box 1. On a schedule the strip colours each card by its box:
 
@@ -179,6 +183,9 @@ and it *ends*. Without that, the reviewer keeps grinding past the due cards into
 you know cold, which is the waste spaced repetition exists to remove — and this app
 taxes it harder than most, because every card costs a typed answer.
 
+*(Since 13 September the default is the other way round: spaced repetition is on
+unless you choose free study. What follows is why it started off.)*
+
 **Scheduling is a mode, and it is off by default.** The app as it stands is the one
 that keeps working: the whole-deck reviewer, its shuffle button and its two-colour
 strip are what `/study/{slug}` opens until somebody asks for the other reviewer, and
@@ -205,7 +212,8 @@ than restoring a deleted one.
   there is nothing to write back, exactly as version 1 already does
 - The switch sits in the row at the foot of the index that already holds "Add your own
   deck" and the built-in deck controls. Each label names the mode it moves to: "Study
-  on a schedule", and "Study whole decks" to come back
+  on a schedule", and "Study whole decks" to come back *(now "Spaced repetition →" and
+  "Free study →", the arrow saying it is a destination rather than the current mode)*
 - The index writes the parameter into its own study links while the switch is on, the
   way it already writes `?deck=a,b,c` into the shuffled card's. The preference is what
   the index writes with; the parameter is what the reviewer reads
@@ -445,8 +453,10 @@ was briefly changed to go green on one right answer before being changed back.
 
 **Not a popup on first load.** At that point the reader has never seen a strip, so it
 explains a thing they have not met, and there is no other modal anywhere in this app.
-Show it when they press "Study on a schedule": that is the moment they opt into the
-thing that needs explaining, and the only moment the explanation is certainly wanted.
+Show it the first time a scheduled session opens. It was going to show when the reader
+pressed "Study on a schedule", but spaced repetition is now the default, so nobody
+presses anything to reach it: the first scheduled session is the first time the strip
+needs explaining.
 Leave a "How does this work?" link beside the switch so it can be read again, and
 never show it unasked twice — `prefs:index` remembers.
 
@@ -457,9 +467,8 @@ never show it unasked twice — `prefs:index` remembers.
 - The four colours are shown as dashes at the size they actually appear, each labelled
   with what puts a card there. A legend of swatches at 3px is the thing being
   explained, so it should not be redrawn larger and differently
-- Closing it leaves you on the index with the switch on. It appears when the switch is
-  pressed, where no deck has been chosen yet, so there is no session for it to start,
-  and it is not a gate in front of anything
+- Closing it starts the session it opened over. It is not a gate in front of the deck,
+  just the first thing on screen the first time
 
 **The copy.**
 

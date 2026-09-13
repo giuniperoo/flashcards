@@ -13,7 +13,8 @@
  * back on restores exactly the selection that was there before.
  *
  * `scheduled` is a third and it is not about decks at all: it is whether this
- * reader wants the spaced repetition app or the whole-deck one. It lives here
+ * reader wants the spaced repetition app or free study. It is on unless they
+ * choose free study. It lives here
  * because the index is what acts on it — it writes `?scheduled` into its own
  * study links, and from task 5 it draws due counts. What the reviewer reads is
  * the parameter, never this; see `lib/studyMode.ts` for why they are separate.
@@ -24,7 +25,7 @@
  */
 
 export const PREFS_KEY = "prefs:index";
-export const PREFS_VERSION = 3;
+export const PREFS_VERSION = 4;
 
 /** Fired on the window so anything showing a deck count can recount. */
 export const PREFS_EVENT = "index-prefs-changed";
@@ -44,18 +45,26 @@ export type IndexPrefs = {
  * This is also what the server renders, since it is what the server can know,
  * which is what keeps the index from flashing decks away on load.
  *
- * Scheduling is off for the same kind of reason and a stronger one: nobody has
- * asked this app to become a spaced repetition app, so it is the app it already
- * was until they do.
+ * Scheduling is on. Spaced repetition is what the app is now, and free study is
+ * the way out of it rather than the other way round. It started off, while the
+ * scheduled reviewer was new and the question was whether this should be a
+ * spaced repetition app at all; living with it answered that.
  *
  * Version 1 held `showBuiltIns` alone and version 2 added `hiddenDecks`. Each
  * reads as the version after it with the new field at its default, so there is
  * nothing to migrate and nothing to write back — the defaults do the work.
+ *
+ * Version 4 is where the default for `scheduled` flipped, and it does need a
+ * rule. Every version 3 store holds a `scheduled`, because saving any
+ * preference wrote all three — so a stored `false` there is as likely to mean
+ * "showed the built-in decks once" as "chose free study". Nothing can tell the
+ * two apart, so a version 3 `false` reads as never chosen and takes the new
+ * default. From version 4 on, a stored `false` is a choice and is kept.
  */
 export const DEFAULT_PREFS: IndexPrefs = {
   showBuiltIns: false,
   hiddenDecks: [],
-  scheduled: false,
+  scheduled: true,
 };
 
 /**
@@ -70,13 +79,17 @@ export function loadPrefs(): IndexPrefs {
   try {
     const raw = window.localStorage.getItem(PREFS_KEY);
     if (!raw) return DEFAULT_PREFS;
-    const parsed = JSON.parse(raw) as Partial<IndexPrefs>;
+    const parsed = JSON.parse(raw) as Partial<IndexPrefs> & { version?: unknown };
+    const current = typeof parsed?.version === "number" && parsed.version >= 4;
     return {
       showBuiltIns: parsed?.showBuiltIns === true,
       hiddenDecks: Array.isArray(parsed?.hiddenDecks)
         ? parsed.hiddenDecks.filter((slug) => typeof slug === "string")
         : [],
-      scheduled: parsed?.scheduled === true,
+      // Only a `false` written since the default flipped counts as choosing
+      // free study. Anything else — an older store, a missing or mangled
+      // value — is the default.
+      scheduled: !(current && parsed.scheduled === false),
     };
   } catch {
     return DEFAULT_PREFS;

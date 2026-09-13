@@ -228,6 +228,22 @@ export default function Reviewer({
     saveProgress(saved);
   }, [saved, ready]);
 
+  /* Tell the page which mode this is, so the header shows the matching mark:
+     sage in free study, cream on a schedule. Read from the address as well as
+     from state, because `scheduled` starts false until the effect below reads
+     the parameter, and a scheduled session must not flash the sage mark. The
+     layout sets the same attribute before paint on a full load; this keeps it
+     right on client navigation and through "Study anyway". */
+  useEffect(() => {
+    const html = document.documentElement;
+    const onSchedule =
+      schedulable && !left && (scheduled || wantsSchedule(window.location.search));
+    html.dataset.mode = onSchedule ? "schedule" : "free";
+    return () => {
+      delete html.dataset.mode;
+    };
+  }, [schedulable, scheduled, left]);
+
   /* Read after mount, like `?deck=` in `ShuffledSet` and for the same reason:
      `useSearchParams` on a prerendered route needs a Suspense boundary, and a
      boundary around a reviewer left the whole subtree unhydrated — the cards

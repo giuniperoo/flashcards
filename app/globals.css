@@ -28,6 +28,12 @@
      card's tint, which it cannot read from here: a tint is data, and goes
      through hue maths that parse it. */
   --color-mark: #e0d4bf;
+  /* The sun's rays in free study. On a schedule they are the mark's cream at
+     20%, worked out in `LogoSun`; this sage replaces that when the switch is
+     off, so the index says which app you are in. A little stronger than the
+     cream on purpose: at the cream's faintness a change of hue does not show.
+     Contrast against the paper is about 1.12, where the cream is 1.05. */
+  --color-sun-free: #e4e9e1;
   --color-question: #185fa5;
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
@@ -108,6 +114,19 @@ body {
    640px; three columns just past 1300px is 296px and nearly as tight. Four
    actions have to fit in 287, and at 0.75rem of side padding they did not —
    they cleared the three-column case and wrapped in the two-column one. */
+/* The mark in the header, cream or sage by mode. See `app/layout.tsx`. */
+.wordmark-free {
+  display: none;
+}
+
+html[data-mode="free"] .wordmark-free {
+  display: block;
+}
+
+html[data-mode="free"] .wordmark-schedule {
+  display: none;
+}
+
 .deck-actions {
   display: flex;
   flex-wrap: wrap;
