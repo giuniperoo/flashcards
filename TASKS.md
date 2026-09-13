@@ -27,11 +27,11 @@ is due today, and it ends.
 | 1 — One progress store | merged |
 | 2 — Boxes and due dates | merged |
 | 3 — The queue builder | merged |
-| 4 — The reviewer studies the queue | built on `reviewer-studies-the-queue`, not merged |
+| 4 — The reviewer studies the queue | merged |
 | 5 — Due counts on the index | next |
 | 6 — The cross-deck due queue | not started |
 | 7 — A first interval shorter than a day | not started |
-| 8 — An empty box when a card comes back | built on `reviewer-studies-the-queue`, not merged |
+| 8 — An empty box when a card comes back | merged |
 | 9 — Say what the colours mean, once | not started |
 | 10 — Docs | not started |
 
@@ -172,7 +172,7 @@ without it.
 
 ### Task 4 — The reviewer studies the queue
 
-*Built on `reviewer-studies-the-queue`, not yet merged.*
+*Merged, in #21, with free study kept off the schedule in #22.*
 
 **Why.** The largest change, and it is structural: a session becomes today's queue
 and it *ends*. Without that, the reviewer keeps grinding past the due cards into ones
@@ -244,7 +244,7 @@ around, `/study/{slug}` without the parameter is the reviewer it is today, and
 has a remount bug to fix before it can change size nightly. Due counts on the index are
 task 5. Both sit behind the same switch when they arrive.
 
-**Also on this branch.** Fixes and changes that came up while living with task 4:
+**Also landed with this task.** Fixes and changes that came up while living with task 4:
 
 - **Free study no longer writes the schedule.** Since task 2, grading with the switch
   off moved boxes and due dates, so the two modes were not in fact separate. Now it
@@ -409,8 +409,7 @@ agreed yet either way.
 
 ### Task 8 — An empty box when a card comes back
 
-*Built on `reviewer-studies-the-queue`, not yet merged. Landed early, alongside
-task 4, and narrower than first planned.*
+*Merged, in #21. Landed early, alongside task 4, and narrower than first planned.*
 
 **Why.** When a card returns, the answer you wrote last time is already sitting in
 the box. You read it instead of recalling it. That is the one thing this app exists
