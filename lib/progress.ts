@@ -1,5 +1,5 @@
 import type { StudyCard } from "./types";
-import { FIRST_BOX, addDays, type Grade } from "./schedule";
+import { FIRST_BOX, addDays, dueOn, nextBox, nextMisses, type Grade } from "./schedule";
 
 /**
  * What the app remembers about one card: what you wrote, and when it comes back.
@@ -8,6 +8,13 @@ import { FIRST_BOX, addDays, type Grade } from "./schedule";
  * card you have typed an answer into but never graded has no place in the
  * schedule yet. `seen` is the authority on that, not a sentinel box or an empty
  * date.
+ *
+ * `grade` is the last answer given, "held" or "review", or empty if the card has
+ * never been graded. It is what free study's green and red read. It is separate
+ * from the schedule fields because free study must not touch the schedule:
+ * grading with the switch off writes `grade` and nothing else, so a deck studied
+ * that way cannot climb its boxes. A scheduled answer writes both, so `grade` is
+ * always the latest answer from either mode. See `applyGrade`.
  *
  * `misses` is how many times running the card has been answered wrong. It is not
  * the box. The box is how far the card has climbed, decides when it comes back,
@@ -30,6 +37,7 @@ import { FIRST_BOX, addDays, type Grade } from "./schedule";
  */
 export type CardProgress = {
   draft: string;
+  grade: Grade | "";
   box: number;
   misses: number;
   due: string;
@@ -67,6 +75,7 @@ const ID_KEYED = [2, 3];
 /** A card that has been written on but never graded. Spread, never mutated. */
 export const unseenCard: CardProgress = {
   draft: "",
+  grade: "",
   box: FIRST_BOX,
   misses: 0,
   due: "",
@@ -209,11 +218,14 @@ function fold(raw: unknown, cards: StudyCard[], into: Entries) {
  * that is still true.
  */
 function scheduleFor(grade: Grade | undefined, today: string) {
-  if (!grade) return { box: FIRST_BOX, misses: 0, due: "", reviewed: "", seen: false };
+  if (!grade) {
+    return { grade: "" as const, box: FIRST_BOX, misses: 0, due: "", reviewed: "", seen: false };
+  }
   if (grade === "review") {
-    return { box: FIRST_BOX, misses: 1, due: today, reviewed: "", seen: true };
+    return { grade, box: FIRST_BOX, misses: 1, due: today, reviewed: "", seen: true };
   }
   return {
+    grade,
     box: FIRST_BOX + 1,
     misses: 0,
     due: addDays(today, 1),
@@ -270,6 +282,17 @@ function readRecords(value: unknown): Record<string, CardProgress> {
     const seen = entry.seen === true;
     out[key] = {
       draft: typeof entry.draft === "string" ? entry.draft : "",
+      // Like `misses`, arrived inside version 4 and is read off the box when
+      // absent: before free study stopped writing boxes, box 1 was exactly
+      // "last answered wrong" and anything above it "last answered right".
+      grade:
+        entry.grade === "held" || entry.grade === "review"
+          ? entry.grade
+          : !seen
+            ? ""
+            : box === FIRST_BOX
+              ? "review"
+              : "held",
       box,
       misses:
         typeof entry.misses === "number" && Number.isFinite(entry.misses)
@@ -394,6 +417,41 @@ function remove(key: string) {
   } catch {
     // Nothing to clean up if storage is unavailable.
   }
+}
+
+/**
+ * What one answer does to a card's record.
+ *
+ * In free study — the switch off, or "Study anyway" — it records the answer and
+ * nothing else. The box, due date, miss count, review date and `seen` are left
+ * exactly as they were, so studying a deck outside the schedule can never move
+ * it: no climbing a whole deck to green in one sitting, and no disturbing what
+ * a scheduled session will deal tomorrow. Leaving `seen` alone matters on its
+ * own: a card marked seen with no due date would never be dealt at all.
+ *
+ * On a schedule it records the answer and moves the card: up a box or back to
+ * box 1, a new due date counted from today, and the miss count.
+ *
+ * An unseen card sits at box 1, so held promotes it to 2 and review leaves it
+ * there. The two buttons still say the same two things.
+ */
+export function applyGrade(
+  record: CardProgress,
+  grade: Grade,
+  today: string,
+  scheduled: boolean,
+): CardProgress {
+  if (!scheduled) return { ...record, grade };
+  const box = nextBox(record.box, grade);
+  return {
+    ...record,
+    grade,
+    box,
+    misses: nextMisses(record.misses, grade),
+    due: dueOn(box, today),
+    reviewed: today,
+    seen: true,
+  };
 }
 
 export function saveProgress(store: ProgressStore) {

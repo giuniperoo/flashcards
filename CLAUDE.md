@@ -171,10 +171,26 @@ reviewer it opens and a bookmark cannot change under the reader, and scrapping
 the experiment deletes a path rather than restoring a deleted one. `/study/all`
 is not scheduled yet — that is task 6. See `lib/studyMode.ts`.
 
-A card's record is `{ draft, box, misses, due, reviewed, seen }`. `box`,
+A card's record is `{ draft, grade, box, misses, due, reviewed, seen }`. `box`,
 `misses`, `due` and `reviewed` mean nothing while `seen` is false — a card written on but never
 graded has no place in the schedule — and `seen` is the authority on that
 rather than a sentinel box or an empty date.
+
+**Free study never touches the schedule.** One store and one record per card,
+but two kinds of field. `grade` is the last answer, "held" or "review", and is
+what free study's green and red read. The schedule fields — `box`, `misses`,
+`due`, `reviewed`, `seen` — are written only by an answer in a scheduled
+session. Grading with the switch off, or after "Study anyway" or "Study the
+whole deck", writes `grade` and nothing else, so studying outside the schedule
+cannot climb a deck to green in one sitting or change what tomorrow deals.
+A scheduled answer writes both, so `grade` is always the latest answer from
+either mode, and so is `draft`: there is one answer text per card, and
+whichever mode wrote last wins. All of this lives in `applyGrade` in
+`lib/progress.ts`. Before task 4 was finished, the free study reviewer wrote
+boxes too, since task 2; that history is in the boxes and cannot be separated
+out. `grade` arrived inside version 4 like `misses` and is read off the box
+when absent — box 1 is "review", anything above is "held" — which is exactly
+what that box meant while free study was still writing it.
 
 `box` and `misses` are two different things and neither derives the other. The
 box is how far a card has climbed, sets when it comes back, and is what a

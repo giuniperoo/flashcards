@@ -25,6 +25,13 @@ export function wantsSchedule(search: string) {
   return new URLSearchParams(search).has(SCHEDULED_PARAM);
 }
 
+/** The same address with the mode taken off it, for stepping out into free study. */
+export function withoutSchedule(href: string) {
+  const url = new URL(href);
+  url.searchParams.delete(SCHEDULED_PARAM);
+  return url.pathname + url.search + url.hash;
+}
+
 /** A deck's study link, carrying the mode when it is on. */
 export function studyHref(slug: string, scheduled: boolean) {
   return scheduled ? `/study/${slug}?${SCHEDULED_PARAM}` : `/study/${slug}`;

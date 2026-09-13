@@ -1,5 +1,12 @@
 import type { Deck, StudyCard } from "./types";
-import { PROGRESS_KEY, cardKey, forgetDeck, loadProgress } from "./progress";
+import {
+  PROGRESS_KEY,
+  applyGrade,
+  cardKey,
+  forgetDeck,
+  loadProgress,
+  unseenCard,
+} from "./progress";
 
 // progress.ts reads window.localStorage lazily, so a stub set up here is enough.
 // It needs `length` and `key()` as well as the accessors: one store now, so a
@@ -95,6 +102,110 @@ const cases: Array<[string, () => boolean]> = [
         !unseen.seen &&
         unseen.due === "" &&
         unseen.draft === "written but never graded"
+      );
+    },
+  ],
+
+  [
+    "free study records the answer and leaves the schedule exactly as it was",
+    () => {
+      const before = {
+        ...unseenCard,
+        draft: "kept",
+        grade: "review" as const,
+        box: 2,
+        misses: 1,
+        due: "2026-09-15",
+        reviewed: "2026-09-13",
+        seen: true,
+      };
+      const after = applyGrade(before, "held", "2026-09-14", false);
+      return (
+        after.grade === "held" &&
+        after.draft === "kept" &&
+        after.box === 2 &&
+        after.misses === 1 &&
+        after.due === "2026-09-15" &&
+        after.reviewed === "2026-09-13" &&
+        after.seen === true
+      );
+    },
+  ],
+
+  [
+    "free study on an unseen card does not put it in the schedule",
+    () => {
+      const after = applyGrade(unseenCard, "held", "2026-09-14", false);
+      return after.grade === "held" && after.seen === false && after.due === "" && after.box === 1;
+    },
+  ],
+
+  [
+    "a scheduled answer moves the card and records the answer too",
+    () => {
+      const right = applyGrade(unseenCard, "held", "2026-09-14", true);
+      const wrong = applyGrade({ ...right, box: 4 }, "review", "2026-09-15", true);
+      return (
+        right.grade === "held" &&
+        right.box === 2 &&
+        right.due === "2026-09-16" &&
+        right.seen === true &&
+        wrong.grade === "review" &&
+        wrong.box === 1 &&
+        wrong.misses === 1 &&
+        wrong.due === "2026-09-16"
+      );
+    },
+  ],
+
+  [
+    "grading a whole deck right in free study, again and again, climbs nothing",
+    () => {
+      let record = { ...unseenCard, box: 1, misses: 0, due: "2026-09-14", seen: true };
+      for (let i = 0; i < 10; i++) record = applyGrade(record, "held", "2026-09-14", false);
+      return record.box === 1 && record.due === "2026-09-14";
+    },
+  ],
+
+  [
+    "a version 4 record from before grade reads its last answer off the box",
+    () => {
+      store.clear();
+      store.set(
+        PROGRESS_KEY,
+        JSON.stringify({
+          version: 4,
+          cards: {
+            "d:aaa": { draft: "", box: 1, misses: 1, due: TODAY, reviewed: TODAY, seen: true },
+            "d:bbb": { draft: "", box: 3, misses: 0, due: TODAY, reviewed: TODAY, seen: true },
+            "d:ccc": { draft: "typed", box: 1, misses: 0, due: "", reviewed: "", seen: false },
+          },
+        }),
+      );
+      const before = store.get(PROGRESS_KEY);
+      const p = read(studyCards(deckOf("d", ["aaa", "bbb", "ccc"])));
+      return (
+        p.cards["d:aaa"].grade === "review" &&
+        p.cards["d:bbb"].grade === "held" &&
+        p.cards["d:ccc"].grade === "" &&
+        store.get(PROGRESS_KEY) === before
+      );
+    },
+  ],
+
+  [
+    "an old grade carries into the record's last answer",
+    () => {
+      store.clear();
+      store.set(
+        PROGRESS_KEY,
+        JSON.stringify({ version: 3, drafts: {}, grades: { "d:aaa": "review", "d:bbb": "held" } }),
+      );
+      const p = read(studyCards(deckOf("d", ["aaa", "bbb", "ccc"])));
+      return (
+        p.cards["d:aaa"].grade === "review" &&
+        p.cards["d:bbb"].grade === "held" &&
+        (p.cards["d:ccc"]?.grade ?? "") === ""
       );
     },
   ],
@@ -359,6 +470,7 @@ const cases: Array<[string, () => boolean]> = [
       const after = read(one);
       after.cards["one:a1"] = {
         draft: "",
+        grade: "held",
         box: 4,
         misses: 0,
         due: "2026-09-17",
