@@ -47,7 +47,9 @@ answer sends it to box 1. On a schedule the strip colours each card by its box:
 | 4 | green | three or more right in a row | 4 days |
 
 With the switch off, the strip is two colours: green for a card last answered right,
-red for one last answered wrong.
+red for one last answered wrong. **Studying with the switch off never moves the
+schedule** — no box, date or miss count changes — so only a scheduled session can turn
+a card green.
 
 ---
 
@@ -102,7 +104,8 @@ model; 264 cards and one reader will never feed it.
   fortnight is outside the horizon of interview preparation, and doubling gaps
   put a deck with a few stubborn cards most of a month out. See
   `lib/schedule.ts`.)*
-- Grading writes a box and a date. `Grade` stays two buttons
+- Grading writes a box and a date. `Grade` stays two buttons *(since task 4, only an
+  answer in a scheduled session does; free study records the answer and nothing else)*
 - Migrate: `held` → box 2 due tomorrow, `review` → box 1 due today, ungraded → unseen
 
 **Done when** grading a card sets a due date, and progress from task 1 migrates into
@@ -212,8 +215,11 @@ than restoring a deleted one.
   in the buttons' own words, and when the deck comes back. It is also the right home for
   a map of the whole deck by box, which the strip stops showing (see below). Its button
   reads "Study the whole deck", because that is what it deals
-- Nothing due opens "Study anyway", which deals the whole deck. No separate mode —
-  grading there still schedules normally
+- Nothing due opens "Study anyway". It and "Study the whole deck" both step out into
+  free study: the parameter comes off the address, the shuffle comes back, and nothing
+  graded from there moves the schedule. The plan first had grading there reschedule
+  normally, which let a reader press "Study anyway" again and again and climb a whole
+  deck to green in one afternoon
 - **No shuffle control in a scheduled session.** You only ever see one card, so
   reordering the ones you have not reached is unobservable; the button only appears to
   do something today because it resets to position 0. "Study anyway" keeps it, because
@@ -240,6 +246,11 @@ task 5. Both sit behind the same switch when they arrive.
 
 **Also on this branch.** Fixes and changes that came up while living with task 4:
 
+- **Free study no longer writes the schedule.** Since task 2, grading with the switch
+  off moved boxes and due dates, so the two modes were not in fact separate. Now it
+  writes only the answer, in a new `grade` field that free study's colours read. There
+  is still one store and one answer text per card. See `applyGrade` in
+  `lib/progress.ts`
 - The ladder went to four boxes of 1, 2, 3 and 4 days (see task 2)
 - Grading from the keyboard works after Cmd+Enter. The answer box used to keep focus
   once the card had turned, so 1 and 2 were typed into the hidden answer instead of

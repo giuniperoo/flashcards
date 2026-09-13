@@ -5,25 +5,17 @@ import Link from "next/link";
 import type { StudyCard } from "@/lib/types";
 import type { CardProgress, ProgressStore } from "@/lib/progress";
 import {
+  applyGrade,
   cardKey,
   emptyProgress,
   loadProgress,
   saveProgress,
   unseenCard,
 } from "@/lib/progress";
-import {
-  FIRST_BOX,
-  clampBox,
-  dayKey,
-  daysBetween,
-  dueOn,
-  nextBox,
-  nextMisses,
-  type Grade,
-} from "@/lib/schedule";
+import { clampBox, dayKey, daysBetween, type Grade } from "@/lib/schedule";
 import { buildQueue } from "@/lib/queue";
 import { shuffled } from "@/lib/shuffle";
-import { wantsSchedule } from "@/lib/studyMode";
+import { wantsSchedule, withoutSchedule } from "@/lib/studyMode";
 
 /* The progress strip's geometry: how many dashes go in a row.
  *
@@ -85,8 +77,7 @@ function columnsFor(count: number, width: number) {
  * this is the reviewer it always was.
  */
 function verdictOf(record: CardProgress | undefined): Grade | undefined {
-  if (!record?.seen) return undefined;
-  return record.box === FIRST_BOX ? "review" : "held";
+  return record?.grade || undefined;
 }
 
 /**
@@ -103,8 +94,9 @@ const BOX_COLORS = [
 /**
  * A dash's colour.
  *
- * Outside a scheduled session it is the verdict it always was: green for a
- * card last answered right, red for one last answered wrong.
+ * Outside a scheduled session it is the last answer: green for a card last
+ * answered right, red for one last answered wrong. It reads `grade` rather than
+ * the box, because free study no longer moves the box.
  *
  * Inside one it is the box, so the colour is how far up the ladder a card has
  * climbed: red in box 1, then orange, yellow, and green at the top. A new card
@@ -117,10 +109,12 @@ const BOX_COLORS = [
  * The miss count is still written; see `CardProgress`.
  */
 function dashColor(record: CardProgress | undefined, scheduled: boolean) {
-  if (!record?.seen) return "var(--color-rule)";
   if (!scheduled) {
-    return record.box === FIRST_BOX ? "var(--color-review)" : "var(--color-held)";
+    if (record?.grade === "held") return "var(--color-held)";
+    if (record?.grade === "review") return "var(--color-review)";
+    return "var(--color-rule)";
   }
+  if (!record?.seen) return "var(--color-rule)";
   return BOX_COLORS[clampBox(record.box) - 1];
 }
 
@@ -198,11 +192,13 @@ export default function Reviewer({
 
   /* The mode, and the session it opens.
    *
-   * `scheduled` is read off the URL and governs how the strip reads. `session`
-   * is the queue being studied, and is null once the reader steps out of it
-   * into the whole deck — the box colours stay, because they asked for this
-   * app, but the schedule has stopped choosing the cards. `left` remembers
-   * that they did, so the queue is not rebuilt underneath them. */
+   * `scheduled` is read off the URL. While it is true, answers move the
+   * schedule and the strip shows boxes. `session` is the queue being studied.
+   * Stepping out of it — "Study anyway", "Study the whole deck" — turns
+   * `scheduled` off and drops the parameter from the address, so what follows
+   * is free study in every respect, including that it cannot touch the
+   * schedule. `left` remembers that they stepped out, so the queue is not
+   * rebuilt underneath them. */
   const [scheduled, setScheduled] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [left, setLeft] = useState(false);
@@ -332,9 +328,17 @@ export default function Reviewer({
     setFlipped(true);
   }, [flipped, draft, commitDraft]);
 
-  /** Leave the queue for the whole deck. The schedule stops choosing cards;
-      grading them still writes one, which is what makes this not a mode. */
+  /** Leave the queue for free study of the whole deck. Nothing graded from here
+      moves the schedule, which is the point: finishing the day's cards and
+      carrying on must not change what tomorrow deals. The address loses its
+      parameter too, so it says which reviewer this now is. */
   const studyEverything = useCallback(() => {
+    window.history.replaceState(
+      window.history.state,
+      "",
+      withoutSchedule(window.location.href),
+    );
+    setScheduled(false);
     setSession(null);
     setLeft(true);
     setOrder(cardsRef.current);
@@ -344,29 +348,14 @@ export default function Reviewer({
   const grade = useCallback(
     (value: Grade) => {
       if (!card) return;
-      // An unseen card sits at box 1, so held promotes it to 2 and review
-      // leaves it there. The two buttons still say the same two things.
-      const before = saved.cards[key] ?? unseenCard;
-      const box = nextBox(before.box, value);
-      const misses = nextMisses(before.misses, value);
-
-      setSaved((prev) => {
-        const record = prev.cards[key] ?? unseenCard;
-        return {
-          ...prev,
-          cards: {
-            ...prev.cards,
-            [key]: {
-              ...record,
-              box,
-              misses,
-              due: dueOn(box, today),
-              reviewed: today,
-              seen: true,
-            },
-          },
-        };
-      });
+      // Free study records the answer only; see `applyGrade`.
+      setSaved((prev) => ({
+        ...prev,
+        cards: {
+          ...prev.cards,
+          [key]: applyGrade(prev.cards[key] ?? unseenCard, value, today, scheduled),
+        },
+      }));
 
       if (!session) {
         move(1);
@@ -388,7 +377,7 @@ export default function Reviewer({
       setOrder(remaining);
       setPosition(remaining.length === 0 ? 0 : Math.min(position, remaining.length - 1));
     },
-    [card, saved.cards, key, today, session, move, commitDraft, draft, order, position],
+    [card, key, today, scheduled, session, move, commitDraft, draft, order, position],
   );
 
   const shuffle = useCallback(() => {
@@ -831,8 +820,8 @@ function NothingDue({
         {returns
           ? `${deck} comes back ${returnsIn(returns, today)}.`
           : `Nothing in ${deck} is scheduled yet.`}{" "}
-        You can go through the deck anyway — it still counts, and it still
-        reschedules.
+        You can still study the whole deck. That won’t change when any card
+        comes back.
       </p>
       <div className="mt-5 flex flex-wrap gap-2">
         <button
