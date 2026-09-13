@@ -140,6 +140,17 @@ export default function LogoSun() {
     kickRef.current?.();
   }, [prefs.scheduled]);
 
+  /* The header's mark follows the same mode, sage in free study. Read from
+     storage rather than the hook's first value, which is the default until the
+     stored one arrives, so a reader in free study is not shown cream first. */
+  useEffect(() => {
+    const html = document.documentElement;
+    html.dataset.mode = loadPrefs().scheduled ? "schedule" : "free";
+    return () => {
+      delete html.dataset.mode;
+    };
+  }, [prefs.scheduled]);
+
   useEffect(() => {
     const el = canvas.current;
     if (!el) return;
