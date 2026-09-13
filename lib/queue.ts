@@ -83,3 +83,55 @@ export function buildQueue(
 
   return [...due, ...unseen];
 }
+
+/** What a scheduled session's queue bar shows. The five add up to the deck. */
+export type Breakdown = {
+  /** Graded in this session. */
+  done: number;
+  /** Still to come, and due before today. */
+  overdue: number;
+  /** Still to come, and due today. */
+  today: number;
+  /** Still to come, and never graded. */
+  fresh: number;
+  /** Not dealt at all, because their day has not come. */
+  notDue: number;
+};
+
+/**
+ * The whole deck split by where each card stands in today's session, for the
+ * queue bar above the card.
+ *
+ * `dealt` is the queue as it was built and `remaining` is what is left of it,
+ * so the difference is what has been graded. What is left is split by its
+ * record — overdue, due today, or never seen — which is stable for the life of
+ * a session, since a card's record only changes when it is graded and a graded
+ * card is no longer remaining. Everything the queue left out is not due.
+ *
+ * Counted per session rather than per day: open the deck again this afternoon
+ * and this morning's cards are not due, not done.
+ */
+export function breakdown(
+  deck: StudyCard[],
+  dealt: StudyCard[],
+  remaining: StudyCard[],
+  records: Record<string, CardProgress>,
+  today: string,
+): Breakdown {
+  let overdue = 0;
+  let dueToday = 0;
+  let fresh = 0;
+  for (const card of remaining) {
+    const record = records[cardKey(card)];
+    if (!record?.seen) fresh++;
+    else if (record.due < today) overdue++;
+    else dueToday++;
+  }
+  return {
+    done: dealt.length - remaining.length,
+    overdue,
+    today: dueToday,
+    fresh,
+    notDue: deck.length - dealt.length,
+  };
+}

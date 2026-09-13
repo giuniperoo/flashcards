@@ -1,4 +1,4 @@
-import { buildQueue } from "./queue";
+import { breakdown, buildQueue } from "./queue";
 import type { CardProgress } from "./progress";
 import type { Deck, StudyCard } from "./types";
 
@@ -50,6 +50,58 @@ function inOrder(n: number) {
 }
 
 const cases: Array<[string, () => boolean]> = [
+  [
+    "the breakdown of a deck just opened adds up to the deck",
+    () => {
+      const cards = deckOfSize(8);
+      const records = {
+        "d:c0": seen("2026-09-08"),
+        "d:c1": seen("2026-09-09"),
+        "d:c2": seen(TODAY),
+        "d:c3": seen("2026-09-12"),
+        "d:c4": seen("2026-09-14"),
+      };
+      const dealt = buildQueue(cards, records, TODAY, (items) => items);
+      const b = breakdown(cards, dealt, dealt, records, TODAY);
+      return (
+        b.done === 0 &&
+        b.overdue === 2 &&
+        b.today === 1 &&
+        b.fresh === 3 &&
+        b.notDue === 2 &&
+        b.done + b.overdue + b.today + b.fresh + b.notDue === cards.length
+      );
+    },
+  ],
+
+  [
+    "graded cards move into done, and nothing else shifts",
+    () => {
+      const cards = deckOfSize(6);
+      const records = {
+        "d:c0": seen("2026-09-08"),
+        "d:c1": seen(TODAY),
+        "d:c5": seen("2026-09-20"),
+      };
+      const dealt = buildQueue(cards, records, TODAY, (items) => items);
+      // Grade the first two dealt: the overdue card and the one due today.
+      const remaining = dealt.slice(2);
+      const b = breakdown(cards, dealt, remaining, records, TODAY);
+      return b.done === 2 && b.overdue === 0 && b.today === 0 && b.fresh === 3 && b.notDue === 1;
+    },
+  ],
+
+  [
+    "a finished session is all done and not due",
+    () => {
+      const cards = deckOfSize(4);
+      const records = { "d:c0": seen(TODAY), "d:c1": seen("2026-09-30") };
+      const dealt = buildQueue(cards, records, TODAY, (items) => items);
+      const b = breakdown(cards, dealt, [], records, TODAY);
+      return b.done === 3 && b.overdue + b.today + b.fresh === 0 && b.notDue === 1;
+    },
+  ],
+
   [
     "a backlog comes back oldest day first, with today last",
     () => {

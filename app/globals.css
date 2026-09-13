@@ -114,6 +114,107 @@ body {
    640px; three columns just past 1300px is 296px and nearly as tight. Four
    actions have to fit in 287, and at 0.75rem of side padding they did not —
    they cleared the three-column case and wrapped in the two-column one. */
+/* The queue bar above a scheduled session's card. See `QueueBar` in
+   `Reviewer.tsx`. Two greys for what is still owed, darker for overdue; done
+   and new sit on the card colour, and not due on the paper behind a dashed
+   edge, since those cards are not part of today at all.
+
+   Each segment grows by its count from a basis of its own label, so widths
+   follow the numbers without a small segment ever clipping its text. */
+@theme static {
+  --color-queue-overdue: #c2bbab;
+  --color-queue-today: #dcd6c9;
+}
+
+.queue-bar {
+  display: flex;
+  height: 1.375rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.queue-bar > span {
+  display: flex;
+  flex-shrink: 0;
+  flex-basis: auto;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0 0.5rem;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.queue-bar > span + span {
+  border-left: 1px solid var(--color-rule);
+}
+
+.queue-done,
+.queue-new {
+  background: var(--color-card);
+}
+
+.queue-overdue {
+  background: var(--color-queue-overdue);
+}
+
+.queue-today {
+  background: var(--color-queue-today);
+}
+
+.queue-later {
+  background: var(--color-paper);
+}
+
+.queue-bar > span.queue-done,
+.queue-bar > span.queue-later {
+  color: var(--color-muted);
+}
+
+.queue-bar > span.queue-later {
+  border-left-style: dashed;
+}
+
+.queue-legend {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .queue-word {
+    display: none;
+  }
+
+  .queue-bar > span {
+    padding: 0 0.4rem;
+    letter-spacing: 0.04em;
+  }
+
+  .queue-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.8rem;
+    margin-top: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .queue-legend i {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-right: 0.3rem;
+    border: 1px solid var(--color-rule);
+    vertical-align: -1px;
+  }
+}
+
 /* The mark in the header, cream or sage by mode. See `app/layout.tsx`. */
 .wordmark-free {
   display: none;

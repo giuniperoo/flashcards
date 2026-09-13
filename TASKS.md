@@ -5,7 +5,7 @@ Read `CLAUDE.md` first.
 
 The spaced repetition tasks mostly run in order. Tasks 1 to 4 each depend on
 the one before. After that, 6 needs 5, and 7, 8 and 9 need only 4 — which is why
-8 has already landed ahead of 5. Docs, task 10, goes last. The miscellaneous
+8 has already landed ahead of 5, and 10 needs only 4 as well. Docs, task 11, goes last. The miscellaneous
 tasks depend on nothing and can land whenever.
 
 Scope for this round is a personal deployment: local decks plus committed
@@ -33,7 +33,8 @@ is due today, and it ends.
 | 7 — A first interval shorter than a day | not started |
 | 8 — An empty box when a card comes back | merged |
 | 9 — Say what the colours mean, once | not started |
-| 10 — Docs | not started |
+| 10 — The queue bar | built, not merged |
+| 11 — Docs | not started |
 
 **Spaced repetition is the default.** The switch at the foot of the index starts on,
 and free study is what you turn to. On the index the sun shows which mode you are in:
@@ -266,7 +267,7 @@ task 5. Both sit behind the same switch when they arrive.
 - On a phone the card being studied fits the screen, so "Turn card over" needs no
   scrolling. The card takes the height that is left rather than a fixed 484px, and the
   grading buttons sit side by side at every width. Checked in a desktop browser at
-  phone sizes only — see task 12
+  phone sizes only — see task 13
 - The whole-deck strip is green and red, the same green and red as the scheduled strip
 - On the index: Delete no longer gets cut off on a narrow imported deck card, and the
   schedule switch has no underline when it is on, since its label names the mode it
@@ -505,7 +506,42 @@ as the ones in the reviewer.
 
 ---
 
-### Task 10 — Docs
+### Task 10 — The queue bar
+
+*Built, not yet merged.*
+
+**Why.** A scheduled session opened with a small "0/32 today · 32 new" in the corner
+and nothing else to say what the day held. How many cards are overdue, how many are
+new, how much of the deck the schedule left out: all of it was in the store, none of
+it was on screen.
+
+**What was built**
+
+- A slim bar under the deck's name, about 22px, on a schedule only. Free study has no
+  queue to split up and keeps its count
+- It replaces the corner count rather than sitting beside it. The strip is already a
+  progress bar, and a third progress indicator on one screen is too many
+- Five segments across the whole deck, in the order the queue deals: done, overdue,
+  due today, new, then not due. A segment with nothing in it is left out
+- Widths follow the counts but never clip a label: each segment grows by its count
+  from a basis of its own text
+- Neutral greys. The strip uses colour for boxes, and a second meaning for the same
+  hues would muddle both
+- On a phone the words do not fit, so the bar shows numbers and a legend underneath
+  names them
+- Screen readers get one sentence, "Today: 9 done, 3 overdue, 6 due today, 5 new,
+  9 not due", rather than five fragments
+- The counting is `breakdown` in `lib/queue.ts`, with tests
+
+**A "done" segment was added to the mockup's four.** The count it replaces carried
+progress, and without it progress would be on the strip alone.
+
+**Counted per session, not per day.** Open the deck again this afternoon and this
+morning's cards read as not due rather than done, because that is what they are.
+
+---
+
+### Task 11 — Docs
 
 *Not started.*
 
@@ -531,7 +567,7 @@ version 4, the `misses` field — so what is left there is small.
 
 Independent of the above and of each other.
 
-### Task 11 — Import hardening
+### Task 12 — Import hardening
 
 Small fixes to the import path, now that it's the main way decks get created.
 
@@ -552,7 +588,7 @@ print, and `pnpm run test:parser` still passes.
 
 ---
 
-### Task 12 — Housekeeping
+### Task 13 — Housekeeping
 
 - Add a `not-found.tsx` matching the app's visual language
 - Add `metadata` per route (deck name in the title, so browser tabs are useful)
