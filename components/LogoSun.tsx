@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { loadPrefs } from "@/lib/prefs";
+import { usePrefs } from "@/lib/usePrefs";
 
 /*
  * The mark as a sun: rays out of the wordmark, turning clockwise.
@@ -16,7 +18,18 @@ import { useEffect, useRef } from "react";
  * because the shell in `app/layout.tsx` is `relative z-10` and so opens a
  * stacking context of its own: the canvas goes behind everything in the shell
  * and still in front of the body's paper.
+ *
+ * Its colour says which app you are in. On a schedule the rays are the mark's
+ * own cream; in free study they are a faint sage. The index is the one page the
+ * sun is on, and it is also the one page where the mode is chosen, so this is
+ * where the reader needs to be able to tell — the schedule switch's label names
+ * where it takes you rather than where you are.
  */
+
+/** How far from the paper towards the mark's cream the scheduled rays are
+    taken. The whole figure is one flat colour, so this is the only thing
+    setting how loud the sun is, and it is meant to be barely there. */
+const TINT = 0.2;
 
 /** Radians a second. A full turn takes a little over three minutes — slow
     enough that you notice it has moved rather than watch it moving. */
@@ -55,8 +68,7 @@ uniform vec2 uSun;     // mark centre, device pixels, y up from the bottom
 uniform float uTime;   // seconds; held at 0 when motion is reduced
 uniform vec2 uHalf;    // half the mark's frame, already padded
 uniform float uRound;  // that frame's corner radius, padded to match
-uniform vec3 uPaper;
-uniform vec3 uMark;
+uniform vec3 uRay;     // the rays' colour, already mixed; see TINT
 
 const float TAU = 6.2831853;
 
@@ -64,11 +76,6 @@ const float TAU = 6.2831853;
 // 0.5 a ray is exactly as wide as the paper beside it.
 const float RAYS = 20.0;
 const float DUTY = 0.55;
-
-// How far from the paper towards the mark's cream the rays are taken. The
-// whole figure is this one flat colour, so it is the only thing setting how
-// loud the sun is, and it is meant to be barely there.
-const float TINT = 0.20;
 
 void main() {
   vec2 d = gl_FragCoord.xy - uSun;
@@ -100,7 +107,7 @@ void main() {
   // compositor read a full-strength cream as though it had already been scaled
   // down by its own alpha and added the paper underneath on top of it.
   float alpha = ray * lit;
-  gl_FragColor = vec4(mix(uPaper, uMark, TINT) * alpha, alpha);
+  gl_FragColor = vec4(uRay * alpha, alpha);
 }
 `;
 
@@ -121,6 +128,17 @@ function rgb(value: string): [number, number, number] {
 
 export default function LogoSun() {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const [prefs] = usePrefs();
+
+  /* The mode is read by the draw loop through a ref, so switching it recolours
+     the next frame without tearing down the GL context — and asks for that
+     frame, because with reduced motion there is no loop running to get one. */
+  const scheduledRef = useRef(true);
+  const kickRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    scheduledRef.current = prefs.scheduled;
+    kickRef.current?.();
+  }, [prefs.scheduled]);
 
   useEffect(() => {
     const el = canvas.current;
@@ -169,8 +187,15 @@ export default function LogoSun() {
     const uRound = at("uRound");
 
     const theme = getComputedStyle(document.documentElement);
-    gl.uniform3fv(at("uPaper"), rgb(theme.getPropertyValue("--color-paper")));
-    gl.uniform3fv(at("uMark"), rgb(theme.getPropertyValue("--color-mark")));
+    const paper = rgb(theme.getPropertyValue("--color-paper"));
+    const mark = rgb(theme.getPropertyValue("--color-mark"));
+    const cream = paper.map((p, i) => p + (mark[i] - p) * TINT);
+    const sage = rgb(theme.getPropertyValue("--color-sun-free"));
+    const uRay = at("uRay");
+    // Read straight from storage for the first frame, which can land before
+    // the preferences hook has, so a reader in free study never sees a cream
+    // sun turn sage.
+    scheduledRef.current = loadPrefs().scheduled;
 
     // Device pixels are capped: this is a wash of colour behind the page, and
     // a retina phone gains nothing from four times the fragments.
@@ -216,6 +241,7 @@ export default function LogoSun() {
       // instead of pinching at the corners.
       gl.uniform1f(uRound, (mark.height * MARK_ROUND + PAD) * dpr);
       gl.uniform1f(uTime, still.matches ? 0 : seconds);
+      gl.uniform3fv(uRay, scheduledRef.current ? cream : sage);
       // The browser drops the drawing buffer after it has composited a frame,
       // so this is usually clearing something already blank — but that is its
       // choice and not a promise, and the beams are blended: a buffer that did
@@ -245,6 +271,7 @@ export default function LogoSun() {
       kick();
     };
 
+    kickRef.current = kick;
     resize();
     frame = requestAnimationFrame(loop);
     window.addEventListener("resize", onResize);
@@ -252,6 +279,7 @@ export default function LogoSun() {
     still.addEventListener("change", kick);
 
     return () => {
+      kickRef.current = null;
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("scroll", kick);

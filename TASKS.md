@@ -35,6 +35,10 @@ is due today, and it ends.
 | 9 — Say what the colours mean, once | not started |
 | 10 — Docs | not started |
 
+**Spaced repetition is the default.** The switch at the foot of the index starts on,
+and free study is what you turn to. On the index the sun shows which mode you are in:
+cream rays on a schedule, faint sage rays in free study.
+
 **The ladder as built.** Four boxes. A right answer moves a card up one box, a wrong
 answer sends it to box 1. On a schedule the strip colours each card by its box:
 
@@ -178,6 +182,9 @@ without it.
 and it *ends*. Without that, the reviewer keeps grinding past the due cards into ones
 you know cold, which is the waste spaced repetition exists to remove — and this app
 taxes it harder than most, because every card costs a typed answer.
+
+*(Since 13 September the default is the other way round: spaced repetition is on
+unless you choose free study. What follows is why it started off.)*
 
 **Scheduling is a mode, and it is off by default.** The app as it stands is the one
 that keeps working: the whole-deck reviewer, its shuffle button and its two-colour

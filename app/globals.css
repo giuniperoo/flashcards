@@ -28,6 +28,12 @@
      card's tint, which it cannot read from here: a tint is data, and goes
      through hue maths that parse it. */
   --color-mark: #e0d4bf;
+  /* The sun's rays in free study. On a schedule they are the mark's cream at
+     20%, worked out in `LogoSun`; this sage replaces that when the switch is
+     off, so the index says which app you are in. A little stronger than the
+     cream on purpose: at the cream's faintness a change of hue does not show.
+     Contrast against the paper is about 1.12, where the cream is 1.05. */
+  --color-sun-free: #e4e9e1;
   --color-question: #185fa5;
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;

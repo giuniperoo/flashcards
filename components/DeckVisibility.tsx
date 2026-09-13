@@ -44,9 +44,10 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
           ? "Hide built-in decks"
           : "Show built-in decks"}
       </button>
-      {/* Off by default, and only ever a decision. What it changes is which
-          reviewer the links on this page open; a link that already exists
-          keeps opening what it always did.
+      {/* On by default: spaced repetition is the app, and free study is the
+          choice. What it changes is which reviewer the links on this page
+          open; a link that already exists keeps opening what it always did.
+          The sun behind the page is what shows the mode, in `LogoSun`.
 
           No styling for the on state, and that is not an omission. The label
           names where the button takes you, so "Study whole decks" only appears
