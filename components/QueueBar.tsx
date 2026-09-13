@@ -14,19 +14,27 @@ import type { Breakdown } from "@/lib/queue";
  * colours are neutral on purpose: the strip below already uses colour for
  * boxes, and a second meaning for the same hues would muddle both.
  *
- * **Where it goes.** In the page's title row, between the deck's name and its
- * links, when it fits there; below the title row when it does not. The title
- * row is drawn by the server before any progress exists, so it holds an empty
- * `[data-queue-slot]` and the bar is portalled into it. Whether it fits is
- * measured rather than guessed, from a hidden copy at its natural width against
- * the slot's width, and measured again when the window or the counts change.
- * So a long deck name, labels that need more room than the slot has, or a
- * narrow screen all send it below. Below 640px it always goes below, because
- * there the bar shows numbers only and needs its legend underneath.
+ * **Where it goes, and how it reads.** Three places, tried in order, each only
+ * if the bar with its words fits there:
+ *
+ *   1. in the page's title row, between the deck's name and its links
+ *   2. on its own line below the title row, still with words
+ *   3. on its own line with numbers only, and a legend underneath naming them
+ *
+ * Whether it fits is measured, never guessed from the screen width: a hidden
+ * copy with its words, at its natural width, against the gap in the title row
+ * and against the row's full width. So "16 new" keeps its words on a phone,
+ * and only a bar with too much to say for the line falls back to numbers. It
+ * is measured again when the window or the counts change, before paint so the
+ * bar never jumps. An earlier version switched to numbers below 640px
+ * regardless, and turned a lone "16 new" into "16" over a legend.
+ *
+ * The title row is drawn by the server before any progress exists, so it holds
+ * an empty `[data-queue-slot]` and the bar is portalled into it.
  *
  * **How wide.** At most `PER_SEGMENT` for each segment shown, then no wider
- * than where it sits. One segment saying "16 new" gets a short bar rather than
- * a line across the page, and five get room for their proportions.
+ * than where it sits. One segment is a short bar rather than a line across the
+ * page, and five get room for their proportions.
  *
  * Only ever rendered inside a scheduled session, which exists only in the
  * browser, so the layout effect never runs on the server.
@@ -41,7 +49,8 @@ const SEGMENTS: Array<{ key: keyof Breakdown; word: string; className: string }>
 ];
 
 const PER_SEGMENT = 9; // rem
-const WIDE = "(min-width: 640px)";
+
+type Placement = "title" | "below" | "numbers";
 
 export default function QueueBar({ counts }: { counts: Breakdown }) {
   const shown = SEGMENTS.filter((segment) => counts[segment.key] > 0);
@@ -50,28 +59,28 @@ export default function QueueBar({ counts }: { counts: Breakdown }) {
 
   const measure = useRef<HTMLDivElement>(null);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
-  const [inTitle, setInTitle] = useState(false);
+  const [placement, setPlacement] = useState<Placement>("below");
 
-  // Before paint, so the bar never shows in one place and then jumps.
   useLayoutEffect(() => {
     const natural = measure.current;
     const target = document.querySelector<HTMLElement>("[data-queue-slot]");
+    const row = target?.parentElement;
     setSlot(target);
-    if (!natural || !target) {
-      setInTitle(false);
+    if (!natural || !target || !row) {
+      setPlacement("below");
       return;
     }
-    const wide = window.matchMedia(WIDE);
-    const check = () =>
-      setInTitle(wide.matches && natural.getBoundingClientRect().width <= target.clientWidth);
+    const check = () => {
+      const width = natural.getBoundingClientRect().width;
+      setPlacement(
+        width <= target.clientWidth ? "title" : width <= row.clientWidth ? "below" : "numbers",
+      );
+    };
     check();
     const observer = new ResizeObserver(check);
     observer.observe(target);
-    wide.addEventListener("change", check);
-    return () => {
-      observer.disconnect();
-      wide.removeEventListener("change", check);
-    };
+    observer.observe(row);
+    return () => observer.disconnect();
   }, [signature]);
 
   const segments = () =>
@@ -84,7 +93,7 @@ export default function QueueBar({ counts }: { counts: Breakdown }) {
 
   const bar = (
     <div
-      className="queue-bar"
+      className={`queue-bar ${placement === "numbers" ? "numbers" : ""}`}
       aria-hidden
       style={{ maxWidth: `${shown.length * PER_SEGMENT}rem` }}
     >
@@ -98,19 +107,21 @@ export default function QueueBar({ counts }: { counts: Breakdown }) {
       <div ref={measure} className="queue-bar queue-measure" aria-hidden>
         {segments()}
       </div>
-      {inTitle && slot ? (
+      {placement === "title" && slot ? (
         createPortal(bar, slot)
       ) : (
         <div className="mb-3">
           {bar}
-          <div className="queue-legend" aria-hidden>
-            {shown.map((s) => (
-              <span key={s.key}>
-                <i className={s.className} />
-                {s.word}
-              </span>
-            ))}
-          </div>
+          {placement === "numbers" && (
+            <div className="queue-legend" aria-hidden>
+              {shown.map((s) => (
+                <span key={s.key}>
+                  <i className={s.className} />
+                  {s.word}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </>

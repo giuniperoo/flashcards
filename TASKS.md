@@ -520,10 +520,12 @@ it was on screen.
 - A slim bar, 22px, on a schedule only. Free study has no queue to split up and keeps
   its count
 - **It sits in the title row**, between the deck's name and its links, when it fits
-  there, and below the title row when it does not: a long deck name, labels that need
-  more room than the gap, or a screen under 640px. Whether it fits is measured, not
-  guessed — a hidden copy at its natural width against the gap — and measured again on
-  resize and as the counts change. The server draws the title row before any progress
+  there with its words. Otherwise it goes on its own line below the title row, still
+  with words, and only if the words do not fit even there does it show numbers with a
+  legend underneath. Every step is measured, never guessed from the screen width — a
+  hidden copy at its natural width against the gap and against the row — and measured
+  again on resize and as the counts change. A first version switched to numbers below
+  640px regardless, and turned a lone "16 new" on a phone into "16" over a legend. The server draws the title row before any progress
   exists, so the row holds an empty `[data-queue-slot]` and the bar is portalled in.
   See `components/QueueBar.tsx`
 - **At most 9rem per segment shown.** One segment saying "16 new" is a short bar, not a
@@ -536,8 +538,6 @@ it was on screen.
   from a basis of its own text
 - Neutral greys. The strip uses colour for boxes, and a second meaning for the same
   hues would muddle both
-- On a phone the words do not fit, so the bar shows numbers and a legend underneath
-  names them
 - Screen readers get one sentence, "Today: 9 done, 3 overdue, 6 due today, 5 new,
   9 not due", rather than five fragments
 - The counting is `breakdown` in `lib/queue.ts`, with tests

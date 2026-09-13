@@ -194,40 +194,38 @@ body {
   border-left-style: dashed;
 }
 
-.queue-legend {
+/* When the words will not fit even on a line of their own, `QueueBar` adds
+   `.numbers`: the bar keeps its counts and a legend underneath names them.
+   Chosen by measuring, not by screen width, so a short bar keeps its words on
+   a phone. */
+.queue-bar.numbers .queue-word {
   display: none;
 }
 
-@media (max-width: 639px) {
-  .queue-word {
-    display: none;
-  }
+.queue-bar.numbers > span {
+  padding: 0 0.4rem;
+  letter-spacing: 0.04em;
+}
 
-  .queue-bar > span {
-    padding: 0 0.4rem;
-    letter-spacing: 0.04em;
-  }
+.queue-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
 
-  .queue-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.2rem 0.8rem;
-    margin-top: 0.35rem;
-    font-family: var(--font-mono);
-    font-size: 0.5625rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-muted);
-  }
-
-  .queue-legend i {
-    display: inline-block;
-    width: 0.6rem;
-    height: 0.6rem;
-    margin-right: 0.3rem;
-    border: 1px solid var(--color-rule);
-    vertical-align: -1px;
-  }
+.queue-legend i {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.3rem;
+  border: 1px solid var(--color-rule);
+  vertical-align: -1px;
 }
 
 /* The mark in the header, cream or sage by mode. See `app/layout.tsx`. */
