@@ -30,10 +30,13 @@
   --color-mark: #e0d4bf;
   /* The sun's rays in free study. On a schedule they are the mark's cream at
      20%, worked out in `LogoSun`; this sage replaces that when the switch is
-     off, so the index says which app you are in. A little stronger than the
-     cream on purpose: at the cream's faintness a change of hue does not show.
-     Contrast against the paper is about 1.12, where the cream is 1.05. */
-  --color-sun-free: #e4e9e1;
+     off. Kept nearly as faint as the cream — 1.065 against the paper, where
+     the cream is 1.05 — and in the same sage family as the free study mark in
+     `tools/wordmark.py`. A stronger sage at 1.12 was tried first and read as
+     starker than the cream it stands in for, and clashed with a warmer olive
+     mark. At this faintness the sun barely shows the mode; the mark in the
+     header carries that, on every page. */
+  --color-sun-free: #ebeee9;
   --color-question: #185fa5;
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;

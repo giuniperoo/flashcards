@@ -66,11 +66,12 @@ CREAM, FRAME, BOLT_FILL, INK = "#E0D4BF", "#B87A3C", "#D9B77D", "#2C2C2A"
 # The mark's ground in free study. The header shows this version instead of the
 # cream one whenever the page is in free study, so every page says which app you
 # are in. Only the ground changes: the frame, bolt and letters are the same inks.
-# An olive sage (H 65, S 25%, L 80%), the cream's weight moved towards green, so
-# the letters hold the same contrast on it as on the cream, 9.6. A cooler,
-# blue-green sage was tried first and fought the tan frame and bolt; this one
-# shares their warmth.
-SAGE = "#D6D8BE"
+# A muted sage (H 88, S 16%, L 82%) with the cream's weight against the paper,
+# so the letters hold the same contrast on it, 9.6. It shares its hue with the
+# free study sun's rays, `--color-sun-free`. Two others were tried first: a
+# blue-green that fought the tan frame and bolt, and a warmer olive that clashed
+# with the sage rays around it.
+SAGE = "#D1D8C9"
 
 # Where each version goes, and its ground.
 VARIANTS = {Path("public/logo.svg"): CREAM, Path("public/logo-free.svg"): SAGE}
