@@ -25,11 +25,12 @@ function deckOfSize(n: number, slug = "d") {
 }
 
 function seen(due: string, box = 2): CardProgress {
-  return { draft: "", box, misses: 0, due, reviewed: "", seen: true };
+  return { draft: "", grade: "held", box, misses: 0, due, reviewed: "", seen: true };
 }
 
 const unseenWithDraft: CardProgress = {
   draft: "typed but never graded",
+  grade: "",
   box: 1,
   misses: 0,
   due: "",
