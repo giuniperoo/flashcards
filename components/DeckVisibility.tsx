@@ -25,15 +25,20 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
     : 0;
 
   return (
-    <span className="flex flex-wrap items-center gap-x-5">
+    // A centred bullet between each control, the same separator as "Print · All
+    // decks" on a study page, with the same spacing.
+    <span className="flex flex-wrap items-center gap-x-4">
       {hidden > 0 && (
-        <button
-          type="button"
-          onClick={() => update({ ...prefs, hiddenDecks: [] })}
-          className="label inline-flex min-h-11 items-center text-muted hover:text-ink"
-        >
-          {`Bring back ${hidden} deck${hidden === 1 ? "" : "s"}`}
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={() => update({ ...prefs, hiddenDecks: [] })}
+            className="label inline-flex min-h-11 items-center text-muted hover:text-ink"
+          >
+            {`Bring back ${hidden} deck${hidden === 1 ? "" : "s"}`}
+          </button>
+          <Bullet />
+        </>
       )}
       <button
         type="button"
@@ -44,6 +49,7 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
           ? "Hide built-in decks"
           : "Show built-in decks"}
       </button>
+      <Bullet />
       {/* On by default: spaced repetition is the app, and free study is the
           choice. What it changes is which reviewer the links on this page
           open; a link that already exists keeps opening what it always did.
@@ -66,6 +72,14 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
         {prefs.scheduled ? "Free study" : "Spaced repetition"}
         <span aria-hidden>→</span>
       </button>
+    </span>
+  );
+}
+
+function Bullet() {
+  return (
+    <span aria-hidden className="label text-muted">
+      ·
     </span>
   );
 }
