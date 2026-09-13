@@ -13,7 +13,7 @@ import {
   unseenCard,
 } from "@/lib/progress";
 import { clampBox, dayKey, daysBetween, type Grade } from "@/lib/schedule";
-import { buildQueue } from "@/lib/queue";
+import { breakdown, buildQueue, type Breakdown } from "@/lib/queue";
 import { shuffled } from "@/lib/shuffle";
 import { wantsSchedule, withoutSchedule } from "@/lib/studyMode";
 
@@ -164,8 +164,6 @@ function isTyping(target: EventTarget | null) {
  */
 type Session = {
   cards: StudyCard[];
-  /** How many of them had never been seen. Part of the total, not extra to it. */
-  fresh: number;
   /** Graded this session. Together they are every card graded, so they add up. */
   right: number;
   missed: number;
@@ -260,7 +258,6 @@ export default function Reviewer({
     const queue = buildQueue(cardsRef.current, saved.cards, today);
     setSession({
       cards: queue,
-      fresh: queue.filter((c) => !saved.cards[cardKey(c)]?.seen).length,
       right: 0,
       missed: 0,
     });
@@ -475,9 +472,11 @@ export default function Reviewer({
 
   const strip = session ? session.cards : order;
   const done = session ? session.cards.length - order.length : 0;
+  const counts = session ? breakdown(cards, session.cards, order, saved.cards, today) : null;
 
   return (
     <div className="fit">
+      {counts && <QueueBar counts={counts} />}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <span className="label text-muted">
           <span
@@ -488,21 +487,16 @@ export default function Reviewer({
           {card.deck.name} · card {card.index + 1}
         </span>
         <div className="flex items-center gap-3">
-          <span className="label text-muted" aria-live="polite">
-            {session ? (
-              <>
-                {done}/{session.cards.length} today
-                {session.fresh > 0 && <> · {session.fresh} new</>}
-              </>
-            ) : (
-              <>
-                {position + 1}/{order.length}
-                {tally.held + tally.review > 0 && (
-                  <> · {tally.held} held · {tally.review} to revisit</>
-                )}
-              </>
-            )}
-          </span>
+          {/* On a schedule the queue bar above carries this, so the count is
+              free study's alone. */}
+          {!session && (
+            <span className="label text-muted" aria-live="polite">
+              {position + 1}/{order.length}
+              {tally.held + tally.review > 0 && (
+                <> · {tally.held} held · {tally.review} to revisit</>
+              )}
+            </span>
+          )}
           {/* No shuffle in a session: you only ever see one card, so reordering
               the ones you have not reached is unobservable, and the button only
               looks like it does something because it resets to position 0. */}
@@ -725,6 +719,56 @@ function Strip({
           />
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * What today's session holds, across the whole deck, in a slim bar above the
+ * card. It replaces the small "3/14 today · 3 new" count a scheduled session
+ * used to show: the done segment carries that count's progress, and the rest
+ * say what is still to come and what the schedule left out.
+ *
+ * Segments run in the order the queue deals — done, overdue, due today, new —
+ * then the cards not due. Each takes a share of the width by its count, but
+ * never less than its label, and a segment with nothing in it is left out. The
+ * colours are neutral on purpose: the strip below already uses colour for
+ * boxes, and a second meaning for the same hues would muddle both.
+ *
+ * On a phone the words would not fit, so the bar shows numbers and a legend
+ * underneath says which is which. Screen readers get one sentence instead of
+ * five fragments. See `.queue-bar` in `globals.css`.
+ */
+const SEGMENTS: Array<{ key: keyof Breakdown; word: string; className: string }> = [
+  { key: "done", word: "done", className: "queue-done" },
+  { key: "overdue", word: "overdue", className: "queue-overdue" },
+  { key: "today", word: "due today", className: "queue-today" },
+  { key: "fresh", word: "new", className: "queue-new" },
+  { key: "notDue", word: "not due", className: "queue-later" },
+];
+
+function QueueBar({ counts }: { counts: Breakdown }) {
+  const shown = SEGMENTS.filter((segment) => counts[segment.key] > 0);
+  const sentence = shown.map((s) => `${counts[s.key]} ${s.word}`).join(", ");
+  return (
+    <div className="mb-3">
+      <p className="sr-only">Today: {sentence}.</p>
+      <div className="queue-bar" aria-hidden>
+        {shown.map((s) => (
+          <span key={s.key} className={s.className} style={{ flexGrow: counts[s.key] }}>
+            {counts[s.key]}
+            <span className="queue-word">{s.word}</span>
+          </span>
+        ))}
+      </div>
+      <div className="queue-legend" aria-hidden>
+        {shown.map((s) => (
+          <span key={s.key}>
+            <i className={s.className} />
+            {s.word}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
