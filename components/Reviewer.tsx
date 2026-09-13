@@ -13,7 +13,8 @@ import {
   unseenCard,
 } from "@/lib/progress";
 import { clampBox, dayKey, daysBetween, type Grade } from "@/lib/schedule";
-import { breakdown, buildQueue, type Breakdown } from "@/lib/queue";
+import { breakdown, buildQueue } from "@/lib/queue";
+import QueueBar from "@/components/QueueBar";
 import { shuffled } from "@/lib/shuffle";
 import { wantsSchedule, withoutSchedule } from "@/lib/studyMode";
 
@@ -167,6 +168,13 @@ type Session = {
   /** Graded this session. Together they are every card graded, so they add up. */
   right: number;
   missed: number;
+  /**
+   * Every card in the deck was new when the session opened. The queue bar then
+   * has nothing to say but "16 new", so it is not shown — and it stays hidden
+   * for the whole session rather than appearing at the first grade, when it
+   * would suddenly have "1 done" to show and push the card down mid-answer.
+   */
+  allNew: boolean;
 };
 
 export default function Reviewer({
@@ -260,6 +268,7 @@ export default function Reviewer({
       cards: queue,
       right: 0,
       missed: 0,
+      allNew: cardsRef.current.every((c) => !saved.cards[cardKey(c)]?.seen),
     });
     setOrder(queue);
     setPosition(0);
@@ -476,15 +485,20 @@ export default function Reviewer({
 
   return (
     <div className="fit">
-      {counts && <QueueBar counts={counts} />}
+      {counts && !session?.allNew && <QueueBar counts={counts} />}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <span className="label text-muted">
+        {/* Flex-centred rather than `align-middle`, which centres on the
+            lowercase x-height. This label is all capitals, so the swatch sat
+            below the middle of the letters beside it. */}
+        <span className="label inline-flex items-center text-muted">
           <span
             aria-hidden
-            className="mr-2 inline-block h-2 w-2 rounded-[2px] align-middle"
+            className="mr-2 inline-block h-2 w-2 shrink-0 rounded-[2px]"
             style={{ background: card.deck.ink }}
           />
-          {card.deck.name} · card {card.index + 1}
+          {/* The card's place in its own deck, not in today's queue: on
+              `/study/all` it is still "card 3 of 12" of the deck it came from. */}
+          {card.deck.name} · card {card.index + 1} of {card.deck.cards.length}
         </span>
         <div className="flex items-center gap-3">
           {/* On a schedule the queue bar above carries this, so the count is
@@ -719,56 +733,6 @@ function Strip({
           />
         );
       })}
-    </div>
-  );
-}
-
-/**
- * What today's session holds, across the whole deck, in a slim bar above the
- * card. It replaces the small "3/14 today · 3 new" count a scheduled session
- * used to show: the done segment carries that count's progress, and the rest
- * say what is still to come and what the schedule left out.
- *
- * Segments run in the order the queue deals — done, overdue, due today, new —
- * then the cards not due. Each takes a share of the width by its count, but
- * never less than its label, and a segment with nothing in it is left out. The
- * colours are neutral on purpose: the strip below already uses colour for
- * boxes, and a second meaning for the same hues would muddle both.
- *
- * On a phone the words would not fit, so the bar shows numbers and a legend
- * underneath says which is which. Screen readers get one sentence instead of
- * five fragments. See `.queue-bar` in `globals.css`.
- */
-const SEGMENTS: Array<{ key: keyof Breakdown; word: string; className: string }> = [
-  { key: "done", word: "done", className: "queue-done" },
-  { key: "overdue", word: "overdue", className: "queue-overdue" },
-  { key: "today", word: "due today", className: "queue-today" },
-  { key: "fresh", word: "new", className: "queue-new" },
-  { key: "notDue", word: "not due", className: "queue-later" },
-];
-
-function QueueBar({ counts }: { counts: Breakdown }) {
-  const shown = SEGMENTS.filter((segment) => counts[segment.key] > 0);
-  const sentence = shown.map((s) => `${counts[s.key]} ${s.word}`).join(", ");
-  return (
-    <div className="mb-3">
-      <p className="sr-only">Today: {sentence}.</p>
-      <div className="queue-bar" aria-hidden>
-        {shown.map((s) => (
-          <span key={s.key} className={s.className} style={{ flexGrow: counts[s.key] }}>
-            {counts[s.key]}
-            <span className="queue-word">{s.word}</span>
-          </span>
-        ))}
-      </div>
-      <div className="queue-legend" aria-hidden>
-        {shown.map((s) => (
-          <span key={s.key}>
-            <i className={s.className} />
-            {s.word}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }

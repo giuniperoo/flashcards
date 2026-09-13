@@ -68,12 +68,21 @@ export default function CustomDeckView({
 
   return (
     <div className="fit">
-      <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <h1 className="text-2xl font-medium tracking-tight">{deck.name}</h1>
+        {/* Where a scheduled session puts its queue bar, if the bar fits. See
+            `components/QueueBar.tsx`. Empty otherwise, and takes no room. The
+            row centres its items rather than lining up baselines: the bar has
+            no baseline to share, and on the big title's baseline the small
+            links sat visibly lower than the bar beside them. */}
+        <div data-queue-slot className="flex min-w-0 flex-1 justify-center" />
         <div className="flex items-baseline gap-4">
           <Link href={`/print/${deck.slug}`} className="label text-muted hover:text-ink">
             Print
           </Link>
+          <span aria-hidden className="label text-muted">
+            ·
+          </span>
           <Link href="/" className="label text-muted hover:text-ink">
             All decks
           </Link>

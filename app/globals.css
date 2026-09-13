@@ -30,10 +30,13 @@
   --color-mark: #e0d4bf;
   /* The sun's rays in free study. On a schedule they are the mark's cream at
      20%, worked out in `LogoSun`; this sage replaces that when the switch is
-     off, so the index says which app you are in. A little stronger than the
-     cream on purpose: at the cream's faintness a change of hue does not show.
-     Contrast against the paper is about 1.12, where the cream is 1.05. */
-  --color-sun-free: #e4e9e1;
+     off. Kept nearly as faint as the cream — 1.065 against the paper, where
+     the cream is 1.05 — and in the same sage family as the free study mark in
+     `tools/wordmark.py`. A stronger sage at 1.12 was tried first and read as
+     starker than the cream it stands in for, and clashed with a warmer olive
+     mark. At this faintness the sun barely shows the mode; the mark in the
+     header carries that, on every page. */
+  --color-sun-free: #ebeee9;
   --color-question: #185fa5;
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
@@ -128,6 +131,7 @@ body {
 
 .queue-bar {
   display: flex;
+  width: 100%;
   height: 1.375rem;
   border: 1px solid var(--color-rule);
   border-radius: 2px;
@@ -151,6 +155,17 @@ body {
 
 .queue-bar > span + span {
   border-left: 1px solid var(--color-rule);
+}
+
+/* The hidden copy `QueueBar` measures to decide whether the bar fits in the
+   title row: its natural width, out of the way and out of the layout. */
+.queue-bar.queue-measure {
+  position: fixed;
+  top: 0;
+  left: -10000px;
+  width: max-content;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .queue-done,
@@ -179,40 +194,38 @@ body {
   border-left-style: dashed;
 }
 
-.queue-legend {
+/* When the words will not fit even on a line of their own, `QueueBar` adds
+   `.numbers`: the bar keeps its counts and a legend underneath names them.
+   Chosen by measuring, not by screen width, so a short bar keeps its words on
+   a phone. */
+.queue-bar.numbers .queue-word {
   display: none;
 }
 
-@media (max-width: 639px) {
-  .queue-word {
-    display: none;
-  }
+.queue-bar.numbers > span {
+  padding: 0 0.4rem;
+  letter-spacing: 0.04em;
+}
 
-  .queue-bar > span {
-    padding: 0 0.4rem;
-    letter-spacing: 0.04em;
-  }
+.queue-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
 
-  .queue-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.2rem 0.8rem;
-    margin-top: 0.35rem;
-    font-family: var(--font-mono);
-    font-size: 0.5625rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-muted);
-  }
-
-  .queue-legend i {
-    display: inline-block;
-    width: 0.6rem;
-    height: 0.6rem;
-    margin-right: 0.3rem;
-    border: 1px solid var(--color-rule);
-    vertical-align: -1px;
-  }
+.queue-legend i {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.3rem;
+  border: 1px solid var(--color-rule);
+  vertical-align: -1px;
 }
 
 /* The mark in the header, cream or sage by mode. See `app/layout.tsx`. */
