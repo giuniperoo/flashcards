@@ -47,19 +47,24 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
       {/* On by default: spaced repetition is the app, and free study is the
           choice. What it changes is which reviewer the links on this page
           open; a link that already exists keeps opening what it always did.
-          The sun behind the page is what shows the mode, in `LogoSun`.
+          The sun behind the page and the mark in the header show the mode.
 
-          No styling for the on state, and that is not an omission. The label
-          names where the button takes you, so "Study whole decks" only appears
-          while you are not studying whole decks — the same way "Hide built-in
-          decks" tells you they are currently shown. Emphasis on those words
-          says the opposite of what they mean. */}
+          The label names the mode the button takes you to, with an arrow to
+          say it is a destination: "Free study →" while you are on a schedule.
+          A bare "Free study" could read as the mode you are already in, which
+          is also why there is no styling for the on state — emphasis on the
+          destination's name says the opposite of what it means. The arrow is
+          hidden from screen readers, which hear "Switch to free study". */}
       <button
         type="button"
         onClick={() => update({ ...prefs, scheduled: !prefs.scheduled })}
-        className="label inline-flex min-h-11 items-center text-muted hover:text-ink"
+        aria-label={
+          prefs.scheduled ? "Switch to free study" : "Switch to spaced repetition"
+        }
+        className="label inline-flex min-h-11 items-center gap-2 text-muted hover:text-ink"
       >
-        {prefs.scheduled ? "Study whole decks" : "Study on a schedule"}
+        {prefs.scheduled ? "Free study" : "Spaced repetition"}
+        <span aria-hidden>→</span>
       </button>
     </span>
   );
