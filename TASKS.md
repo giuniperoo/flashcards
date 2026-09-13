@@ -528,8 +528,11 @@ it was on screen.
   640px regardless, and turned a lone "16 new" on a phone into "16" over a legend. The server draws the title row before any progress
   exists, so the row holds an empty `[data-queue-slot]` and the bar is portalled in.
   See `components/QueueBar.tsx`
-- **At most 9rem per segment shown.** One segment saying "16 new" is a short bar, not a
-  line across the page
+- **At most 9rem per segment shown.** One segment is a short bar, not a line across
+  the page
+- **No bar for a deck that is all new.** "16 new" says nothing the card does not. It
+  is decided when the session opens and holds for the session, so the bar does not
+  pop in at the first grade and push the card down
 - It replaces the corner count rather than sitting beside it. The strip is already a
   progress bar, and a third progress indicator on one screen is too many
 - Five segments across the whole deck, in the order the queue deals: done, overdue,

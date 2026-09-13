@@ -168,6 +168,13 @@ type Session = {
   /** Graded this session. Together they are every card graded, so they add up. */
   right: number;
   missed: number;
+  /**
+   * Every card in the deck was new when the session opened. The queue bar then
+   * has nothing to say but "16 new", so it is not shown — and it stays hidden
+   * for the whole session rather than appearing at the first grade, when it
+   * would suddenly have "1 done" to show and push the card down mid-answer.
+   */
+  allNew: boolean;
 };
 
 export default function Reviewer({
@@ -261,6 +268,7 @@ export default function Reviewer({
       cards: queue,
       right: 0,
       missed: 0,
+      allNew: cardsRef.current.every((c) => !saved.cards[cardKey(c)]?.seen),
     });
     setOrder(queue);
     setPosition(0);
@@ -477,7 +485,7 @@ export default function Reviewer({
 
   return (
     <div className="fit">
-      {counts && <QueueBar counts={counts} />}
+      {counts && !session?.allNew && <QueueBar counts={counts} />}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <span className="label text-muted">
           <span
