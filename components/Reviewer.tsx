@@ -493,7 +493,9 @@ export default function Reviewer({
             className="mr-2 inline-block h-2 w-2 rounded-[2px] align-middle"
             style={{ background: card.deck.ink }}
           />
-          {card.deck.name} · card {card.index + 1}
+          {/* The card's place in its own deck, not in today's queue: on
+              `/study/all` it is still "card 3 of 12" of the deck it came from. */}
+          {card.deck.name} · card {card.index + 1} of {card.deck.cards.length}
         </span>
         <div className="flex items-center gap-3">
           {/* On a schedule the queue bar above carries this, so the count is
