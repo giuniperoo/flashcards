@@ -25,7 +25,7 @@ export const metadata: Metadata = {
  * Marks the page as free study before it paints, on the study routes, so the
  * sage mark is there from the first frame instead of the cream one flashing
  * first. It only has to answer from the address: a study route is free study
- * unless it carries `?scheduled`, and `/study/all` is never scheduled yet. The
+ * unless it carries `?scheduled`, `/study/all` included. The
  * reviewer then keeps the attribute in step — "Study anyway" drops into free
  * study without a page load — and removes it when it goes. On the index the
  * mode is a stored preference instead, and `LogoSun` sets it; that is the same
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
  * `suppressHydrationWarning` on `<html>` is for this attribute: it is set
  * before React arrives, so React would otherwise report it as a mismatch.
  */
-const MODE_BEFORE_PAINT = `(function(){try{var p=location.pathname;if(p.indexOf("/study/")!==0)return;var all=p==="/study/all";if(all||!new URLSearchParams(location.search).has("scheduled"))document.documentElement.setAttribute("data-mode","free")}catch(e){}})()`;
+const MODE_BEFORE_PAINT = `(function(){try{var p=location.pathname;if(p.indexOf("/study/")!==0)return;if(!new URLSearchParams(location.search).has("scheduled"))document.documentElement.setAttribute("data-mode","free")}catch(e){}})()`;
 
 export default function RootLayout({
   children,

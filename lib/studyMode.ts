@@ -32,7 +32,12 @@ export function withoutSchedule(href: string) {
   return url.pathname + url.search + url.hash;
 }
 
-/** A deck's study link, carrying the mode when it is on. */
-export function studyHref(slug: string, scheduled: boolean) {
-  return scheduled ? `/study/${slug}?${SCHEDULED_PARAM}` : `/study/${slug}`;
+/**
+ * A deck's study link, carrying the mode when it is on. `search` is a query the
+ * link already has, like the shuffled card's `?deck=a,b`. The flag goes last and
+ * bare, so it reads as a flag.
+ */
+export function studyHref(slug: string, scheduled: boolean, search = "") {
+  if (!scheduled) return `/study/${slug}${search}`;
+  return `/study/${slug}${search ? `${search}&` : "?"}${SCHEDULED_PARAM}`;
 }

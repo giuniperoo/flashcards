@@ -86,7 +86,12 @@ export default function ShuffledSet({
   }
 
   // Reviewer takes its order from `cards` once, on mount, so a narrowed set
-  // has to arrive as a new Reviewer rather than as a new prop. The key only
-  // changes when the set actually does.
-  return <Reviewer key={visible.length} cards={visible} />;
+  // has to arrive as a new Reviewer rather than as a new prop. The key is the
+  // decks in the set, which is what the set is. It used to be the card count,
+  // which only worked because a different set of decks happened to mean a
+  // different number of cards; two sets of the same size would not remount.
+  // The due queue is not in the key and does not need to be: the reviewer
+  // builds it from these cards, once, after mount.
+  const key = keep ? slugs.filter((slug) => keep.has(slug)).join(",") : slugs.join(",");
+  return <Reviewer key={key} cards={visible} schedulable crossDeck />;
 }

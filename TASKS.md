@@ -29,7 +29,7 @@ is due today, and it ends.
 | 3 — The queue builder | merged |
 | 4 — The reviewer studies the queue | merged |
 | 5 — Due counts on the index | merged |
-| 6 — The cross-deck due queue | next |
+| 6 — The cross-deck due queue | built, in review |
 | 7 — A first interval shorter than a day | not started |
 | 8 — An empty box when a card comes back | merged |
 | 9 — Say what the colours mean, once | not started |
@@ -327,7 +327,7 @@ card has no count yet; what it deals on a schedule is task 6.
 
 ### Task 6 — The cross-deck due queue
 
-*Not started.*
+*Built, in review.*
 
 **Why.** A due queue across decks is interleaved for free — sort by date, tiebreak
 randomly, never sort by deck. `ARCHITECTURE.md` §8 already argues this route should be
@@ -362,6 +362,29 @@ meet CAP cards while drilling React. Hiding is the wrong instrument: `CLAUDE.md`
 explicit that hiding is about the index, and "not right now" is not "hidden". If it
 starts to bite, the answer is the deferred "in rotation" scoping this queue, not a
 change here.
+
+**As built.**
+
+- **Due cards only, no new ones.** `buildDueQueue` in `lib/queue.ts` is the due half of
+  `buildQueue`, which is now that queue followed by the new cards. Every deck's new pool
+  dealt in turn would be 264 cards in file order, which is neither a day's review nor
+  interleaved, so new cards are met in a deck of their own. It also makes the card's
+  count on the index, which task 5 already left new cards out of, exactly what the
+  session deals
+- **The index card**, on a schedule: "264 cards · 41 due", "Everything, due today", and
+  "41 cards across 7 decks, interleaved — the honest test". One deck holding everything
+  due says "3 cards, all from ACID"; nothing due says "Nothing due today across 12
+  decks". Its due count is a darker tan than `shadeForTint` gives the cream, which was
+  4.2:1 on the card
+- **The endings across decks** say "The next cards come back tomorrow", "Every deck" and
+  "Study every card" rather than naming whichever deck the first card is from. With
+  nothing scheduled at all, the panel says cards join the schedule when answered in
+  their own deck, since this queue will never deal them
+- **The key is the decks in the set**, not the card count. Checked by swapping hidden
+  ACID for hidden CAP, twelve cards each: the reviewer now remounts with ACID's cards,
+  where the old key kept the stale set. The due queue is not in the key and needs not
+  be: the reviewer builds it once, after mount, from the cards it is given
+- The mode script in `app/layout.tsx` no longer treats `/study/all` as always free study
 
 ---
 

@@ -49,6 +49,30 @@ export default function DeckIndex({
 
   // `custom` is null until the first read, which counts as nothing rather than
   // as zero decks: the server said the same, so no number moves on hydration.
+  /* What the shuffled card deals. On a schedule that is the cards due across
+     the decks it draws from, the same count and the same cards `buildDueQueue`
+     deals; otherwise every card in them. */
+  const shownCards = shown.reduce((n, deck) => n + deck.count, 0);
+  const dueDecks = shown.filter((deck) => (due[deck.slug] ?? 0) > 0);
+  const dueTotal = dueDecks.reduce((n, deck) => n + due[deck.slug], 0);
+  const shuffledDeck: DeckSummary = prefs.scheduled
+    ? {
+        ...shuffled,
+        name: "Everything, due today",
+        blurb:
+          dueTotal === 0
+            ? `Nothing due today across ${count(shown.length, "deck")}`
+            : dueDecks.length === 1
+              ? `${count(dueTotal, "card")}, all from ${dueDecks[0].name}`
+              : `${count(dueTotal, "card")} across ${dueDecks.length} decks, interleaved — the honest test`,
+        count: shownCards,
+      }
+    : {
+        ...shuffled,
+        blurb: `All ${shown.length} decks interleaved — the honest test`,
+        count: shownCards,
+      };
+
   const deckTotal = shown.length + (custom?.length ?? 0);
   const cardTotal =
     shown.reduce((n, deck) => n + deck.count, 0) +
@@ -74,12 +98,11 @@ export default function DeckIndex({
               same preferences, so a bookmark behaves the same way. */}
           <li className="col-span-full">
             <DeckCard
-              deck={{
-                ...shuffled,
-                blurb: `All ${shown.length} decks interleaved — the honest test`,
-                count: shown.reduce((n, deck) => n + deck.count, 0),
-              }}
-              studyHref={`/study/all${query}`}
+              deck={shuffledDeck}
+              due={prefs.scheduled ? dueTotal : 0}
+              studyHref={studyHref("all", prefs.scheduled, query)}
+              // Print is not switched: a sheet of paper has no idea what day
+              // it is, so it deals the whole set in either mode.
               printHref={`/print/all${query}`}
             />
           </li>
