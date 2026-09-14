@@ -37,8 +37,11 @@ is due today, and it ends.
 | 11 — Docs | not started |
 
 **Spaced repetition is the default.** The switch at the foot of the index starts on,
-and free study is what you turn to. On the index the sun shows which mode you are in:
-cream rays on a schedule, faint sage rays in free study.
+and free study is what you turn to. The logo in the header shows which mode you are
+in, on every page: a cream ground on a schedule, a muted sage in free study
+(`public/logo-free.svg`, from `tools/wordmark.py`). On the index the sun's rays follow
+it, cream or a sage of the same family, but kept nearly as faint as the cream, so the
+logo is what carries the mode.
 
 **The ladder as built.** Four boxes. A right answer moves a card up one box, a wrong
 answer sends it to box 1. On a schedule the strip colours each card by its box:
@@ -272,6 +275,9 @@ task 5. Both sit behind the same switch when they arrive.
 - On the index: Delete no longer gets cut off on a narrow imported deck card, and the
   schedule switch has no underline when it is on, since its label names the mode it
   moves to rather than the one you are in
+- The card label says where you are in the deck: "Kafka · card 7 of 32". The count is
+  the card's own deck, so on the shuffled set a card still reads as its place in the
+  deck it came from rather than in the session
 
 **Watch for.** The mode is read after mount, like `?deck=` before it, so a scheduled
 session is assembled in the browser a frame after the page paints. That is already true
