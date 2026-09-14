@@ -9,6 +9,8 @@ export type DeckSummary = {
   name: string;
   blurb: string;
   tint: string;
+  /** The darker shade of the tint, for text. What a due count is written in. */
+  ink: string;
   count: number;
 };
 
@@ -19,11 +21,15 @@ export type DeckSummary = {
  */
 export default function DeckCard({
   deck,
+  due = 0,
   actions,
   studyHref,
   printHref,
 }: {
   deck: DeckSummary;
+  /** Cards this deck owes today. Only passed on a schedule; nothing due, or
+      free study, shows the card count alone. See `lib/useDueCounts.ts`. */
+  due?: number;
   actions?: ReactNode;
   /** Defaults to the deck's own routes. The shuffled card overrides them to
       carry `?deck=`, so the link contains the set it is offering. */
@@ -48,6 +54,18 @@ export default function DeckCard({
       >
         <span className="label text-muted">
           {deck.count} card{deck.count === 1 ? "" : "s"}
+          {/* In the label the deck already has, rather than a badge: this app
+              has no pills, and one shape for one number costs more than it
+              says. No "0 due" — a deck with nothing owed says so by saying
+              nothing. */}
+          {due > 0 && (
+            <>
+              {" · "}
+              <span className="font-medium" style={{ color: deck.ink }}>
+                {due} due
+              </span>
+            </>
+          )}
         </span>
         <span className="mt-1 block text-lg font-medium">{deck.name}</span>
         <span className="mt-1 block text-sm text-muted">{deck.blurb}</span>

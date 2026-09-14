@@ -1,5 +1,5 @@
-import { breakdown, buildQueue } from "./queue";
-import type { CardProgress } from "./progress";
+import { breakdown, buildQueue, dueByDeck } from "./queue";
+import { cardKey, type CardProgress } from "./progress";
 import type { Deck, StudyCard } from "./types";
 
 const TODAY = "2026-09-10";
@@ -253,6 +253,40 @@ const cases: Array<[string, () => boolean]> = [
         (items) => items,
       );
       return queue.map((card) => card.deck.slug).join(",") === "one,two,one,two";
+    },
+  ],
+  [
+    "each deck's due count is the due part of the queue it opens with",
+    () => {
+      const one = deckOfSize(5, "one");
+      const two = deckOfSize(4, "two");
+      const records: Record<string, CardProgress> = {
+        "one:c0": seen("2026-09-01"),
+        "one:c1": seen(TODAY),
+        "one:c2": seen("2026-09-11"),
+        "one:c3": unseenWithDraft,
+        "two:c0": seen("2026-09-09"),
+        "two:c1": seen("2026-09-12"),
+      };
+      const due = dueByDeck(records, TODAY);
+      // The queue deals due cards and then new ones; the due ones are those seen.
+      const owed = (cards: StudyCard[]) =>
+        buildQueue(cards, records, TODAY).filter((card) => records[cardKey(card)]?.seen).length;
+      return due.one === owed(one) && due.one === 2 && due.two === owed(two) && due.two === 1;
+    },
+  ],
+  [
+    "new cards are not counted as due, so a deck nobody has started has no count",
+    () => {
+      const due = dueByDeck({ "d:c0": unseenWithDraft }, TODAY);
+      return due.d === undefined && Object.keys(due).length === 0;
+    },
+  ],
+  [
+    "a deck with nothing due today has no count, not a zero",
+    () => {
+      const due = dueByDeck({ "d:c0": seen("2026-09-11"), "d:c1": seen("2026-09-14") }, TODAY);
+      return !("d" in due);
     },
   ],
 ];

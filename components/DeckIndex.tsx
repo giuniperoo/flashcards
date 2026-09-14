@@ -5,6 +5,7 @@ import { visibleDecks } from "@/lib/prefs";
 import { DECK_PARAM, deckParamFor } from "@/lib/deckFilter";
 import { studyHref } from "@/lib/studyMode";
 import { useCustomDecks } from "@/lib/useCustomDecks";
+import { useDueCounts } from "@/lib/useDueCounts";
 import { usePrefs } from "@/lib/usePrefs";
 
 function count(n: number, noun: string) {
@@ -34,6 +35,7 @@ export default function DeckIndex({
 }) {
   const [prefs, update] = usePrefs();
   const custom = useCustomDecks();
+  const due = useDueCounts();
 
   const hide = (slug: string) =>
     update({ ...prefs, hiddenDecks: [...prefs.hiddenDecks, slug] });
@@ -85,6 +87,7 @@ export default function DeckIndex({
             <li key={deck.slug}>
               <DeckCard
                 deck={deck}
+                due={prefs.scheduled ? due[deck.slug] : 0}
                 studyHref={studyHref(deck.slug, prefs.scheduled)}
                 actions={
                   <>

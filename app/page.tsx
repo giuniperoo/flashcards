@@ -4,6 +4,7 @@ import DeckIndex from "@/components/DeckIndex";
 import DeckVisibility from "@/components/DeckVisibility";
 import LogoSun from "@/components/LogoSun";
 import { decks, totalCards } from "@/lib/loadDecks";
+import { shadeForTint } from "@/lib/tint";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
           name: deck.name,
           blurb: deck.blurb,
           tint: deck.tint,
+          ink: deck.ink,
           count: deck.cards.length,
         }))}
         shuffled={{
@@ -25,6 +27,7 @@ export default function Home() {
           // The mark's own cream ground: the card that is every deck wears
           // the logo's colour rather than a hue that would read as a deck.
           tint: "#e0d4bf",
+          ink: shadeForTint("#e0d4bf"),
           count: totalCards,
         }}
       />

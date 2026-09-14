@@ -94,6 +94,7 @@ lib/
   studyMode.ts          the `?scheduled` parameter, and links that carry it
   useCustomDecks.ts     the imported decks, kept in step with localStorage
   usePrefs.ts           index preferences, shared by the grid and the controls
+  useDueCounts.ts       cards each deck owes today, for the counts on the index
   generateDeck.ts       browser-direct call to Anthropic — CLIENT ONLY
 ```
 

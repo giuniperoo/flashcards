@@ -28,8 +28,8 @@ is due today, and it ends.
 | 2 — Boxes and due dates | merged |
 | 3 — The queue builder | merged |
 | 4 — The reviewer studies the queue | merged |
-| 5 — Due counts on the index | next |
-| 6 — The cross-deck due queue | not started |
+| 5 — Due counts on the index | built, in review |
+| 6 — The cross-deck due queue | next |
 | 7 — A first interval shorter than a day | not started |
 | 8 — An empty box when a card comes back | merged |
 | 9 — Say what the colours mean, once | not started |
@@ -290,7 +290,7 @@ route.
 
 ### Task 5 — Due counts on the index
 
-*Not started. Next.*
+*Built, in review.*
 
 **Do**
 
@@ -307,6 +307,21 @@ route.
 been. A due count is drawn by the index itself rather than by a route, which is the
 second reason task 4's preference exists alongside its parameter — a URL cannot reach
 a deck card.
+
+**As built.** `dueByDeck` in `lib/queue.ts` counts the records, read through
+`lib/useDueCounts.ts`, on the built-in and the imported deck cards alike. The shuffled
+card has no count yet; what it deals on a schedule is task 6.
+
+- **Due means due, not new.** The count is the overdue and due today cards, the same
+  two the queue bar shows, and not the new ones the session deals after them. Counting
+  new cards would make a deck nobody has started read "32 cards · 32 due", which is the
+  card count said twice. A test holds the count to the due part of `buildQueue`
+- **The index never migrates the store.** It reads a version 4 store as it stands, and
+  anything older reads as nothing due until a deck is opened, since `loadProgress` needs
+  a route's cards to migrate safely
+- **Counting records, not cards,** is what keeps card ids off the index, and it has one
+  gap: a record for a card removed from a deck by hand still counts. `CLAUDE.md` already
+  says never to do that
 
 ---
 

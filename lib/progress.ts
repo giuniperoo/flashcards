@@ -95,7 +95,7 @@ function legacyKey(card: StudyCard) {
 }
 
 /** Both key shapes lead with the slug, and a slug holds no colon. */
-function deckOfKey(key: string) {
+export function deckOfKey(key: string) {
   const at = key.indexOf(":");
   return at === -1 ? "" : key.slice(0, at);
 }
@@ -401,6 +401,22 @@ export function loadProgress(cards: StudyCard[], today: string): ProgressStore {
   const store: ProgressStore = { version: CURRENT_VERSION, cards: records };
   if (changed) saveProgress(store);
   return store;
+}
+
+/**
+ * The records as they stand, without migrating anything or writing anything.
+ *
+ * For the index, which counts what is due and holds no cards. `loadProgress`
+ * needs a route's cards to rewrite version 1's position keys, and a migration
+ * run without them would be deciding what to drop on less than it needs. So a
+ * store older than version 4 reads as empty here, and is migrated the first
+ * time a deck is opened, which is also the first time it has anything due.
+ */
+export function peekProgress(): Record<string, CardProgress> {
+  if (typeof window === "undefined") return {};
+  const raw = readKey(PROGRESS_KEY);
+  if (!isRecord(raw) || raw.version !== CURRENT_VERSION) return {};
+  return readRecords(raw.cards);
 }
 
 function write(key: string, value: object) {

@@ -4,6 +4,7 @@ import type { Deck } from "@/lib/types";
 import DeckCard from "@/components/DeckCard";
 import { deleteCustomDeck, toDeckText } from "@/lib/customDecks";
 import { useCustomDecks } from "@/lib/useCustomDecks";
+import { useDueCounts } from "@/lib/useDueCounts";
 import { usePrefs } from "@/lib/usePrefs";
 import { studyHref } from "@/lib/studyMode";
 
@@ -12,6 +13,7 @@ export default function CustomDeckList() {
   // An imported deck schedules like any other, so the switch reaches its links
   // too — the store and the queue have never cared where a deck came from.
   const [prefs] = usePrefs();
+  const due = useDueCounts();
 
   // An imported deck only exists in this browser, so its export is built here
   // rather than fetched. The built-in decks go through `/export/[deck]`.
@@ -48,8 +50,10 @@ export default function CustomDeckList() {
                 name: deck.name,
                 blurb: deck.blurb,
                 tint: deck.tint,
+                ink: deck.ink,
                 count: deck.cards.length,
               }}
+              due={prefs.scheduled ? due[deck.slug] : 0}
               studyHref={studyHref(deck.slug, prefs.scheduled)}
               actions={
                 <>
