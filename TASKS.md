@@ -28,7 +28,7 @@ is due today, and it ends.
 | 2 — Boxes and due dates | merged |
 | 3 — The queue builder | merged |
 | 4 — The reviewer studies the queue | merged |
-| 5 — Due counts on the index | built, in review |
+| 5 — Due counts on the index | merged |
 | 6 — The cross-deck due queue | next |
 | 7 — A first interval shorter than a day | not started |
 | 8 — An empty box when a card comes back | merged |
@@ -290,7 +290,7 @@ route.
 
 ### Task 5 — Due counts on the index
 
-*Built, in review.*
+*Merged, in #28.*
 
 **Do**
 
