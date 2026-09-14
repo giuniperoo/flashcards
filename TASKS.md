@@ -28,8 +28,8 @@ is due today, and it ends.
 | 2 — Boxes and due dates | merged |
 | 3 — The queue builder | merged |
 | 4 — The reviewer studies the queue | merged |
-| 5 — Due counts on the index | next |
-| 6 — The cross-deck due queue | not started |
+| 5 — Due counts on the index | built, in review |
+| 6 — The cross-deck due queue | next |
 | 7 — A first interval shorter than a day | not started |
 | 8 — An empty box when a card comes back | merged |
 | 9 — Say what the colours mean, once | not started |
@@ -37,8 +37,11 @@ is due today, and it ends.
 | 11 — Docs | not started |
 
 **Spaced repetition is the default.** The switch at the foot of the index starts on,
-and free study is what you turn to. On the index the sun shows which mode you are in:
-cream rays on a schedule, faint sage rays in free study.
+and free study is what you turn to. The logo in the header shows which mode you are
+in, on every page: a cream ground on a schedule, a muted sage in free study
+(`public/logo-free.svg`, from `tools/wordmark.py`). On the index the sun's rays follow
+it, cream or a sage of the same family, but kept nearly as faint as the cream, so the
+logo is what carries the mode.
 
 **The ladder as built.** Four boxes. A right answer moves a card up one box, a wrong
 answer sends it to box 1. On a schedule the strip colours each card by its box:
@@ -272,6 +275,9 @@ task 5. Both sit behind the same switch when they arrive.
 - On the index: Delete no longer gets cut off on a narrow imported deck card, and the
   schedule switch has no underline when it is on, since its label names the mode it
   moves to rather than the one you are in
+- The card label says where you are in the deck: "Kafka · card 7 of 32". The count is
+  the card's own deck, so on the shuffled set a card still reads as its place in the
+  deck it came from rather than in the session
 
 **Watch for.** The mode is read after mount, like `?deck=` before it, so a scheduled
 session is assembled in the browser a frame after the page paints. That is already true
@@ -284,7 +290,7 @@ route.
 
 ### Task 5 — Due counts on the index
 
-*Not started. Next.*
+*Built, in review.*
 
 **Do**
 
@@ -301,6 +307,21 @@ route.
 been. A due count is drawn by the index itself rather than by a route, which is the
 second reason task 4's preference exists alongside its parameter — a URL cannot reach
 a deck card.
+
+**As built.** `dueByDeck` in `lib/queue.ts` counts the records, read through
+`lib/useDueCounts.ts`, on the built-in and the imported deck cards alike. The shuffled
+card has no count yet; what it deals on a schedule is task 6.
+
+- **Due means due, not new.** The count is the overdue and due today cards, the same
+  two the queue bar shows, and not the new ones the session deals after them. Counting
+  new cards would make a deck nobody has started read "32 cards · 32 due", which is the
+  card count said twice. A test holds the count to the due part of `buildQueue`
+- **The index never migrates the store.** It reads a version 4 store as it stands, and
+  anything older reads as nothing due until a deck is opened, since `loadProgress` needs
+  a route's cards to migrate safely
+- **Counting records, not cards,** is what keeps card ids off the index, and it has one
+  gap: a record for a card removed from a deck by hand still counts. `CLAUDE.md` already
+  says never to do that
 
 ---
 

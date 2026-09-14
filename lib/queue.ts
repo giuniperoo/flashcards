@@ -1,5 +1,5 @@
 import type { CardProgress } from "./progress";
-import { cardKey } from "./progress";
+import { cardKey, deckOfKey } from "./progress";
 import { isDue } from "./schedule";
 import { shuffled } from "./shuffle";
 import type { StudyCard } from "./types";
@@ -82,6 +82,30 @@ export function buildQueue(
   const due = [...byDay.keys()].sort().flatMap((day) => shuffle(byDay.get(day)!));
 
   return [...due, ...unseen];
+}
+
+/**
+ * How many cards each deck owes today, by slug, for the counts on the index.
+ *
+ * The due half of `buildQueue`, counted off the records alone: the index holds
+ * a name and a count for each deck, not its cards. A record's key leads with its
+ * deck's slug, so no card ids need to reach the page. New cards are not counted.
+ * They are not due — `isDue` says so — and a deck nobody has started would
+ * otherwise read "32 cards · 32 due", which is the card count said twice.
+ *
+ * Counting records rather than cards means a record left behind by a card taken
+ * out of a deck still counts. `CLAUDE.md` says never to remove an `id:` line, and
+ * deleting an imported deck forgets its records, so that is a deck edited by
+ * hand, and the count is out by the cards removed.
+ */
+export function dueByDeck(records: Record<string, CardProgress>, today: string) {
+  const due: Record<string, number> = {};
+  for (const [key, record] of Object.entries(records)) {
+    if (!isDue(record, today)) continue;
+    const slug = deckOfKey(key);
+    due[slug] = (due[slug] ?? 0) + 1;
+  }
+  return due;
 }
 
 /** What a scheduled session's queue bar shows. The five add up to the deck. */
