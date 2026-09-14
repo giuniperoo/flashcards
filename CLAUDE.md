@@ -182,8 +182,15 @@ takes you, not where you are. It governs what the *index* draws and what it writ
 into its own study links; what the reviewer reads is `?scheduled` in the URL,
 never the preference. The two are separate on purpose: a link then says which
 reviewer it opens and a bookmark cannot change under the reader, and scrapping
-the experiment deletes a path rather than restoring a deleted one. `/study/all`
-is not scheduled yet — that is task 6. See `lib/studyMode.ts`.
+the experiment deletes a path rather than restoring a deleted one. See
+`lib/studyMode.ts`.
+
+`/study/all?scheduled` deals only what is due across its decks — `buildDueQueue`
+in `lib/queue.ts` — and no new cards: every deck's new pool one after another is
+the whole library in file order, which is neither a day's review nor
+interleaved. New cards are met in a deck of their own. That is also why the
+index's due counts leave new cards out, so the "Everything" card's count is what
+the session deals.
 
 A card's record is `{ draft, grade, box, misses, due, reviewed, seen }`. `box`,
 `misses`, `due` and `reviewed` mean nothing while `seen` is false — a card written on but never

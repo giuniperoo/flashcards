@@ -13,7 +13,7 @@ import {
   unseenCard,
 } from "@/lib/progress";
 import { clampBox, dayKey, daysBetween, type Grade } from "@/lib/schedule";
-import { breakdown, buildQueue } from "@/lib/queue";
+import { breakdown, buildDueQueue, buildQueue } from "@/lib/queue";
 import QueueBar from "@/components/QueueBar";
 import { shuffled } from "@/lib/shuffle";
 import { wantsSchedule, withoutSchedule } from "@/lib/studyMode";
@@ -180,12 +180,17 @@ type Session = {
 export default function Reviewer({
   cards,
   schedulable = false,
+  crossDeck = false,
 }: {
   cards: StudyCard[];
-  /** Whether this route may open a scheduled session at all. Off everywhere
-      except a single deck: `/study/all` is task 6, and it has a remount bug to
-      settle before its queue can change size nightly. */
+  /** Whether this route may open a scheduled session at all. Every study route
+      now may — a deck, an imported deck, and `/study/all` — and it is still
+      `?scheduled` in the address that opens one. */
   schedulable?: boolean;
+  /** `cards` spans several decks. A session then deals only what is due, with
+      no new cards — see `buildDueQueue` — and the endings talk about every deck
+      rather than naming the first card's. */
+  crossDeck?: boolean;
 }) {
   const [order, setOrder] = useState(cards);
   const [position, setPosition] = useState(0);
@@ -263,7 +268,8 @@ export default function Reviewer({
      `session` rather than a ref: building it is what ends the condition. */
   useEffect(() => {
     if (!ready || !scheduled || left || session) return;
-    const queue = buildQueue(cardsRef.current, saved.cards, today);
+    const deal = crossDeck ? buildDueQueue : buildQueue;
+    const queue = deal(cardsRef.current, saved.cards, today);
     setSession({
       cards: queue,
       right: 0,
@@ -272,7 +278,7 @@ export default function Reviewer({
     });
     setOrder(queue);
     setPosition(0);
-  }, [ready, scheduled, left, session, saved.cards, today]);
+  }, [ready, scheduled, left, session, saved.cards, today, crossDeck]);
 
   // Read through a ref so committing a draft — which replaces saved.cards —
   // does not count as a card change and turn the card back over.
@@ -455,7 +461,7 @@ export default function Reviewer({
   if (session && session.cards.length === 0) {
     return (
       <NothingDue
-        deck={cards[0]?.deck.name ?? "This deck"}
+        deck={crossDeck ? null : (cards[0]?.deck.name ?? "This deck")}
         returns={nextReturn(cards, saved.cards)}
         today={today}
         onStudyAnyway={studyEverything}
@@ -467,7 +473,7 @@ export default function Reviewer({
     return (
       <SessionDone
         session={session}
-        deck={cards[0]?.deck.name ?? "This deck"}
+        deck={crossDeck ? null : (cards[0]?.deck.name ?? "This deck")}
         cards={cards}
         records={saved.cards}
         returns={nextReturn(cards, saved.cards)}
@@ -780,7 +786,8 @@ function SessionDone({
   onStudyDeck,
 }: {
   session: Session;
-  deck: string;
+  /** The deck's name, or null for a set of decks. */
+  deck: string | null;
   cards: StudyCard[];
   records: Record<string, CardProgress>;
   returns: string;
@@ -799,7 +806,10 @@ function SessionDone({
     <Panel title="Done for today">
       <p className="mt-2 max-w-[46ch] text-sm text-muted">
         {total} card{total === 1 ? "" : "s"}.{moves.length > 0 && ` ${moves.join(", ")}.`}
-        {returns && ` ${deck} comes back ${returnsIn(returns, today)}.`}
+        {returns &&
+          (deck
+            ? ` ${deck} comes back ${returnsIn(returns, today)}.`
+            : ` The next cards come back ${returnsIn(returns, today)}.`)}
       </p>
       <Strip
         className="mt-5"
@@ -808,7 +818,7 @@ function SessionDone({
         currentKey=""
         scheduled
       />
-      <p className="label mt-4 text-muted">The whole deck</p>
+      <p className="label mt-4 text-muted">{deck ? "The whole deck" : "Every deck"}</p>
       <div className="mt-5 flex flex-wrap gap-2">
         {/* It deals every card, including the ones just done, so it says so.
             It used to read "the rest of the deck" and hide itself when the
@@ -819,7 +829,7 @@ function SessionDone({
           onClick={onStudyDeck}
           className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
         >
-          Study the whole deck
+          {deck ? "Study the whole deck" : "Study every card"}
         </button>
         <AllDecks />
       </div>
@@ -833,19 +843,27 @@ function NothingDue({
   today,
   onStudyAnyway,
 }: {
-  deck: string;
+  /** The deck's name, or null for a set of decks. */
+  deck: string | null;
   returns: string;
   today: string;
   onStudyAnyway: () => void;
 }) {
+  /* Across decks, "nothing scheduled" needs one more sentence than in a deck:
+     this queue never deals new cards, so the way in is a deck of its own, and
+     without saying so the reader has no way to find that out. */
+  const where = deck
+    ? returns
+      ? `${deck} comes back ${returnsIn(returns, today)}.`
+      : `Nothing in ${deck} is scheduled yet.`
+    : returns
+      ? `The next cards come back ${returnsIn(returns, today)}.`
+      : "Nothing is scheduled yet. Cards join the schedule when you answer them in their own deck.";
   return (
     <Panel title="Nothing due today">
       <p className="mt-2 max-w-[42ch] text-sm text-muted">
-        {returns
-          ? `${deck} comes back ${returnsIn(returns, today)}.`
-          : `Nothing in ${deck} is scheduled yet.`}{" "}
-        You can still study the whole deck. That won’t change when any card
-        comes back.
+        {where} You can still study {deck ? "the whole deck" : "every card"}. That
+        won’t change when any card comes back.
       </p>
       <div className="mt-5 flex flex-wrap gap-2">
         <button

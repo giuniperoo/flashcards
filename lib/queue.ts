@@ -8,7 +8,7 @@ import type { StudyCard } from "./types";
  * What a study session is: the cards you owe today, and the ones you have never
  * seen. Everything else in the deck is left where it is.
  *
- * A pure function over plain values, called by nothing yet. The algorithm is
+ * Pure functions over plain values. The algorithm is
  * short; what goes subtly wrong is the interaction between a backlog and the
  * unseen pool, and that only shows up after a week of real use. Isolating it
  * here turns that week into test cases.
@@ -59,19 +59,37 @@ export function buildQueue(
   today: string,
   shuffle: Shuffle = shuffled,
 ): StudyCard[] {
+  // No record, or one carrying only a draft: never graded, so not scheduled.
+  const unseen = cards.filter((card) => !records[cardKey(card)]?.seen);
+  return [...buildDueQueue(cards, records, today, shuffle), ...unseen];
+}
+
+/**
+ * The due half of `buildQueue` alone: what `/study/all` deals on a schedule.
+ *
+ * **No new cards across decks.** A deck's new cards come in deck order, which is
+ * the author's order and is what makes a first meeting predictable. Every deck's
+ * new pool dealt one after another is 264 cards in file order — not a day's
+ * review and not interleaved. So new cards are met in a deck of their own, and
+ * the cross-deck queue is only the cards already owed, which is also the number
+ * the index counts as due.
+ *
+ * **Interleaved for free.** Days sort, cards inside a day shuffle, and nothing
+ * ever sorts by deck.
+ */
+export function buildDueQueue(
+  cards: StudyCard[],
+  records: Record<string, CardProgress>,
+  today: string,
+  shuffle: Shuffle = shuffled,
+): StudyCard[] {
   /* Keyed by due date rather than collected into one list and sorted, because
      the shuffle has to run inside a day and not across the boundary. */
   const byDay = new Map<string, StudyCard[]>();
-  const unseen: StudyCard[] = [];
 
   for (const card of cards) {
     const record = records[cardKey(card)];
-    // No record, or one carrying only a draft: never graded, so not scheduled.
-    if (!record?.seen) {
-      unseen.push(card);
-      continue;
-    }
-    if (!isDue(record, today)) continue;
+    if (!record || !isDue(record, today)) continue;
     const day = byDay.get(record.due);
     if (day) day.push(card);
     else byDay.set(record.due, [card]);
@@ -79,9 +97,7 @@ export function buildQueue(
 
   // Ascending, so the day that has waited longest leads. Day keys are
   // `YYYY-MM-DD`, which sorts as text.
-  const due = [...byDay.keys()].sort().flatMap((day) => shuffle(byDay.get(day)!));
-
-  return [...due, ...unseen];
+  return [...byDay.keys()].sort().flatMap((day) => shuffle(byDay.get(day)!));
 }
 
 /**

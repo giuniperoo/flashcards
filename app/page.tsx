@@ -4,8 +4,6 @@ import DeckIndex from "@/components/DeckIndex";
 import DeckVisibility from "@/components/DeckVisibility";
 import LogoSun from "@/components/LogoSun";
 import { decks, totalCards } from "@/lib/loadDecks";
-import { shadeForTint } from "@/lib/tint";
-
 export default function Home() {
   return (
     <div>
@@ -27,7 +25,10 @@ export default function Home() {
           // The mark's own cream ground: the card that is every deck wears
           // the logo's colour rather than a hue that would read as a deck.
           tint: "#e0d4bf",
-          ink: shadeForTint("#e0d4bf"),
+          // Darker than `shadeForTint` gives this cream, which is 4.2:1 on the
+          // card and too faint for the due count in small capitals. This is
+          // the same tan at 4.9:1.
+          ink: "#8f6723",
           count: totalCards,
         }}
       />

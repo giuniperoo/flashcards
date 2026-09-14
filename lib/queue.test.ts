@@ -1,4 +1,4 @@
-import { breakdown, buildQueue, dueByDeck } from "./queue";
+import { breakdown, buildDueQueue, buildQueue, dueByDeck } from "./queue";
 import { cardKey, type CardProgress } from "./progress";
 import type { Deck, StudyCard } from "./types";
 
@@ -273,6 +273,42 @@ const cases: Array<[string, () => boolean]> = [
       const owed = (cards: StudyCard[]) =>
         buildQueue(cards, records, TODAY).filter((card) => records[cardKey(card)]?.seen).length;
       return due.one === owed(one) && due.one === 2 && due.two === owed(two) && due.two === 1;
+    },
+  ],
+  [
+    "the cross-deck queue deals the due cards interleaved, and no new ones",
+    () => {
+      const cards = [...deckOfSize(3, "one"), ...deckOfSize(3, "two")];
+      const records: Record<string, CardProgress> = {
+        "one:c0": seen("2026-09-08"),
+        "one:c1": seen(TODAY),
+        "two:c0": seen("2026-09-08"),
+        "two:c1": seen(TODAY),
+        "two:c2": unseenWithDraft,
+        // one:c2 has no record at all: new too.
+      };
+      const queue = buildDueQueue(cards, records, TODAY, (items) => items);
+      return (
+        ids(queue) === "c0,c0,c1,c1" &&
+        queue.map((card) => card.deck.slug).join(",") === "one,two,one,two" &&
+        queue.length === Object.values(dueByDeck(records, TODAY)).reduce((a, b) => a + b, 0)
+      );
+    },
+  ],
+  [
+    "the cross-deck queue is empty when every card is new",
+    () => buildDueQueue(deckOfSize(4), { "d:c0": unseenWithDraft }, TODAY).length === 0,
+  ],
+  [
+    "the deck queue is the cross-deck queue followed by the new cards",
+    () => {
+      const cards = deckOfSize(4);
+      const records = { "d:c3": seen("2026-09-01"), "d:c1": seen(TODAY) };
+      const keep = <T,>(items: T[]) => items;
+      return (
+        ids(buildQueue(cards, records, TODAY, keep)) ===
+        ids([...buildDueQueue(cards, records, TODAY, keep), cards[0], cards[2]])
+      );
     },
   ],
   [
