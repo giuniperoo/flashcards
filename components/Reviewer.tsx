@@ -15,6 +15,8 @@ import {
 import { clampBox, dayKey, daysBetween, type Grade } from "@/lib/schedule";
 import { breakdown, buildDueQueue, buildQueue } from "@/lib/queue";
 import QueueBar from "@/components/QueueBar";
+import ColorKey from "@/components/ColorKey";
+import { loadReviewerPrefs, saveReviewerPrefs } from "@/lib/reviewerPrefs";
 import { shuffled } from "@/lib/shuffle";
 import { wantsSchedule, withoutSchedule } from "@/lib/studyMode";
 
@@ -280,6 +282,21 @@ export default function Reviewer({
     setPosition(0);
   }, [ready, scheduled, left, session, saved.cards, today, crossDeck]);
 
+  /* The color key beside the strip. It opens by itself once, the first time a
+     scheduled session starts with cards in it, because that session is where
+     the reader first meets an orange dash; after that only when asked. It is
+     remembered as shown as soon as it opens, so it never opens unasked twice,
+     even if the page is left right away. See `components/ColorKey.tsx`. */
+  const [keyOpen, setKeyOpen] = useState(false);
+  const keyOfferedRef = useRef(false);
+  useEffect(() => {
+    if (!session || session.cards.length === 0 || keyOfferedRef.current) return;
+    keyOfferedRef.current = true;
+    if (loadReviewerPrefs().colorKeyShown) return;
+    setKeyOpen(true);
+    saveReviewerPrefs({ colorKeyShown: true });
+  }, [session]);
+
   // Read through a ref so committing a draft — which replaces saved.cards —
   // does not count as a card change and turn the card back over.
   const recordsRef = useRef(saved.cards);
@@ -353,6 +370,7 @@ export default function Reviewer({
        the card, and the reader only found out on turning it back. The face is
        also made inert below, but that alone is not relied on to move focus. */
     inputRef.current?.blur();
+    setKeyOpen(false);
     setFlipped(true);
   }, [flipped, draft, commitDraft]);
 
@@ -650,13 +668,21 @@ export default function Reviewer({
         </button>
       </div>
 
-      <Strip
-        className="mt-5"
-        cards={strip}
-        records={saved.cards}
-        currentKey={key}
-        scheduled={scheduled}
-      />
+      <div className="mt-5 flex items-center gap-3">
+        <Strip
+          className="min-w-0 flex-1"
+          cards={strip}
+          records={saved.cards}
+          currentKey={key}
+          scheduled={scheduled}
+        />
+        <ColorKey
+          scheduled={scheduled}
+          ink={card.deck.ink}
+          open={keyOpen}
+          onOpenChange={setKeyOpen}
+        />
+      </div>
 
       <p className="label mt-4 hidden text-muted sm:block">
         ⌘/Ctrl + Enter turn over · ← → move · 1 held · 2 revisit

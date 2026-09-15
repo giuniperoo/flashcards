@@ -5,6 +5,7 @@
  * wrote it.
  */
 import { DEFAULT_PREFS, PREFS_KEY, loadPrefs, savePrefs } from "./prefs";
+import { REVIEWER_PREFS_KEY, loadReviewerPrefs, saveReviewerPrefs } from "./reviewerPrefs";
 
 const store = new Map<string, string>();
 (globalThis as unknown as { window: unknown }).window = {
@@ -85,6 +86,34 @@ const cases: Array<[string, () => boolean]> = [
       store.set(PREFS_KEY, "{not json");
       const p = loadPrefs();
       return p.scheduled === true && p.showBuiltIns === false;
+    },
+  ],
+
+  [
+    "the color key has not been shown on a first visit",
+    () => {
+      store.clear();
+      return loadReviewerPrefs().colorKeyShown === false;
+    },
+  ],
+
+  [
+    "once shown, the color key stays shown, in its own key",
+    () => {
+      store.clear();
+      saveReviewerPrefs({ colorKeyShown: true });
+      return loadReviewerPrefs().colorKeyShown === true && !store.has(PREFS_KEY);
+    },
+  ],
+
+  [
+    "only a stored true counts as the color key shown",
+    () => {
+      store.clear();
+      store.set(REVIEWER_PREFS_KEY, JSON.stringify({ version: 1, colorKeyShown: "yes" }));
+      const mangled = loadReviewerPrefs().colorKeyShown;
+      store.set(REVIEWER_PREFS_KEY, "{not json");
+      return mangled === false && loadReviewerPrefs().colorKeyShown === false;
     },
   ],
 ];

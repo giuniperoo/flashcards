@@ -76,6 +76,7 @@ components/
   DeckVisibility.tsx    the show/hide controls, at the foot of the index
   DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
   QueueBar.tsx          a scheduled session's breakdown, in the title row if it fits
+  ColorKey.tsx          what the strip's colors mean, behind a "?" at its end
   PrintSheets.tsx       shared by the built-in and custom print paths
 lib/
   loadDecks.ts          reads content/*.md at build time — SERVER ONLY
@@ -94,6 +95,7 @@ lib/
   studyMode.ts          the `?scheduled` parameter, and links that carry it
   useCustomDecks.ts     the imported decks, kept in step with localStorage
   usePrefs.ts           index preferences, shared by the grid and the controls
+  reviewerPrefs.ts      what the reviewer remembers: the color key has been shown
   useDueCounts.ts       cards each deck owes today, for the counts on the index
   generateDeck.ts       browser-direct call to Anthropic — CLIENT ONLY
 ```
@@ -157,11 +159,14 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 
 ## Storage
 
-`localStorage`, three keys, each wrapped in a version envelope:
+`localStorage`, four keys, each wrapped in a version envelope:
 
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
 - `progress` — `{ version: 4, cards }`, keyed by `{deckSlug}:{cardId}`
 - `prefs:index` — `{ version: 4, showBuiltIns, hiddenDecks, scheduled }`
+- `prefs:reviewer` — `{ version: 1, colorKeyShown }`, whether the color key beside
+  the strip has opened by itself yet. Its own key because the reviewer reads it and
+  `prefs:index` is what the index acts on; see `lib/reviewerPrefs.ts`
 
 Version 1 of `prefs:index` held `showBuiltIns` alone and version 2 added
 `hiddenDecks`. Each reads as the version after it with the new field at its

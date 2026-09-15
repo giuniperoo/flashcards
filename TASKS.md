@@ -32,7 +32,7 @@ is due today, and it ends.
 | 6 — The cross-deck due queue | merged |
 | 7 — A first interval shorter than a day | not started |
 | 8 — An empty box when a card comes back | merged |
-| 9 — Say what the colours mean, once | not started |
+| 9 — Say what the colors mean, once | built, in review |
 | 10 — The queue bar | merged |
 | 11 — Docs | not started |
 
@@ -489,7 +489,7 @@ a schedule, because the whole-deck reviewer is the one being kept as it was.
 
 ### Task 9 — Say what the colours mean, once
 
-*Not started.*
+*Built, in review, as a key beside the strip rather than a panel. See "As built" below.*
 
 **Why.** The strip is four colours and a grey and nothing on screen says what any of
 them mean. A reader who answers a new card correctly, sees orange, and expects green
@@ -547,6 +547,41 @@ it only changes how soon a red card comes back.
 **Done when** turning the switch on shows it once and never again unasked, the link
 beside the switch brings it back, and the dashes in it are the same three pixels tall
 as the ones in the reviewer.
+
+**As built.** A key on the study page instead of a panel, decided when the task started:
+the explanation belongs beside the thing it explains, and it can then be read again
+where the question comes up rather than from the index.
+
+- **A "?" at the end of the strip**, Lineicons' `question-mark-circle` at 24px, with a
+  44px hit area that takes no height from the row. A press opens the key above it and it
+  stays until closed: its `xmark-circle` button, Escape, the "?" again, or a press
+  anywhere else. A mouse pointing at the "?" previews it. The key ends where the strip
+  ends, not flush with the card's edge. See `components/ColorKey.tsx`
+- **Lineicons, over Material Symbols and Font Awesome Free.** Its hairline stroke and
+  rounded ends match the app's thin rules; Material's square-cut close read heavier, and
+  Font Awesome Free's icons are CC BY and need attribution. Lineicons Free is MIT. The
+  two paths are pasted into the component rather than installed. The "?" started as a
+  typed character in the label face, whose tracking set it off-center in its circle
+- **It opens by itself once**, the first time a scheduled session starts with cards in
+  it, and closes when the card is turned. It is remembered as shown the moment it opens,
+  in its own key, `prefs:reviewer`, not `prefs:index`: the reviewer is what reads it, and
+  `lib/prefs.ts` says what the index key is for. The "How does this work?" link beside
+  the switch is not built; the "?" is how it is read again
+- **Both modes.** On a schedule it explains the four boxes and gray; in free study,
+  green for "I had it", red for "Needs review", and that free study does not change when
+  cards come back. Free study's two colors were unexplained too
+- **The dashes are the strip's own**, 3px tall, and the card you are on is the 7px dash
+  in the deck's ink
+- **The copy is shorter than the draft above**: a line saying what a dash is, the rows,
+  then one note that green means three in a row and when each color comes back. "Nobody
+  is checking your answers but you" did not fit a key
+- **It covers the lower part of the card while open**, on a phone most of the row of
+  buttons. A press anywhere closes it, so the first press on the page gets it out of the
+  way
+
+**Noticed while building it.** The card you are on is drawn in the deck's ink, and a
+deck whose ink is green, like ACID, puts that dash beside box 4's green. The key names
+it as its own row, but the strip itself does not tell them apart except by height.
 
 ---
 
