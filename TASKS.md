@@ -29,7 +29,7 @@ is due today, and it ends.
 | 3 — The queue builder | merged |
 | 4 — The reviewer studies the queue | merged |
 | 5 — Due counts on the index | merged |
-| 6 — The cross-deck due queue | built, in review |
+| 6 — The cross-deck due queue | merged |
 | 7 — A first interval shorter than a day | not started |
 | 8 — An empty box when a card comes back | merged |
 | 9 — Say what the colours mean, once | not started |
@@ -327,7 +327,7 @@ card has no count yet; what it deals on a schedule is task 6.
 
 ### Task 6 — The cross-deck due queue
 
-*Built, in review.*
+*Merged, in #29.*
 
 **Why.** A due queue across decks is interleaved for free — sort by date, tiebreak
 randomly, never sort by deck. `ARCHITECTURE.md` §8 already argues this route should be
