@@ -76,11 +76,12 @@ components/
   DeckVisibility.tsx    the show/hide controls, at the foot of the index
   DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
   QueueBar.tsx          a scheduled session's breakdown, in the title row if it fits
+  ColorKey.tsx          what the strip's colors mean, behind a "?" at its end
   PrintSheets.tsx       shared by the built-in and custom print paths
 lib/
   loadDecks.ts          reads content/*.md at build time — SERVER ONLY
   types.ts              Card, Deck, StudyCard — safe for client components
-  tint.ts               hue maths: ink for a tint, and the next unused tint
+  tint.ts               hue math: ink for a tint, and the next unused tint
   parseDeck.ts          one parser for uploads, pastes and (after task 2) files
   print.ts              sheet pagination and column mirroring
   customDecks.ts        localStorage store for imported decks
@@ -94,6 +95,7 @@ lib/
   studyMode.ts          the `?scheduled` parameter, and links that carry it
   useCustomDecks.ts     the imported decks, kept in step with localStorage
   usePrefs.ts           index preferences, shared by the grid and the controls
+  reviewerPrefs.ts      what the reviewer remembers: the color key has been shown
   useDueCounts.ts       cards each deck owes today, for the counts on the index
   generateDeck.ts       browser-direct call to Anthropic — CLIENT ONLY
 ```
@@ -142,14 +144,14 @@ overflow a printed card and there is no scrollbar on paper.
 
 **Deck tints are pastels with a darker `ink` for text and progress bars.** The
 five built-in decks carry both in their front matter, from the original print
-spec, and must not change. A deck you add gets its colour from `nextTint()` in
+spec, and must not change. A deck you add gets its color from `nextTint()` in
 `lib/tint.ts`, which picks the hue *furthest from every hue already in use* —
 built-in and custom alike — and renders it at a fixed pastel saturation and
 lightness. There is deliberately no fixed palette: the previous list of six ran
-out and repeated, was indexed by deck count so deleting a deck recoloured every
+out and repeated, was indexed by deck count so deleting a deck recolored every
 later one, and five of its six entries sat within 16° of a built-in hue despite
 a comment claiming otherwise. A `tint:` line in an import still wins — that
-colour is the author's choice.
+color is the author's choice.
 
 Because `lib/customDecks.ts` runs in the browser and cannot read `content/`,
 the built-in tints reach it as the `reservedTints` prop, the same way
@@ -157,11 +159,14 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 
 ## Storage
 
-`localStorage`, three keys, each wrapped in a version envelope:
+`localStorage`, four keys, each wrapped in a version envelope:
 
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
 - `progress` — `{ version: 4, cards }`, keyed by `{deckSlug}:{cardId}`
 - `prefs:index` — `{ version: 4, showBuiltIns, hiddenDecks, scheduled }`
+- `prefs:reviewer` — `{ version: 1, colorKeyShown }`, whether the color key beside
+  the strip has opened by itself yet. Its own key because the reviewer reads it and
+  `prefs:index` is what the index acts on; see `lib/reviewerPrefs.ts`
 
 Version 1 of `prefs:index` held `showBuiltIns` alone and version 2 added
 `hiddenDecks`. Each reads as the version after it with the new field at its
@@ -174,8 +179,8 @@ kept. `lib/prefs.test.ts` covers it.
 
 `scheduled` is the spaced repetition switch, at the foot of the index and **on
 by default**: spaced repetition is the app, and free study is what you switch
-to. It started off, while the scheduled reviewer was new; it flipped on 13
-September 2026 once it had been lived with. The sun on the index says which
+to. It started off, while the scheduled reviewer was new; it flipped on September
+13, 2026, once it had been lived with. The sun on the index says which
 mode you are in — the mark's cream on a schedule, a faint sage
 (`--color-sun-free`) in free study — because the switch's label names where it
 takes you, not where you are. It governs what the *index* draws and what it writes
@@ -215,11 +220,11 @@ what that box meant while free study was still writing it.
 
 `box` and `misses` are two different things and neither derives the other. The
 box is how far a card has climbed, sets when it comes back, and is what a
-scheduled strip colours by: red, orange, yellow, green for boxes 1 to 4.
+scheduled strip colors by: red, orange, yellow, green for boxes 1 to 4.
 `misses` is how many times running it has been answered wrong. A wrong answer
 always sends a card to box 1, so the box cannot tell one miss from five.
 
-**`misses` is written and not read**, like `reviewed`. The strip coloured by it
+**`misses` is written and not read**, like `reviewed`. The strip colored by it
 for a while, which turned a card green on its first right answer and let a whole
 deck go green in one pass; it went back to the box. The count stays because it
 cannot be rebuilt once it stops being recorded, and it is what finding the cards
@@ -235,7 +240,7 @@ apart.
 
 **`reviewed` is written and never read.** It is the one field that cannot be
 backfilled later: nothing else records *when* a review happened, and `due` is
-no substitute, since a box-5 card reviewed a fortnight ago carries a later
+no substitute, since a box-5 card reviewed two weeks ago carries a later
 `due` than a box-1 card done this morning. It is empty on every record migrated
 from an older store, because those stores never knew.
 
@@ -324,10 +329,14 @@ stops a second read from merging a stale grade back over a newer one.
 ## Conventions
 
 - Sentence case in all UI copy. No title case, no exclamation marks
+- American English everywhere: UI copy, what the app sends to Claude, card
+  content in `content/`, code, comments and these docs. "Color", "recognize",
+  "behavior", "a fraction of a cent", "two weeks" rather than "a fortnight", and
+  dates as "September 13, 2026"
 - Copy names what happens: "Turn card over", not "Submit"
 - Tap targets at least 44px; the answer box uses 16px on mobile so iOS doesn't
   zoom on focus
-- Colours come from the Tailwind theme in `globals.css`, never hardcoded hex in
+- Colors come from the Tailwind theme in `globals.css`, never hardcoded hex in
   components, except deck tints which are data
 - The shell is `max-w-3xl` up to 1300px and 75% of the viewport past it. The
   extra width becomes more columns — `.deck-grid` goes 2, 3, 4, 5 — never wider
@@ -335,6 +344,12 @@ stops a second read from merging a stale grade back over a newer one.
   and the import screen set `max-w-3xl` of their own: a flip card the width of
   the window no longer matches the printed one, and prose wants a line length
 - `prefers-reduced-motion` is respected by the card flip; keep it that way
+- Focus rings are 1px, not the usual 2px, by choice, and all one color:
+  `--color-focus`, `#5f5e5a`, a softer black than the text. A base-layer rule
+  draws it on links and anything without a ring of its own; controls that draw
+  their own use `focus-visible:outline-1 focus-visible:outline-focus`, never
+  `outline-ink`. A deck card's main link has no ring: its dashed edge turns the
+  focus color instead. Never leave a focusable element with no visible ring
 - Errors are specific and actionable, and never blame the user
 
 ## Before committing

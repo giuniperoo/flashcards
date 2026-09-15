@@ -5,7 +5,7 @@ import { toDeckText } from "@/lib/customDecks";
  * A built-in deck as the markdown you could re-import.
  *
  * Imported decks are exported in the browser, from a `Blob`, because that is
- * where they live. A built-in deck lives on the server, and serialising all of
+ * where they live. A built-in deck lives on the server, and serializing all of
  * its cards into the page just to feed a download button would put the whole
  * content folder into the payload of the index. A link to this route costs
  * nothing until it is clicked.

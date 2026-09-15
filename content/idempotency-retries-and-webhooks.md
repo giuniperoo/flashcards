@@ -12,7 +12,7 @@ A: GET, PUT and DELETE. POST is not, which is why create endpoints need explicit
 
 id: 94db9390-aecb-4970-b05d-acc074459348
 Q: What is an idempotency key?
-A: A client-generated unique value sent with a request so the server can recognise and replay a retried call.
+A: A client-generated unique value sent with a request so the server can recognize and replay a retried call.
 
 id: def2748e-452c-4e9d-8c26-986186ba1147
 Q: How does a server implement idempotency keys?
@@ -32,7 +32,7 @@ A: The second must block or fail fast; a unique constraint on the key is what ac
 
 id: b865ea6d-4e98-4f4d-be41-6d591ad86a3a
 Q: Why is exponential backoff with jitter the standard retry policy?
-A: Backoff stops retries amplifying an outage; jitter stops every client retrying in the same synchronised wave.
+A: Backoff stops retries amplifying an outage; jitter stops every client retrying in the same synchronized wave.
 
 id: 5a9cd35f-8143-4691-9ad7-b4841bd3f2cc
 Q: Which failures should you not retry?
@@ -52,7 +52,7 @@ A: The sender cannot know whether a lost response means the receiver processed t
 
 id: f4d741c9-8179-40b3-8339-0a4f12d82561
 Q: How should a webhook consumer handle duplicates?
-A: Treat the event ID as an idempotency key and record processed IDs, so replays are recognised and dropped.
+A: Treat the event ID as an idempotency key and record processed IDs, so replays are recognized and dropped.
 
 id: 397f95d2-7394-4345-9955-2fa1330b5506
 Q: How are webhooks authenticated?
@@ -60,7 +60,7 @@ A: An HMAC signature over the raw body with a shared secret, verified before par
 
 id: f476c29d-16f6-4dae-8e33-e59dfaeaad04
 Q: Why must you verify the signature on the raw body?
-A: Parsing and re-serialising changes bytes, so the computed HMAC no longer matches the sender's.
+A: Parsing and re-serializing changes bytes, so the computed HMAC no longer matches the sender's.
 
 id: c2cd13b2-bc7d-4a7d-a0ce-0c7259c1ab21
 Q: How do you prevent webhook replay attacks?

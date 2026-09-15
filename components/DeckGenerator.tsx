@@ -26,7 +26,7 @@ const BUTTON =
  *
  * It deliberately stops there. The generated text is parsed, previewed and
  * editable exactly like a paste, and saving is still a separate deliberate
- * press — a generated card is a claim someone is about to memorise, so reading
+ * press — a generated card is a claim someone is about to memorize, so reading
  * it first is the feature rather than a step to remove.
  */
 export default function DeckGenerator({
@@ -137,7 +137,7 @@ export default function DeckGenerator({
           <p className="mt-2 max-w-lg text-sm text-muted">
             Needs your own Anthropic API key. It stays in this browser and calls
             the API directly — nothing goes through a server, and a deck costs a
-            fraction of a penny on your account.
+            fraction of a cent on your account.
           </p>
           <div className="mt-3 flex flex-wrap items-start gap-2">
             <div className="min-w-0 flex-1 basis-64">

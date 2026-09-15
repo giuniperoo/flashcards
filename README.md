@@ -9,7 +9,7 @@ The index starts empty all the same, on the assumption that you are here for
 your own material. One toggle at its foot brings the built-in decks in.
 
 The one rule the app enforces: you cannot turn a card over until you have
-written something. Recognising an answer feels like knowing it; producing one is
+written something. Recognizing an answer feels like knowing it; producing one is
 the part that survives an interview.
 
 ## Stack
@@ -61,7 +61,7 @@ lib/
   progress.ts            one store of drafts and grades, keyed by card id
   customDecks.ts         imported decks in localStorage
   prefs.ts               which built-in decks this reader wants to see
-  tint.ts                a deck's colour, picked furthest from those in use
+  tint.ts                a deck's color, picked furthest from those in use
   generateDeck.ts        browser-direct call to Anthropic — client only
 ```
 
@@ -119,7 +119,7 @@ A: Gives a stable IP and DNS name in front of
 a changing set of pods.
 ```
 
-Front matter is optional: `#` sets the title, `tint:` sets the corner colour,
+Front matter is optional: `#` sets the title, `tint:` sets the corner color,
 `blurb:` sets the subtitle. Answers may wrap over several lines; a blank line
 ends the card.
 
@@ -144,7 +144,7 @@ covers all three shapes plus the malformed cases.
 The import screen can also ask Claude for a deck. Give it a topic and a card
 count and it streams the same `Q:` / `A:` text into the textarea above, where you
 read and edit it like any other paste. Saving stays a separate, deliberate
-press: a generated card is a claim you are about to memorise, so reading it
+press: a generated card is a claim you are about to memorize, so reading it
 first is the feature rather than a step to remove.
 
 It runs in your browser against your own Anthropic key, which is held in
@@ -210,7 +210,7 @@ Rewriting one makes the card read as new and drops its history.
 Each deck carries the pastel tint used for the corner triangle on the printed
 card, so a card looks the same on screen as it does in your hand.
 
-## Licence
+## License
 
 MIT — see [LICENSE](LICENSE). That covers the code and the card content alike:
 the decks are original, and the four that exist as printed cards were written

@@ -18,20 +18,20 @@ import { FIRST_BOX, addDays, dueOn, nextBox, nextMisses, type Grade } from "./sc
  *
  * `misses` is how many times running the card has been answered wrong. It is not
  * the box. The box is how far the card has climbed, decides when it comes back,
- * and is what the strip colours by; `misses` is how much trouble a card is giving
+ * and is what the strip colors by; `misses` is how much trouble a card is giving
  * you, and goes to nothing the moment you get it right. Neither derives the
  * other: a wrong answer always sends a card to box 1, so the box alone cannot
  * tell a card missed once from one missed five times.
  *
- * Nothing reads `misses` now. The strip coloured by it for a while and went back
+ * Nothing reads `misses` now. The strip colored by it for a while and went back
  * to the box, and the count stayed for the same reason as `reviewed` below: stop
  * recording it and the history is gone for good. It is what you would want to
  * find the cards you keep failing.
  *
  * `reviewed` is not read anywhere yet. It goes in now because it is the one
  * field here that cannot be backfilled later: nothing else records *when* a
- * review happened, and `due` is no substitute, since a box-5 card reviewed a
- * fortnight ago carries a later `due` than a box-1 card done this morning. It
+ * review happened, and `due` is no substitute, since a box-5 card reviewed two
+ * weeks ago carries a later `due` than a box-1 card done this morning. It
  * is what a future sync would need to resolve a conflict, and it is empty on
  * every record migrated from an older store, because those stores never knew.
  */
@@ -239,7 +239,7 @@ function toRecords(entries: Entries, today: string) {
   const keys = new Set([...Object.keys(entries.drafts), ...Object.keys(entries.grades)]);
   for (const key of keys) {
     // Draft first, to match `readRecords`. A record built two ways should
-    // serialise to the same string, or a second read rewrites the store and
+    // serialize to the same string, or a second read rewrites the store and
     // the migration stops being idempotent in the only way you can observe.
     out[key] = {
       draft: entries.drafts[key] ?? "",

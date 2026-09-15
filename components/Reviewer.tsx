@@ -15,6 +15,8 @@ import {
 import { clampBox, dayKey, daysBetween, type Grade } from "@/lib/schedule";
 import { breakdown, buildDueQueue, buildQueue } from "@/lib/queue";
 import QueueBar from "@/components/QueueBar";
+import ColorKey from "@/components/ColorKey";
+import { loadReviewerPrefs, saveReviewerPrefs } from "@/lib/reviewerPrefs";
 import { shuffled } from "@/lib/shuffle";
 import { wantsSchedule, withoutSchedule } from "@/lib/studyMode";
 
@@ -26,7 +28,7 @@ import { wantsSchedule, withoutSchedule } from "@/lib/studyMode";
  *
  * Then the rows are chosen before the columns, and chosen to fill the last
  * one. `count / rows` rounded up is the column count for a given number of
- * rows, so walking the row count upwards from the fewest that fit and
+ * rows, so walking the row count upward from the fewest that fit and
  * keeping the fullest last row lands on a row count that divides the deck
  * where one exists nearby: 264 cards capped at 40 gives 7 rows of 38 with a
  * stub of 36, but 8 rows of 33 comes out exactly even, so 33 wins. On a
@@ -82,7 +84,7 @@ function verdictOf(record: CardProgress | undefined): Grade | undefined {
 }
 
 /**
- * The four colours a scheduled session paints with, box 1 to box 4. Written
+ * The four colors a scheduled session paints with, box 1 to box 4. Written
  * out rather than built from the number, so the names appear in the source.
  */
 const BOX_COLORS = [
@@ -93,13 +95,13 @@ const BOX_COLORS = [
 ];
 
 /**
- * A dash's colour.
+ * A dash's color.
  *
  * Outside a scheduled session it is the last answer: green for a card last
  * answered right, red for one last answered wrong. It reads `grade` rather than
  * the box, because free study no longer moves the box.
  *
- * Inside one it is the box, so the colour is how far up the ladder a card has
+ * Inside one it is the box, so the color is how far up the ladder a card has
  * climbed: red in box 1, then orange, yellow, and green at the top. A new card
  * answered right goes orange, not green, because green means three right in a
  * row, spread over days.
@@ -280,6 +282,21 @@ export default function Reviewer({
     setPosition(0);
   }, [ready, scheduled, left, session, saved.cards, today, crossDeck]);
 
+  /* The color key beside the strip. It opens by itself once, the first time a
+     scheduled session starts with cards in it, because that session is where
+     the reader first meets an orange dash; after that only when asked. It is
+     remembered as shown as soon as it opens, so it never opens unasked twice,
+     even if the page is left right away. See `components/ColorKey.tsx`. */
+  const [keyOpen, setKeyOpen] = useState(false);
+  const keyOfferedRef = useRef(false);
+  useEffect(() => {
+    if (!session || session.cards.length === 0 || keyOfferedRef.current) return;
+    keyOfferedRef.current = true;
+    if (loadReviewerPrefs().colorKeyShown) return;
+    setKeyOpen(true);
+    saveReviewerPrefs({ colorKeyShown: true });
+  }, [session]);
+
   // Read through a ref so committing a draft — which replaces saved.cards —
   // does not count as a card change and turn the card back over.
   const recordsRef = useRef(saved.cards);
@@ -291,7 +308,7 @@ export default function Reviewer({
 
      On a schedule a card starts with an empty box, whatever you wrote last
      time. A card coming back with your old answer already in it hands you the
-     answer to read, and recognising an answer is exactly what this app is
+     answer to read, and recognizing an answer is exactly what this app is
      built to stop passing for knowing it. With the switch off, nothing here
      applies and the box opens with your draft as it always has.
 
@@ -310,6 +327,12 @@ export default function Reviewer({
     setDraft(scheduled && !typedRef.current.has(key) ? "" : stored);
     setFlipped(false);
     setError(false);
+    // The same textarea serves every card, and a scroll position left over from
+    // the last card's answer would open this one part way through.
+    if (inputRef.current) {
+      inputRef.current.scrollLeft = 0;
+      inputRef.current.scrollTop = 0;
+    }
   }, [key, ready, scheduled]);
 
   const commitDraft = useCallback(
@@ -353,6 +376,7 @@ export default function Reviewer({
        the card, and the reader only found out on turning it back. The face is
        also made inert below, but that alone is not relied on to move focus. */
     inputRef.current?.blur();
+    setKeyOpen(false);
     setFlipped(true);
   }, [flipped, draft, commitDraft]);
 
@@ -493,7 +517,7 @@ export default function Reviewer({
     <div className="fit">
       {counts && !session?.allNew && <QueueBar counts={counts} />}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        {/* Flex-centred rather than `align-middle`, which centres on the
+        {/* Flex-centered rather than `align-middle`, which centers on the
             lowercase x-height. This label is all capitals, so the swatch sat
             below the middle of the letters beside it. */}
         <span className="label inline-flex items-center text-muted">
@@ -524,7 +548,7 @@ export default function Reviewer({
             <button
               type="button"
               onClick={shuffle}
-              className="label min-h-9 rounded-sm border border-rule px-3 text-muted hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              className="label min-h-9 rounded-sm border border-rule px-3 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               Shuffle
             </button>
@@ -570,7 +594,11 @@ export default function Reviewer({
               // flex-1 sets a 0% basis, which overrides the height the resize
               // handle writes; an auto basis lets a dragged height stick. The
               // card then grows with it, which is a shift the reader asked for.
-              className="mt-5 w-full shrink-0 grow resize-y rounded-sm border border-rule bg-transparent p-3 text-base leading-relaxed outline-none placeholder:text-muted focus:border-ink sm:text-[15px]"
+              // `overflow-x-hidden` and `wrap-anywhere`: the box grows down,
+              // never sideways. WebKit showed a horizontal scrollbar here, the
+              // placeholder scrolled part way off to the left, which no answer
+              // needs — a long unbroken token wraps instead.
+              className="mt-5 w-full shrink-0 grow resize-y overflow-x-hidden rounded-sm border border-rule bg-transparent p-3 text-base leading-relaxed wrap-anywhere outline-none placeholder:text-muted focus:border-ink sm:text-[15px]"
             />
             {error && (
               <p id="recall-error" role="alert" className="mt-2 text-sm text-error">
@@ -608,14 +636,14 @@ export default function Reviewer({
               <button
                 type="button"
                 onClick={() => grade("held")}
-                className="min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 I had it
               </button>
               <button
                 type="button"
                 onClick={() => grade("review")}
-                className="min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 Needs review
               </button>
@@ -629,14 +657,14 @@ export default function Reviewer({
           type="button"
           onClick={() => move(-1)}
           aria-label="Previous card"
-          className="min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           ←
         </button>
         <button
           type="button"
           onClick={flip}
-          className="min-h-11 flex-1 rounded-sm border border-ink px-3 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 flex-1 rounded-sm border border-ink px-3 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           {flipped ? "Turn back" : "Turn card over"}
         </button>
@@ -644,19 +672,27 @@ export default function Reviewer({
           type="button"
           onClick={() => move(1)}
           aria-label="Next card"
-          className="min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           →
         </button>
       </div>
 
-      <Strip
-        className="mt-5"
-        cards={strip}
-        records={saved.cards}
-        currentKey={key}
-        scheduled={scheduled}
-      />
+      <div className="mt-5 flex items-center gap-3">
+        <Strip
+          className="min-w-0 flex-1"
+          cards={strip}
+          records={saved.cards}
+          currentKey={key}
+          scheduled={scheduled}
+        />
+        <ColorKey
+          scheduled={scheduled}
+          ink={card.deck.ink}
+          open={keyOpen}
+          onOpenChange={setKeyOpen}
+        />
+      </div>
 
       <p className="label mt-4 hidden text-muted sm:block">
         ⌘/Ctrl + Enter turn over · ← → move · 1 held · 2 revisit
@@ -676,7 +712,7 @@ export default function Reviewer({
  *
  * `columnsFor` picks the count; see it for why rows come first.
  *
- * Rows are a fixed 7px with the dashes centred in them, so a row is not resized
+ * Rows are a fixed 7px with the dashes centered in them, so a row is not resized
  * by the taller current-card marker, and the row gap is wider than the column
  * gap — rows read as rows.
  */
@@ -763,7 +799,7 @@ function AllDecks() {
   return (
     <Link
       href="/"
-      className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+      className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
       All decks
     </Link>
@@ -827,7 +863,7 @@ function SessionDone({
         <button
           type="button"
           onClick={onStudyDeck}
-          className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           {deck ? "Study the whole deck" : "Study every card"}
         </button>
@@ -869,7 +905,7 @@ function NothingDue({
         <button
           type="button"
           onClick={onStudyAnyway}
-          className="min-h-11 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Study anyway
         </button>

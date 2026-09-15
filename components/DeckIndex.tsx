@@ -86,7 +86,7 @@ export default function DeckIndex({
           : `${count(deckTotal, "deck")}, ${count(cardTotal, "card")}, one rule: write the answer before you turn the card over.`}
       </h1>
       <p className="mt-4 max-w-[33rem] text-muted">
-        Recognising an answer feels like knowing it. Producing one is the part
+        Recognizing an answer feels like knowing it. Producing one is the part
         that holds up under questioning.
       </p>
 

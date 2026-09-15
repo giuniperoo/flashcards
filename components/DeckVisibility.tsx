@@ -25,7 +25,7 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
     : 0;
 
   return (
-    // A centred bullet between each control, the same separator as "Print · All
+    // A centered bullet between each control, the same separator as "Print · All
     // decks" on a study page, with the same spacing.
     <span className="flex flex-wrap items-center gap-x-4">
       {hidden > 0 && (

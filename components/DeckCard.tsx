@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 /** Everything a card shows. Deliberately not a `Deck`: the index renders a
     dozen of these and has no use for the cards themselves, which are the bulk
-    of a deck and would otherwise be serialised into the page for nothing. */
+    of a deck and would otherwise be serialized into the page for nothing. */
 export type DeckSummary = {
   slug: string;
   name: string;
@@ -50,7 +50,7 @@ export default function DeckCard({
       />
       <Link
         href={study}
-        className="block flex-1 px-5 pt-4 pb-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        className="deck-open block flex-1 px-5 pt-4 pb-3 focus-visible:outline-none"
       >
         <span className="label text-muted">
           {deck.count} card{deck.count === 1 ? "" : "s"}

@@ -6,7 +6,7 @@ import Anthropic from "@anthropic-ai/sdk";
  * The model produces *text*, not cards. That is deliberate: the output lands in
  * the importer's textarea, where it is parsed, previewed and edited before
  * anything is saved. A generated card is a claim about the world that a person
- * is about to memorise, so the review step is the feature, not friction.
+ * is about to memorize, so the review step is the feature, not friction.
  *
  * Runs in the browser against the user's own key. Anthropic supports this
  * directly — `dangerouslyAllowBrowser` makes the SDK send the
@@ -36,7 +36,7 @@ Rules, all of which matter:
 - Sentence case throughout. No title case, no exclamation marks.
 - Write the answer someone should be able to produce from memory, not a paragraph of background.
 - Do not emit \`id:\` lines. The app assigns card ids itself.
-- Do not emit a \`tint:\` line. The app picks a colour from its own palette.
+- Do not emit a \`tint:\` line. The app picks a color from its own palette.
 - Cover the subject in a sensible order: definitions and vocabulary first, then mechanisms, then trade-offs and the questions an interviewer would actually ask.
 - No two cards should test the same fact.`;
 
@@ -113,7 +113,7 @@ function explain(error: unknown): string {
  * Drops a `tint:` or `ink:` line the model wrote anyway.
  *
  * The prompt asks for neither, but asking is not the same as guaranteeing, and
- * `saveCustomDeck` honours any tint it is handed — so one invented hex quietly
+ * `saveCustomDeck` honors any tint it is handed — so one invented hex quietly
  * bypasses the palette that `CLAUDE.md` says every new deck draws from. Only
  * front matter is touched, and only on the generated path: a tint someone
  * types or pastes is theirs, and the format guide documents it.
@@ -126,7 +126,7 @@ function stripTint(text: string) {
   const end = firstCard === -1 ? lines.length : firstCard;
   const head = lines
     .slice(0, end)
-    .filter((l) => !/^\s*(?:tint|colour|color|ink)\s*:/i.test(l));
+    .filter((l) => !/^\s*(?:tint|color|ink)\s*:/i.test(l));
   return [...head, ...lines.slice(end)].join("\n");
 }
 

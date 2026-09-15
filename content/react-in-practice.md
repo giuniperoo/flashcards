@@ -8,7 +8,7 @@ A: Pass JSX as children or as a prop instead of threading data down. The compone
 
 id: 3b3733de-b24f-49db-8389-d4b4d98fb3b2
 Q: When do you NOT need a useEffect?
-A: Whenever the value can be derived during render or computed in an event handler. Effects are for synchronising with something outside React — the DOM, a subscription, the network — not for reacting to your own state changes.
+A: Whenever the value can be derived during render or computed in an event handler. Effects are for synchronizing with something outside React — the DOM, a subscription, the network — not for reacting to your own state changes.
 
 id: 5ce50e43-231c-4489-8b63-c699e8ce79ba
 Q: A prop changes and you want the component's state to reset. What's the idiomatic fix?
@@ -28,7 +28,7 @@ A: Controlled when you need to react to every keystroke: live validation, format
 
 id: 6efacdec-267a-4798-b45f-334451780ee4
 Q: What are the two main costs of Context, and how do you mitigate them?
-A: Every consumer re-renders whenever the value identity changes, and consumers become coupled to a provider being present. Split contexts by update frequency, memoise the value, and prefer passing children through over pushing everything into context.
+A: Every consumer re-renders whenever the value identity changes, and consumers become coupled to a provider being present. Split contexts by update frequency, memoize the value, and prefer passing children through over pushing everything into context.
 
 id: f6e93796-f76a-4ab7-a015-e6659eddfa00
 Q: Server state vs client state: why treat them differently?
@@ -40,7 +40,7 @@ A: Reach for useReducer once several pieces of state change together, or when th
 
 id: e82642cb-4fe7-4886-8444-2c486f4c2f6e
 Q: What makes a good custom hook, and what are the Rules of Hooks?
-A: It names one behaviour, composes other hooks, and returns values rather than JSX. Hooks must be called unconditionally at the top level of a component or another hook — never inside loops, conditions, or callbacks.
+A: It names one behavior, composes other hooks, and returns values rather than JSX. Hooks must be called unconditionally at the top level of a component or another hook — never inside loops, conditions, or callbacks.
 
 id: 71cb2ffa-f40e-4964-a2f5-532bac15daa7
 Q: An effect fetches data and the props change mid-flight. What goes wrong and how do you fix it?
@@ -68,7 +68,7 @@ A: It renders a fallback while something below it suspends — a lazily loaded c
 
 id: 8ac7f30b-1768-4e77-af72-6af244cae02b
 Q: Server Components vs Client Components: where does the boundary go?
-A: Server is the default: data access, secrets and heavy dependencies stay there and ship no JavaScript. Push 'use client' down to the leaves that need state, effects or event handlers, and pass server data in as serialisable props.
+A: Server is the default: data access, secrets and heavy dependencies stay there and ship no JavaScript. Push 'use client' down to the leaves that need state, effects or event handlers, and pass server data in as serializable props.
 
 id: 50dc249f-4a8b-496e-9c0f-e6bcc7d3691d
 Q: How do you build a form with Server Actions in React 19?
@@ -80,7 +80,7 @@ A: Related parts such as Tabs, TabList and TabPanel share implicit state through
 
 id: 8e51b0ce-ddb0-46ef-b7b0-b918b33335cb
 Q: What does "headless" mean for a UI component, and how do you build one?
-A: Behaviour, state and accessibility with no styling: expose a hook or prop getters and let the caller render the markup. It is how Radix, Headless UI and TanStack work, and it has largely replaced render props.
+A: Behavior, state and accessibility with no styling: expose a hook or prop getters and let the caller render the markup. It is how Radix, Headless UI and TanStack work, and it has largely replaced render props.
 
 id: 9bf2a456-ced1-452e-8366-0e0873802cee
 Q: How should you type component props in TypeScript today?

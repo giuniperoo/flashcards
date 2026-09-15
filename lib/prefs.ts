@@ -20,7 +20,7 @@
  * the parameter, never this; see `lib/studyMode.ts` for why they are separate.
  *
  * Its own storage key, for the same reason as `lib/apiKey.ts`: `decks:custom`
- * is what the export button serialises, and a display preference has no
+ * is what the export button serializes, and a display preference has no
  * business riding along inside somebody's deck file.
  */
 
@@ -46,7 +46,7 @@ export type IndexPrefs = {
  * which is what keeps the index from flashing decks away on load.
  *
  * Scheduling is on. Spaced repetition is what the app is now, and free study is
- * the way out of it rather than the other way round. It started off, while the
+ * the way out of it rather than the other way around. It started off, while the
  * scheduled reviewer was new and the question was whether this should be a
  * spaced repetition app at all; living with it answered that.
  *

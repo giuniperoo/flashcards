@@ -27,7 +27,7 @@ export type Shuffle = <T>(items: T[]) => T[];
  * **Nothing is trimmed.** A backlog is debt already owed, and holding any of it
  * back would let a missed week compound quietly: cards you failed to reach
  * would sit at yesterday's date for ever while the queue served a comfortable
- * handful a day. So a fortnight away hands back a fortnight's work, which is
+ * handful a day. So two weeks away hands back two weeks' work, which is
  * unpleasant and honest.
  *
  * **Cards that came due on the same day are shuffled among themselves**, and

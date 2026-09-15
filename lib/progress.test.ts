@@ -392,7 +392,7 @@ const cases: Array<[string, () => boolean]> = [
         );
         return read(studyCards(deckOf("d", ["aaa"]))).cards["d:aaa"].box;
       };
-      // Either way round in storage order: the merge does not depend on which
+      // Either way around in storage order: the merge does not depend on which
       // key was read first, and review lands the card in box 1.
       return boxAfter("review", "held") === 1 && boxAfter("held", "review") === 1;
     },

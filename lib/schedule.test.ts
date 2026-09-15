@@ -2,8 +2,8 @@
  * Run under a fixed zone — see the `test:schedule` script, which sets
  * `TZ=Europe/London`. Half of what this file checks is that day arithmetic
  * survives a clock change, and Node fixes the zone before any of this runs, so
- * it has to be set from outside. London puts the clocks forward on 30 March
- * 2025 and back on 26 October 2025, which is what the boundary cases straddle.
+ * it has to be set from outside. London puts the clocks forward on March 30,
+ * 2025, and back on October 26, 2025, which is what the boundary cases straddle.
  */
 import {
   INTERVALS,

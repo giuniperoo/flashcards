@@ -25,7 +25,7 @@ renaming them later is tedious.
 | **Card** | One question and one answer | Has a stable id, see §6 |
 | **Deck** | An ordered set of cards | The unit that is created, shared, printed |
 | **Topic** | Subject matter, e.g. "databases" | A tag on a deck; many decks share one |
-| **In rotation** | What the user is drilling now | Not "favourites" — see below |
+| **In rotation** | What the user is drilling now | Not "favorites" — see below |
 | **Fork** | A copy of a public deck under a new owner | Snapshot, not a live link |
 | **Version** | An immutable published snapshot of a deck | See §5 |
 
@@ -34,10 +34,10 @@ physical — cards, cut lines, shuffle, flip, print double-sided. Decks shuffle;
 topics do not. Keeping "topic" free for tagging also gives the public library a
 browse axis for nothing.
 
-**In rotation, not favourites.** Favourites only ever accumulate, because
+**In rotation, not favorites.** Favorites only ever accumulate, because
 removing one reads as a rejection of the thing. A study set needs removal to
 feel like ordinary housekeeping, because the whole point is that it turns over
-as interviews come and go. "Remove from rotation" says that; "unfavourite" does
+as interviews come and go. "Remove from rotation" says that; "unfavorite" does
 not. If the phrase reads as too clever in situ, "Studying" is the plain
 alternative — both beat starring things.
 
@@ -75,7 +75,7 @@ User-submitted public decks **must not** go in the repo. Writing to `content/`
 on publish would mean a bot holding a GitHub token committing on users' behalf,
 a full Vercel rebuild per publish, a queue when two people publish at once, and
 content that survives deletion in git history forever — which is not an
-acceptable answer to "please remove my data". Git is for artefacts you author;
+acceptable answer to "please remove my data". Git is for artifacts you author;
 user submissions are data, and data goes in a database.
 
 The distinction is a product feature, not a compromise: a curated shelf you
@@ -231,9 +231,9 @@ because it is the one consequence users will not anticipate and cannot undo:
 
 The copyright position is worth being precise about, because "you no longer own
 it" would be wrong. The author keeps copyright throughout. What publishing grants
-is a licence for others to copy and adapt — and a licence already exercised
+is a license for others to copy and adapt — and a license already exercised
 cannot be withdrawn retroactively by deleting the source. Infringement *beyond*
-that licence (someone republishing a fork as their own original work, say)
+that license (someone republishing a fork as their own original work, say)
 remains actionable through the ordinary takedown route in §7.
 
 Requiring an explicit checkbox on first publish, rather than a passive notice, is
@@ -285,8 +285,8 @@ handle before launch and unpleasant after.
 linked document:
 
 - The user warrants they have the right to publish what they are publishing
-- Publishing grants the service a licence to host and display it, and grants
-  other users a licence to fork and adapt it
+- Publishing grants the service a license to host and display it, and grants
+  other users a license to fork and adapt it
 - **Deleting a published deck does not delete forks others have already taken.**
   The author keeps copyright; what they cannot do is retract copies that already
   exist. See §5 for the wording to put on the publish screen

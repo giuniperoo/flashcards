@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerates public/logo.svg and public/logo-free.svg — the FLASH-bolt-CARDS wordmark.
 
-Run it only to change the mark; the SVG it writes is the artefact the app and
+Run it only to change the mark; the SVG it writes is the artifact the app and
 anything else uses, and it is checked in.
 
     pip install fonttools brotli      # brotli is what reads a .woff2
@@ -56,7 +56,7 @@ BOLT_W, BOLT_H = 30.0, 72.0
 # The frame and the bolt are named for their role, not their hue: they were a
 # saturated red and gold, and the mark was then the only mid-light, heavily
 # saturated field on the site. Every deck tint sits at L 83-90% and every deck
-# ink at S 33-51%/L 30-59%, so the two hot colours were moved into that ink
+# ink at S 33-51%/L 30-59%, so the two hot colors were moved into that ink
 # register, taking the warm hue SOLID already uses (tint #FAD9BE, ink #B87A3C).
 # They stay inks rather than tints because the frame is a 4.2/76 hairline and
 # has to hold the mark together at favicon size; a pastel frame on the cream
@@ -137,7 +137,7 @@ def main():
         end = draw(bounds, 0.0)
         return draw, (0.0, bounds.bounds[1], end, bounds.bounds[3])
 
-    # Centre the letters by their ink rather than trusting the baseline, so the
+    # Center the letters by their ink rather than trusting the baseline, so the
     # words sit in the middle of the frame however the face is drawn.
     _, probe = word("FLASH", 45.0)
     baseline = 45.0 + (HEIGHT / 2 - (probe[1] + probe[3]) / 2)

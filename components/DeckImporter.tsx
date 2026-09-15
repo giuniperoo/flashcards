@@ -29,7 +29,7 @@ export default function DeckImporter({
   /** Built-in deck slugs, read from `content/` on the server so an import
       cannot claim a slug a committed deck already owns. */
   reservedSlugs: string[];
-  /** Built-in deck tints, so a new deck is given a colour unlike them. */
+  /** Built-in deck tints, so a new deck is given a color unlike them. */
   reservedTints: string[];
 }) {
   const router = useRouter();
@@ -86,7 +86,7 @@ export default function DeckImporter({
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Choose a file
         </button>
@@ -96,7 +96,7 @@ export default function DeckImporter({
             setText(EXAMPLE_DECK);
             setFileName(null);
           }}
-          className="min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Load the example
         </button>

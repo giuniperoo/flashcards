@@ -29,10 +29,10 @@ is due today, and it ends.
 | 3 — The queue builder | merged |
 | 4 — The reviewer studies the queue | merged |
 | 5 — Due counts on the index | merged |
-| 6 — The cross-deck due queue | built, in review |
+| 6 — The cross-deck due queue | merged |
 | 7 — A first interval shorter than a day | not started |
 | 8 — An empty box when a card comes back | merged |
-| 9 — Say what the colours mean, once | not started |
+| 9 — Say what the colors mean, once | built, in review |
 | 10 — The queue bar | merged |
 | 11 — Docs | not started |
 
@@ -44,17 +44,17 @@ it, cream or a sage of the same family, but kept nearly as faint as the cream, s
 logo is what carries the mode.
 
 **The ladder as built.** Four boxes. A right answer moves a card up one box, a wrong
-answer sends it to box 1. On a schedule the strip colours each card by its box:
+answer sends it to box 1. On a schedule the strip colors each card by its box:
 
-| Box | Colour | Means | Comes back in |
+| Box | Color | Means | Comes back in |
 |---|---|---|---|
-| — | grey | not answered yet | — |
+| — | gray | not answered yet | — |
 | 1 | red | wrong last time | 1 day |
 | 2 | orange | one right in a row | 2 days |
 | 3 | yellow | two right in a row | 3 days |
 | 4 | green | three or more right in a row | 4 days |
 
-With the switch off, the strip is two colours: green for a card last answered right,
+With the switch off, the strip is two colors: green for a card last answered right,
 red for one last answered wrong. **Studying with the switch off never moves the
 schedule** — no box, date or miss count changes — so only a scheduled session can turn
 a card green.
@@ -70,7 +70,7 @@ app on its own. The store it lands in is chosen by route, so the same key exists
 twice with two different values: `progress:all` from the shuffle, `progress:{slug}`
 from the deck. Nothing reconciles them. Today that shows up as a draft you wrote an
 hour ago reading as empty on the other route, and two tallies that disagree. Tasks 2
-onwards put a schedule in that store, and two schedules for one card is not a wart.
+onward put a schedule in that store, and two schedules for one card is not a wart.
 
 **Do**
 
@@ -108,8 +108,7 @@ model; 264 cards and one reader will never feed it.
   written and not read; see `CardProgress` in `lib/progress.ts`.)*
 - `lib/schedule.ts`: `nextBox(box, grade)`, `dueOn(box, today)`, `isDue(record, today)`.
   Boxes 1/2/4/8/16 days. Right promotes one box, wrong drops to box 1
-  *(shortened at task 4 to four boxes of 1/2/3/4 days, in even steps — a
-  fortnight is outside the horizon of interview preparation, and doubling gaps
+  *(shortened at task 4 to four boxes of 1/2/3/4 days, in even steps — two weeks is outside the horizon of interview preparation, and doubling gaps
   put a deck with a few stubborn cards most of a month out. See
   `lib/schedule.ts`.)*
 - Grading writes a box and a date. `Grade` stays two buttons *(since task 4, only an
@@ -119,7 +118,7 @@ model; 264 cards and one reader will never feed it.
 **Done when** grading a card sets a due date, and progress from task 1 migrates into
 boxes without losing a card.
 
-**Note.** Nothing on screen moves here. The strip keeps its two-colour verdict until
+**Note.** Nothing on screen moves here. The strip keeps its two-color verdict until
 task 4, which is now where every visible change lives. That is deliberate: the data
 can land without settling the interface question, and the interface change stays one
 commit — one to compare against, and one to revert.
@@ -187,18 +186,18 @@ and it *ends*. Without that, the reviewer keeps grinding past the due cards into
 you know cold, which is the waste spaced repetition exists to remove — and this app
 taxes it harder than most, because every card costs a typed answer.
 
-*(Since 13 September the default is the other way round: spaced repetition is on
+*(Since September 13 the default is the other way around: spaced repetition is on
 unless you choose free study. What follows is why it started off.)*
 
 **Scheduling is a mode, and it is off by default.** The app as it stands is the one
-that keeps working: the whole-deck reviewer, its shuffle button and its two-colour
+that keeps working: the whole-deck reviewer, its shuffle button and its two-color
 strip are what `/study/{slug}` opens until somebody asks for the other reviewer, and
 what it goes back to when they stop asking. Everything below lands beside today's
 reviewer rather than on top of it.
 
 The reason is that nobody has yet lived with a scheduled session in this app, and
 whether this should *present* as a spaced repetition app is not a question the code
-should answer on its own. The switch is what buys the fortnight needed to answer it,
+should answer on its own. The switch is what buys the two weeks needed to answer it,
 and it is the escape hatch as well: scrapping the experiment deletes a path rather
 than restoring a deleted one.
 
@@ -237,11 +236,11 @@ than restoring a deleted one.
   do something today because it resets to position 0. "Study anyway" keeps it, because
   there is no schedule ordering those cards. With the switch off it never left
 - The strip changes twice over inside a scheduled session, and both halves land here.
-  It colours by box rather than by grade, in four named colours: red for box 1, then
+  It colors by box rather than by grade, in four named colors: red for box 1, then
   orange, yellow, and green at the top, so green means three right in a row; unseen
   stays `--color-rule`. Two other versions were tried. A ramp between
-  `--color-review` and `--color-held` was five near-neighbour hues at one lightness,
-  which is one colour at three pixels tall. Colouring by misses turned a card green on
+  `--color-review` and `--color-held` was five near-neighbor hues at one lightness,
+  which is one color at three pixels tall. Coloring by misses turned a card green on
   its first right answer, so a deck could go all green in one pass — recognition
   passing for knowledge, which is what the app is built against. The miss count it
   needed is still written. And the strip holds today's queue rather than the deck, so
@@ -260,7 +259,7 @@ task 5. Both sit behind the same switch when they arrive.
 
 - **Free study no longer writes the schedule.** Since task 2, grading with the switch
   off moved boxes and due dates, so the two modes were not in fact separate. Now it
-  writes only the answer, in a new `grade` field that free study's colours read. There
+  writes only the answer, in a new `grade` field that free study's colors read. There
   is still one store and one answer text per card. See `applyGrade` in
   `lib/progress.ts`
 - The ladder went to four boxes of 1, 2, 3 and 4 days (see task 2)
@@ -327,7 +326,7 @@ card has no count yet; what it deals on a schedule is task 6.
 
 ### Task 6 — The cross-deck due queue
 
-*Built, in review.*
+*Merged, in #29.*
 
 **Why.** A due queue across decks is interleaved for free — sort by date, tiebreak
 randomly, never sort by deck. `ARCHITECTURE.md` §8 already argues this route should be
@@ -487,11 +486,11 @@ a schedule, because the whole-deck reviewer is the one being kept as it was.
 
 ---
 
-### Task 9 — Say what the colours mean, once
+### Task 9 — Say what the colors mean, once
 
-*Not started.*
+*Built, in review, as a key beside the strip rather than a panel. See "As built" below.*
 
-**Why.** The strip is four colours and a grey and nothing on screen says what any of
+**Why.** The strip is four colors and a gray and nothing on screen says what any of
 them mean. A reader who answers a new card correctly, sees orange, and expects green
 concludes the app is broken. That is not hypothetical — it happened, and the strip
 was briefly changed to go green on one right answer before being changed back.
@@ -509,7 +508,7 @@ never show it unasked twice — `prefs:index` remembers.
 
 - A panel, in the app's own language: the card shape, a real strip rather than a
   description of one, sentence case, no exclamation marks
-- The four colours are shown as dashes at the size they actually appear, each labelled
+- The four colors are shown as dashes at the size they actually appear, each labeled
   with what puts a card there. A legend of swatches at 3px is the thing being
   explained, so it should not be redrawn larger and differently
 - Closing it starts the session it opened over. It is not a gate in front of the deck,
@@ -519,10 +518,10 @@ never show it unasked twice — `prefs:index` remembers.
 
 > **How this works**
 >
-> Every card climbs a ladder of four rungs, and its colour on the strip is the rung
+> Every card climbs a ladder of four rungs, and its color on the strip is the rung
 > it is on.
 >
-> - grey — not answered yet
+> - gray — not answered yet
 > - red — you marked it "Needs review"
 > - orange — one right answer in a row
 > - yellow — two right answers in a row
@@ -548,11 +547,54 @@ it only changes how soon a red card comes back.
 beside the switch brings it back, and the dashes in it are the same three pixels tall
 as the ones in the reviewer.
 
+**As built.** A key on the study page instead of a panel, decided when the task started:
+the explanation belongs beside the thing it explains, and it can then be read again
+where the question comes up rather than from the index.
+
+- **A "?" at the end of the strip**, Lineicons' `question-mark-circle` at 24px, with a
+  44px hit area that takes no height from the row. A press opens the key above it and it
+  stays until closed: its `xmark-circle` button, Escape, the "?" again, or a press
+  anywhere else. A mouse pointing at the "?" previews it. The key ends where the strip
+  ends, not flush with the card's edge. See `components/ColorKey.tsx`
+- **Lineicons, over Material Symbols and Font Awesome Free.** Its hairline stroke and
+  rounded ends match the app's thin rules; Material's square-cut close read heavier, and
+  Font Awesome Free's icons are CC BY and need attribution. Lineicons Free is MIT. The
+  two paths are pasted into the component rather than installed. The "?" started as a
+  typed character in the label face, whose tracking set it off-center in its circle
+- **It opens by itself once**, the first time a scheduled session starts with cards in
+  it, and closes when the card is turned. It is remembered as shown the moment it opens,
+  in its own key, `prefs:reviewer`, not `prefs:index`: the reviewer is what reads it, and
+  `lib/prefs.ts` says what the index key is for. The "How does this work?" link beside
+  the switch is not built; the "?" is how it is read again
+- **Both modes.** On a schedule it explains the four boxes and gray; in free study,
+  green for "I had it", red for "Needs review", and that free study does not change when
+  cards come back. Free study's two colors were unexplained too
+- **The dashes are the strip's own**, 3px tall, and the card you are on is the 7px dash
+  in the deck's ink
+- **The copy is shorter than the draft above**: a line saying what a dash is, the rows,
+  then one note that green means three in a row and when each color comes back. "Nobody
+  is checking your answers but you" did not fit a key
+- **It covers the lower part of the card while open**, on a phone most of the row of
+  buttons. A press anywhere closes it, so the first press on the page gets it out of the
+  way
+- **American English, everywhere.** The key started out saying "colours", and the
+  whole repository has since been converted: UI copy ("Recognizing" on the index, "a
+  fraction of a cent" rather than "a penny", "hex color" on the import screen and in the
+  parser's tint warning), the prompt sent to Claude, code identifiers (`normalizeTint`),
+  comments, tests, tools, these docs, and the card content in `content/`. The parser no
+  longer accepts a `colour:` line, only `color:` and `tint:`. `CLAUDE.md` says so under
+  Conventions. The printed cards that carry the old spellings ("behaviour",
+  "recognised", "optimisation" and a few more) are out of step until they are reprinted
+
+**Noticed while building it.** The card you are on is drawn in the deck's ink, and a
+deck whose ink is green, like ACID, puts that dash beside box 4's green. The key names
+it as its own row, but the strip itself does not tell them apart except by height.
+
 ---
 
 ### Task 10 — The queue bar
 
-*Merged, in #25. Moved into the title row afterwards.*
+*Merged, in #25. Moved into the title row afterward.*
 
 **Why.** A scheduled session opened with a small "0/32 today · 32 new" in the corner
 and nothing else to say what the day held. How many cards are overdue, how many are
@@ -583,7 +625,7 @@ it was on screen.
   due today, new, then not due. A segment with nothing in it is left out
 - Widths follow the counts but never clip a label: each segment grows by its count
   from a basis of its own text
-- Neutral greys. The strip uses colour for boxes, and a second meaning for the same
+- Neutral grays. The strip uses color for boxes, and a second meaning for the same
   hues would muddle both
 - Screen readers get one sentence, "Today: 9 done, 3 overdue, 6 due today, 5 new,
   9 not due", rather than five fragments
@@ -608,7 +650,7 @@ version 4, the `misses` field — so what is left there is small.
 - `CLAUDE.md` — "What this is" still says five built-in decks and 80 cards; there are
   twelve and 264. The Storage section says three keys: the API key has its own too,
   and `prefs:schedule` makes another once task 7 lands. The `reviewed` paragraph's
-  example is "a box-5 card reviewed a fortnight ago", from before the ladder became
+  example is "a box-5 card reviewed two weeks ago", from before the ladder became
   four boxes of up to four days, and `lib/progress.ts` has the same example
 - `ARCHITECTURE.md` §8 — progress now carries a schedule; rotation is deferred, and
   the build order in §9 lists it as step 4, so both say so
@@ -661,17 +703,47 @@ print, and `pnpm run test:parser` still passes.
 reader, not only someone using a screen reader: the keyboard grading bug fixed in task
 4 was an accessibility bug.
 
-- **Give the strip a signal besides colour.** Both strips tell cards apart by colour
-  alone, and the colours that matter most are red and green, the pair roughly 1 in 12
+- **Give the strip a signal besides color.** Both strips tell cards apart by color
+  alone, and the colors that matter most are red and green, the pair roughly 1 in 12
   men cannot easily separate. They are also too close in brightness to fall back on,
   1.5:1 against each other. Give a red dash a second cue, such as a different height
-  or a hollow shape, and check both strips with a colour-blindness simulator. This
+  or a hollow shape, and check both strips with a color-blindness simulator. This
   matters more than the other two put together
 - **Darken the muted text a touch.** `--color-muted` is 4.1:1 on the paper and 4.35:1
-  on the card, under the 4.5:1 small text wants, and the labels it colours are small
+  on the card, under the 4.5:1 small text wants, and the labels it colors are small
   capitals. Nudge it until it clears 4.5:1 on both
 - **Run an automated check once.** Lighthouse or axe on the index, a scheduled
   session and free study, and fix what it flags
+
+---
+
+### Task 14 — The whole app from the keyboard
+
+*Not started.*
+
+**Why.** Tab used to cycle through everything you could press on a page, and it no
+longer does. Nothing has been checked since; it was noticed on September 15, 2026.
+Everything this app does should be reachable and operable with the keyboard alone.
+
+**Do**
+
+- Find what broke Tab before changing anything, and say which commit did it. Suspects
+  worth checking first: the global keydown handler in `Reviewer.tsx`, the `inert`
+  turned-away face, and focus styles that make a focused element look unfocused
+- Walk every route with Tab, Shift+Tab, Enter, Space and Escape: the index (deck cards,
+  Hide and Delete, the switch, "Add your own deck"), `/new` (the key, the file picker,
+  the paste box, generating a deck), a deck in free study and on a schedule (the answer
+  box, turning over, grading, the arrows, the "?" key and its close button, the done and
+  nothing-due panels), `/study/all`, and print
+- Focus order follows the page, every focusable element shows a visible focus ring, and
+  focus never lands on something hidden or off screen. The rings are 1px since
+  September 15, 2026, all in `#5f5e5a`, a softer black than the text, thinner
+  than the usual 2px advice by choice; check they still read on every surface
+- After an action that removes the focused element — grading a card, closing the color
+  key, deleting a deck — focus moves somewhere sensible rather than back to the body
+
+**Done when** a session can be started from the index, a deck studied to its done panel,
+and a deck imported, all without touching the mouse, in Chromium and in Safari.
 
 ---
 

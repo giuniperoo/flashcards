@@ -52,7 +52,7 @@ export type Scheduled = { seen: boolean; due: string };
 
 /** Boxes outside the ladder are pulled back onto it rather than trusted: the
     store is hand-editable and a stray value should not index off the end.
-    Exported because the strip indexes a colour by box and needs the same
+    Exported because the strip indexes a color by box and needs the same
     guarantee the intervals get. */
 export function clampBox(box: number) {
   if (!Number.isFinite(box)) return FIRST_BOX;

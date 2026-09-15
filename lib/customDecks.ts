@@ -96,7 +96,7 @@ export function saveCustomDeck(input: {
   reservedSlugs?: string[];
   /** Tints of the built-in decks. Passed in because this module runs in the
       browser and cannot read `content/` — the same reason as `reservedSlugs`.
-      Without them a new deck can land on a colour a built-in already owns. */
+      Without them a new deck can land on a color a built-in already owns. */
   reservedTints?: string[];
 }): Deck {
   const existing = loadCustomDecks();
@@ -142,7 +142,7 @@ export function toDeckText(deck: Deck) {
   // freezing today's shade into a file. The decks that do carry one are the
   // built-ins, whose inks came from the print spec and sit up to 21 points of
   // saturation and 20 of lightness off the formula, in both directions. Those
-  // cannot be derived, and dropping the line would recolour a printed deck.
+  // cannot be derived, and dropping the line would recolor a printed deck.
   const head = [`# ${deck.name}`, `tint: ${deck.tint}`];
   if (deck.ink.toUpperCase() !== shadeForTint(deck.tint).toUpperCase()) {
     head.push(`ink: ${deck.ink}`);

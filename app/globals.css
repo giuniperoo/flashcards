@@ -6,6 +6,13 @@
   --color-ink: #2c2c2a;
   --color-muted: #78776f;
   --color-rule: #ccc6b8;
+  /* Every focus ring, 1px, in one color: a softer black than `--color-ink`.
+     There were two for a while, a blue for links from the Gigs deck's palette
+     and this for controls, and the split meant nothing — it followed which
+     elements happened to have a focus class written. Thinner and quieter than
+     a 2px ink ring or the browser's default blue, on purpose; see the base
+     layer below. */
+  --color-focus: #5f5e5a;
   /* The two grades a card can carry, on the whole-deck strip: green for
      "I had it", red for "Needs review".
 
@@ -24,9 +31,9 @@
   /* The cream the mark is printed on, so the sun behind it in `LogoSun` is
      not a hex value guessing at the logo. Duplicated from `tools/wordmark.py`,
      which is what actually writes `public/logo.svg` — change it there first,
-     then here. `app/page.tsx` writes the same colour inline as the shuffled
+     then here. `app/page.tsx` writes the same color inline as the shuffled
      card's tint, which it cannot read from here: a tint is data, and goes
-     through hue maths that parse it. */
+     through hue math that parses it. */
   --color-mark: #e0d4bf;
   /* The sun's rays in free study. On a schedule they are the mark's cream at
      20%, worked out in `LogoSun`; this sage replaces that when the switch is
@@ -43,15 +50,15 @@
   --font-mono: var(--font-label), ui-monospace, monospace;
 }
 
-/* The four colours of the strip in a scheduled session, one per box.
+/* The four colors of the strip in a scheduled session, one per box.
 
    red     box 1  wrong last time         back in 1 day
    orange  box 2  one right in a row      back in 2 days
    yellow  box 3  two right in a row      back in 3 days
    green   box 4  three or more in a row  back in 4 days
 
-   The colour is how far up the ladder a card has climbed, so green is earned
-   over days rather than given for one right answer. A version that coloured
+   The color is how far up the ladder a card has climbed, so green is earned
+   over days rather than given for one right answer. A version that colored
    by misses instead turned a card green on its first right answer, and a deck
    could go all green in a single pass. See `dashColor` in `Reviewer.tsx`.
 
@@ -118,8 +125,8 @@ body {
    actions have to fit in 287, and at 0.75rem of side padding they did not —
    they cleared the three-column case and wrapped in the two-column one. */
 /* The queue bar above a scheduled session's card. See `QueueBar` in
-   `Reviewer.tsx`. Two greys for what is still owed, darker for overdue; done
-   and new sit on the card colour, and not due on the paper behind a dashed
+   `Reviewer.tsx`. Two grays for what is still owed, darker for overdue; done
+   and new sit on the card color, and not due on the paper behind a dashed
    edge, since those cards are not part of today at all.
 
    Each segment grows by its count from a basis of its own label, so widths
@@ -259,6 +266,26 @@ html[data-mode="free"] .wordmark-schedule {
 
 .deck-actions > * + * {
   border-left: 1px solid var(--color-rule);
+}
+
+/* Focus on a deck card. The card is `overflow-hidden`, so a ring drawn outside
+   an action lost the sides that crossed the card's edge. The ring goes inside
+   each action instead, 4px in from its dividers, so all four sides show and it
+   never lands on a line that is already there. Links' own ring, drawn as a box
+   behind the text, is turned off here for the same reason. */
+.deck-actions > :focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: -4px;
+}
+
+.deck-actions > a:focus-visible::after {
+  display: none;
+}
+
+/* The card's main link, its name and blurb, has no ring: its dashed edge turns
+   the softer black instead, which says the whole card is what Enter opens. */
+.cut:has(> .deck-open:focus-visible) {
+  border-color: var(--color-focus);
 }
 
 .deck-grid {
@@ -483,5 +510,37 @@ html[data-mode="free"] .wordmark-schedule {
   * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+}
+
+/* The focus ring for everything that does not draw its own: links, mostly. In
+   the base layer so a component's `focus-visible:` utilities still win, and not
+   unlayered, which would beat every utility in the file. 1px of the focus color
+   with 3px of room, rather than the browser's thicker default ring drawn tight
+   against the text. Quieter than the usual 2px advice on purpose. */
+@layer base {
+  :focus-visible {
+    outline: 1px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  /* A text link gets 2px more room left and right than above and below: the
+     labels are spaced capitals, and a ring the same distance all round read as
+     tight at the sides. `outline-offset` is one number for every side, and
+     padding would move the link, so the ring is drawn as a box behind it
+     instead — positioned, which moves nothing. Links that draw their own ring
+     with `focus-visible:outline-*` utilities, like the logo, keep theirs. */
+  a:focus-visible:not([class*="focus-visible:outline"]) {
+    position: relative;
+    outline: none;
+  }
+
+  a:focus-visible:not([class*="focus-visible:outline"])::after {
+    content: "";
+    position: absolute;
+    inset: -3px -5px;
+    border: 1px solid var(--color-focus);
+    border-radius: 2px;
+    pointer-events: none;
   }
 }
