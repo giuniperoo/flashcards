@@ -196,6 +196,9 @@ body {
   font-size: 0.625rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  /* A segment is one line, whatever room it is given: "Free study" broken over
+     two lines is not a segment of a bar any more. */
+  white-space: nowrap;
   color: var(--color-muted);
   background: var(--color-card);
 }

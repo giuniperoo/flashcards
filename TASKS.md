@@ -470,12 +470,15 @@ undecided as a task of its own.)*
   is filled in the mark's cream, or the free study sage, so the bars, the mark in the
   header and the sun behind the page say the mode together. The interval's chosen
   segment is that same cream, since the bar only shows on a schedule
-- **The footer is two groups**: what the page *shows* on the left, "Add your own deck"
-  and "Show built-in decks", and what the app *is* on the right, the mode and its
-  setting — `StudyMode` in `components/DeckVisibility.tsx`. One line past 1300px, where
-  the shell widens past the 3xl column; below that the right group wraps to a line of
-  its own, still right-aligned. Trimming the labels to hold one line at 704px was tried
-  and taken back out: the words are worth more than the line
+- **The footer is two sides that stay two sides**: what the page *shows* on the left,
+  "Add your own deck" and "Show built-in decks", and what the app *is* on the right, the
+  mode and its setting — `StudyMode` in `components/DeckVisibility.tsx`. Neither wraps
+  under the other. As the room runs out each side stacks within itself, the right first
+  — the mode above its interval, around 1320px — and then the left, the button above
+  "Show built-in decks", around 1100px. The order comes from the shrink weights, 999 on
+  the right against 1 on the left, not from breakpoints. Below 640px there are no two
+  sides to keep and the groups sit one above the other. Trimming the labels to hold one
+  line further down was tried and taken back out: the words are worth more than the line
 - **The bar is a radio group.** Tab reaches it once, the arrow keys move between the
   choices and save as they go, and a screen reader hears "1 hour" rather than "1h". Each
   segment is the queue bar's 22px, with a box behind it taking the press area to 44px,

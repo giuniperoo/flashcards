@@ -61,7 +61,13 @@ export function StudyMode() {
   const [prefs, update] = usePrefs();
 
   return (
-    <span className="ml-auto flex flex-wrap items-center justify-end gap-x-6 gap-y-2">
+    <span
+      /* Shrinks far sooner than the group on the left — 999 to its 1 — so the
+         mode and its interval stack before "Add your own deck" gives up its
+         line. Below its own content width the two sit one above the other,
+         still against the right edge. */
+      className="ml-auto flex min-w-0 shrink-[999] flex-wrap items-center justify-end gap-x-6 gap-y-2"
+    >
       <Mode
         scheduled={prefs.scheduled}
         onChange={(scheduled) => update({ ...prefs, scheduled })}

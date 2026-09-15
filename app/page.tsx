@@ -35,10 +35,15 @@ export default function Home() {
 
       <CustomDeckList />
 
-      {/* What the page holds on the left — adding a deck, and which of the
-          built-in ones it shows — and what the app is on the right. */}
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:mt-25">
-        <span className="flex flex-wrap items-center gap-x-6 gap-y-2">
+      {/* Two sides that stay two sides: what the page holds on the left —
+          adding a deck, and which of the built-in ones it shows — and what the
+          app is on the right. Neither ever wraps under the other. When the row
+          runs out of room each side stacks within itself instead, the right
+          first (mode above its interval), then the left (the button above
+          "Show built-in decks"); see the shrink weights on each. Below 640px
+          there are no two sides to keep: the groups sit one above the other. */}
+      <div className="mt-10 flex flex-col gap-y-2 sm:mt-25 sm:flex-row sm:items-start sm:justify-between sm:gap-x-6">
+        <span className="flex min-w-0 shrink flex-wrap items-center gap-x-6 gap-y-2">
           <Link
             href="/new"
             className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink"
