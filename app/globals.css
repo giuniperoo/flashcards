@@ -164,6 +164,55 @@ body {
   border-left: 1px solid var(--color-rule);
 }
 
+/* The first interval at the foot of the index, drawn like the queue bar: a
+   22px bar of segments with the chosen one filled. No overflow clipping, so the
+   box behind each segment can stretch its press area to 44px, and so the focus
+   ring, drawn inside the segment, is never cut off. */
+.interval-bar {
+  display: inline-flex;
+  border: 1px solid var(--color-rule);
+  border-radius: 2px;
+}
+
+.interval-bar > label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 1.375rem;
+  padding: 0 0.5rem;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  background: var(--color-card);
+}
+
+.interval-bar > label + label {
+  border-left: 1px solid var(--color-rule);
+}
+
+.interval-bar > label::after {
+  content: "";
+  position: absolute;
+  inset: -11px 0;
+}
+
+.interval-bar > label:hover {
+  color: var(--color-ink);
+}
+
+.interval-bar > label.chosen {
+  background: var(--color-queue-today);
+  color: var(--color-ink);
+}
+
+.interval-bar > label:has(input:focus-visible) {
+  outline: 1px solid var(--color-focus);
+  outline-offset: -3px;
+}
+
 /* The hidden copy `QueueBar` measures to decide whether the bar fits in the
    title row: its natural width, out of the way and out of the layout. */
 .queue-bar.queue-measure {

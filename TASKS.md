@@ -460,10 +460,19 @@ undecided as a task of its own.)*
 
 **As built.**
 
-- **The setting** sits at the foot of the index between "Hide built-in decks" and the
-  mode switch, only on a schedule: "Red cards back in [1 day]", a native select of 1,
-  2, 4 or 8 hours or a day. It names the current value, unlike the switch beside it,
-  because it is a choice among five rather than a way out
+- **The setting** sits at the foot of the index, under the mode switch and only on a
+  schedule: "Retry misses in", then a bar of 1h, 2h, 4h, 8h and 1 day with the current
+  one filled. It names the current value, unlike the switch above it, because it is a
+  choice among five rather than a way out. It was a select first, and a bar shows every
+  choice without opening anything
+- **The bar is a radio group.** Tab reaches it once, the arrow keys move between the
+  choices and save as they go, and a screen reader hears "1 hour" rather than "1h". Each
+  segment is the queue bar's 22px, with a box behind it taking the press area to 44px,
+  and the focus ring is drawn inside the segment so the bar cannot clip it
+- **The footer is two lines now**, the switches and then the setting, right-aligned. All
+  of it on one line is wider than the 3xl column the index sits in, and a row left to
+  wrap on its own put a separating bullet at the start of a line, separating nothing.
+  At phone width the switches stack and the bullets go, for the same reason
 - **Stored in `prefs:reviewer`, not `prefs:schedule`.** The plan predates that key,
   which task 9 added for what the reviewer reads, and a fifth key for one number was
   not worth it. `firstInterval` arrived inside its version 1, reading as 24 when absent
@@ -491,8 +500,8 @@ undecided as a task of its own.)*
 due exactly 60 minutes later, and the done panel read "Done for now … ACID comes back at
 3:57 PM". Reopening straight away dealt nothing, "Nothing due right now". With the time
 moved into the past, reopening dealt it again, and the index counted it. The setting is
-not on the page in free study. At 800px wide the footer's controls wrap to a line of
-their own under "Add your own deck".
+not on the page in free study. The bar was checked at 1280px and at phone width, by
+press and by keyboard: clicking a segment and arrowing between them both save.
 
 ---
 
