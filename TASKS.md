@@ -32,7 +32,7 @@ is due today, and it ends.
 | 6 — The cross-deck due queue | merged |
 | 7 — A first interval shorter than a day | not started |
 | 8 — An empty box when a card comes back | merged |
-| 9 — Say what the colors mean, once | built, in review |
+| 9 — Say what the colors mean, once | merged |
 | 10 — The queue bar | merged |
 | 11 — Docs | not started |
 
@@ -488,7 +488,7 @@ a schedule, because the whole-deck reviewer is the one being kept as it was.
 
 ### Task 9 — Say what the colors mean, once
 
-*Built, in review, as a key beside the strip rather than a panel. See "As built" below.*
+*Merged, in #30, as a key beside the strip rather than a panel. See "As built" below.*
 
 **Why.** The strip is four colors and a gray and nothing on screen says what any of
 them mean. A reader who answers a new card correctly, sees orange, and expects green
