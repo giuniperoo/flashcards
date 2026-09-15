@@ -327,6 +327,12 @@ export default function Reviewer({
     setDraft(scheduled && !typedRef.current.has(key) ? "" : stored);
     setFlipped(false);
     setError(false);
+    // The same textarea serves every card, and a scroll position left over from
+    // the last card's answer would open this one part way through.
+    if (inputRef.current) {
+      inputRef.current.scrollLeft = 0;
+      inputRef.current.scrollTop = 0;
+    }
   }, [key, ready, scheduled]);
 
   const commitDraft = useCallback(
@@ -588,7 +594,11 @@ export default function Reviewer({
               // flex-1 sets a 0% basis, which overrides the height the resize
               // handle writes; an auto basis lets a dragged height stick. The
               // card then grows with it, which is a shift the reader asked for.
-              className="mt-5 w-full shrink-0 grow resize-y rounded-sm border border-rule bg-transparent p-3 text-base leading-relaxed outline-none placeholder:text-muted focus:border-ink sm:text-[15px]"
+              // `overflow-x-hidden` and `wrap-anywhere`: the box grows down,
+              // never sideways. WebKit showed a horizontal scrollbar here, the
+              // placeholder scrolled part way off to the left, which no answer
+              // needs — a long unbroken token wraps instead.
+              className="mt-5 w-full shrink-0 grow resize-y overflow-x-hidden rounded-sm border border-rule bg-transparent p-3 text-base leading-relaxed wrap-anywhere outline-none placeholder:text-muted focus:border-ink sm:text-[15px]"
             />
             {error && (
               <p id="recall-error" role="alert" className="mt-2 text-sm text-error">
