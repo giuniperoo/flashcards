@@ -481,6 +481,12 @@ undecided as a task of its own.)*
   nor wraps. Below 640px there are no two sides to keep and the groups sit one above the
   other. Trimming the labels to hold one
   line further down was tried and taken back out: the words are worth more than the line
+- **Stacked, the labels line up.** "Show built-in decks" carries the button's own text
+  inset — its 1px border and 1rem of padding — so that under "Add your own deck" the two
+  start on the same line, with the button's border still on the column's edge. Pulling
+  the button out by its padding instead would have hung it off that edge, which the
+  headline, the paragraph and the deck grid all sit on. The inset comes off again from
+  1024px up, where the two are side by side and there is nothing to line up with
 - **The bar is a radio group.** Tab reaches it once, the arrow keys move between the
   choices and save as they go, and a screen reader hears "1 hour" rather than "1h". Each
   segment is the queue bar's 22px, with a box behind it taking the press area to 44px,

@@ -20,6 +20,14 @@ import { usePrefs } from "@/lib/usePrefs";
  * one; what the app *is* — the mode, and the one setting it has — is `StudyMode`
  * at the other end of the row.
  */
+/* The two plain controls on the left carry the button's own text inset — its
+   1px border and 1rem of padding — so that when the group stacks, their labels
+   start on the same line as "Add your own deck" rather than 17px to its left.
+   Side by side from 1024px up there is nothing to line up with, and the inset
+   comes off so the gap between them is the gap the row sets. */
+const PLAIN =
+  "label inline-flex min-h-11 items-center border border-transparent px-4 text-muted hover:text-ink lg:border-0 lg:px-0";
+
 export default function DeckVisibility({ slugs }: { slugs: string[] }) {
   const [prefs, update] = usePrefs();
 
@@ -35,7 +43,7 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
         <button
           type="button"
           onClick={() => update({ ...prefs, hiddenDecks: [] })}
-          className="label inline-flex min-h-11 items-center text-muted hover:text-ink"
+          className={PLAIN}
         >
           {`Bring back ${hidden} deck${hidden === 1 ? "" : "s"}`}
         </button>
@@ -43,7 +51,7 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
       <button
         type="button"
         onClick={() => update({ ...prefs, showBuiltIns: !prefs.showBuiltIns })}
-        className="label inline-flex min-h-11 items-center text-muted hover:text-ink"
+        className={PLAIN}
       >
         {prefs.showBuiltIns ? "Hide built-in decks" : "Show built-in decks"}
       </button>
@@ -172,7 +180,7 @@ function FirstInterval({ disabled }: { disabled: boolean }) {
       aria-labelledby={`${name}-label`}
       className="inline-flex min-h-11 items-center gap-2"
     >
-      <span id={`${name}-label`} className="label text-muted">
+      <span id={`${name}-label`} className="label whitespace-nowrap text-muted">
         Retry misses in
       </span>
       <span className="segment-bar">
