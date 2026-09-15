@@ -73,7 +73,7 @@ What does a Service do? | A stable IP in front of pods.`}</pre>
           </li>
           <li>
             <strong className="font-medium text-ink">tint</strong> takes a
-            six-digit hex colour for the corner triangle. Leave it out and one
+            six-digit hex color for the corner triangle. Leave it out and one
             is assigned from the unused pastels.
           </li>
           <li>

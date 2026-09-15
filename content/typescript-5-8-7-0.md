@@ -16,7 +16,7 @@ A: No - it is a port, not a redesign. The syntax, type system and checking seman
 
 id: c5641be1-503d-4cda-b1df-cd6213ada69e
 Q: How does TypeScript 7 use multiple cores?
-A: New --checkers flag (default 4) runs type-checking across parallel workers and --builders parallelises project-reference builds; --singleThreaded turns parallelism off.
+A: New --checkers flag (default 4) runs type-checking across parallel workers and --builders parallelizes project-reference builds; --singleThreaded turns parallelism off.
 
 id: 3ce72215-5be1-46f8-9319-49ceb655f045
 Q: What happened to tsc's watch mode and editor support in 7.0?
@@ -48,11 +48,11 @@ A: target es5 and downlevelIteration, moduleResolution node10/classic, module am
 
 id: d9bd7254-8f89-4cc3-82e0-84651025c365
 Q: How did TypeScript 7 change checking of plain JavaScript files?
-A: JS support was tightened to match TS rules: values can no longer stand in for types, Closure-style annotations are no longer recognised, and postfix ! is unsupported.
+A: JS support was tightened to match TS rules: values can no longer stand in for types, Closure-style annotations are no longer recognized, and postfix ! is unsupported.
 
 id: 5299219e-b8dc-4ba5-888a-bfbd8d32de2e
 Q: Can Vue, Svelte, Angular, Astro or MDX use TypeScript 7 today?
-A: Not yet. Embedded-language tooling depends on the compiler API, which is only stabilised in 7.1 - until then those frameworks stay on the 6.0 toolchain.
+A: Not yet. Embedded-language tooling depends on the compiler API, which is only stabilized in 7.1 - until then those frameworks stay on the 6.0 toolchain.
 
 id: a4727286-ba89-414a-8c17-aac9ce14d717
 Q: What was tsgo, and what does TypeScript 7 ship as now?
@@ -68,19 +68,19 @@ A: Per the published iteration plan: beta 9 Sep 2026, RC 20 Oct, stable 10 Nov 2
 
 id: 42b50981-9920-4870-ba9e-fb1b68218d10
 Q: Why does the missing programmatic API in 7.0 matter?
-A: Everything built on the old JS compiler API - typed ESLint rules, ts-jest, bundler plugins, framework language tooling - cannot target the Go compiler until 7.1 stabilises that API.
+A: Everything built on the old JS compiler API - typed ESLint rules, ts-jest, bundler plugins, framework language tooling - cannot target the Go compiler until 7.1 stabilizes that API.
 
 id: cadcffef-ab0d-4672-93b4-11d139a00262
-Q: What release cadence has the team signalled after 7.0?
+Q: What release cadence has the team signaled after 7.0?
 A: A return to the pre-7.0 rhythm: featureful releases roughly every 3-4 months.
 
 id: d805fc6e-8fdb-45a2-b5ca-f42115292ecf
 Q: What is import defer, added in 5.9?
-A: Syntax like import defer * as ns from "./m" loads a module but delays evaluating it until one of its exports is actually touched - a startup-cost optimisation. 5.9 added the type-checking for it.
+A: Syntax like import defer * as ns from "./m" loads a module but delays evaluating it until one of its exports is actually touched - a startup-cost optimization. 5.9 added the type-checking for it.
 
 id: 007ee4bd-0a15-4966-af4b-3afac5e73e63
 Q: Why did 5.9 add --module node20 when nodenext exists?
-A: nodenext floats: its behaviour shifts as Node evolves. node20 pins the semantics of Node 20 so builds stay reproducible, exactly as node18 did in 5.8.
+A: nodenext floats: its behavior shifts as Node evolves. node20 pins the semantics of Node 20 so builds stay reproducible, exactly as node18 did in 5.8.
 
 id: c2e93e14-6681-4bfa-a073-3bbaf2aef407
 Q: What else did 5.9 bring to everyday DX?

@@ -11,7 +11,7 @@ import type { Breakdown } from "@/lib/queue";
  * Segments run in the order the queue deals — done, overdue, due today, new —
  * then the cards not due. Each takes a share of the width by its count, but
  * never less than its label, and a segment with nothing in it is left out. The
- * colours are neutral on purpose: the strip below already uses colour for
+ * colors are neutral on purpose: the strip below already uses color for
  * boxes, and a second meaning for the same hues would muddle both.
  *
  * **Where it goes, and how it reads.** Three places, tried in order, each only

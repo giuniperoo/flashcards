@@ -1,15 +1,15 @@
 /**
- * Deck colours.
+ * Deck colors.
  *
  * A tint is the pastel on the card corner; an ink is the darker shade at the
  * same hue used for text and progress bars. Built-in decks carry both in their
  * front matter, taken from the original print spec. Decks you add get one
  * picked here.
  *
- * Colours are chosen by *spread*, not from a list: the new hue is the one
+ * Colors are chosen by *spread*, not from a list: the new hue is the one
  * furthest from every hue already on screen. A fixed palette runs out and then
  * repeats, and indexing it by deck count — which is what this used to do —
- * reassigns colours whenever a deck is deleted.
+ * reassigns colors whenever a deck is deleted.
  */
 
 /** Pastels sit in a narrow band; only the hue is worth varying. */
@@ -80,7 +80,7 @@ export function hslToHex(h: number, s: number, l: number): string {
 }
 
 /**
- * The reading colour for a tint, at the tint's own hue.
+ * The reading color for a tint, at the tint's own hue.
  *
  * Replaces a flat multiply of the RGB channels, which desaturates as it
  * darkens and produced inks noticeably duller than the hand-picked ones.
@@ -93,7 +93,7 @@ export function shadeForTint(tint: string): string {
 /**
  * A tint and ink for a new deck, as far as possible from the ones in use.
  *
- * Sorts the hues already taken, finds the widest gap between neighbours around
+ * Sorts the hues already taken, finds the widest gap between neighbors around
  * the wheel, and lands in the middle of it. Deterministic, so two decks added
  * in a row cannot collide the way random picks can.
  */
@@ -101,7 +101,7 @@ export function nextTint(taken: string[]): { tint: string; ink: string } {
   const hues = taken
     .filter((t) => /^#[0-9a-f]{6}$/i.test(t))
     .map((t) => hexToHsl(t))
-    // A grey has no meaningful hue and would distort the gaps.
+    // A gray has no meaningful hue and would distort the gaps.
     .filter((c) => c.s > 5)
     .map((c) => c.h)
     .sort((a, b) => a - b);

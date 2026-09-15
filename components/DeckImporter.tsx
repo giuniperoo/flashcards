@@ -29,7 +29,7 @@ export default function DeckImporter({
   /** Built-in deck slugs, read from `content/` on the server so an import
       cannot claim a slug a committed deck already owns. */
   reservedSlugs: string[];
-  /** Built-in deck tints, so a new deck is given a colour unlike them. */
+  /** Built-in deck tints, so a new deck is given a color unlike them. */
   reservedTints: string[];
 }) {
   const router = useRouter();

@@ -19,15 +19,15 @@ import { usePrefs } from "@/lib/usePrefs";
  * stacking context of its own: the canvas goes behind everything in the shell
  * and still in front of the body's paper.
  *
- * Its colour says which app you are in. On a schedule the rays are the mark's
+ * Its color says which app you are in. On a schedule the rays are the mark's
  * own cream; in free study they are a faint sage. The index is the one page the
  * sun is on, and it is also the one page where the mode is chosen, so this is
  * where the reader needs to be able to tell — the schedule switch's label names
  * where it takes you rather than where you are.
  */
 
-/** How far from the paper towards the mark's cream the scheduled rays are
-    taken. The whole figure is one flat colour, so this is the only thing
+/** How far from the paper toward the mark's cream the scheduled rays are
+    taken. The whole figure is one flat color, so this is the only thing
     setting how loud the sun is, and it is meant to be barely there. */
 const TINT = 0.2;
 
@@ -50,7 +50,7 @@ void main() { gl_Position = vec4(aPos, 0.0, 1.0); }
 `;
 
 /*
- * One sector per ray, the ray centred in it and a fixed share of it wide, so
+ * One sector per ray, the ray centered in it and a fixed share of it wide, so
  * every ray is the same and they are evenly spaced.
  *
  * The version before this summed three harmonics (23, 37 and 53) and cut the
@@ -59,16 +59,16 @@ void main() { gl_Position = vec4(aPos, 0.0, 1.0); }
  * fainter tone as well. A copy of it is in the scratchpad as
  * `LogoSun.three-tone-uneven.tsx`.
  *
- * `atan` grows anticlockwise, so adding time turns the pattern clockwise.
+ * `atan` grows counterclockwise, so adding time turns the pattern clockwise.
  */
 const FRAG = `
 precision mediump float;
 
-uniform vec2 uSun;     // mark centre, device pixels, y up from the bottom
+uniform vec2 uSun;     // mark center, device pixels, y up from the bottom
 uniform float uTime;   // seconds; held at 0 when motion is reduced
 uniform vec2 uHalf;    // half the mark's frame, already padded
 uniform float uRound;  // that frame's corner radius, padded to match
-uniform vec3 uRay;     // the rays' colour, already mixed; see TINT
+uniform vec3 uRay;     // the rays' color, already mixed; see TINT
 
 const float TAU = 6.2831853;
 
@@ -82,7 +82,7 @@ void main() {
   float r = length(d);
   float a = atan(d.y, d.x) + uTime * ${SPEED.toFixed(3)};
 
-  // Position within this ray's sector, and how far that is off its centre.
+  // Position within this ray's sector, and how far that is off its center.
   float off = abs(fract(a * RAYS / TAU) - 0.5);
 
   // An edge that hard would crawl with jaggies as it turns, so it is softened
@@ -130,7 +130,7 @@ export default function LogoSun() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [prefs] = usePrefs();
 
-  /* The mode is read by the draw loop through a ref, so switching it recolours
+  /* The mode is read by the draw loop through a ref, so switching it recolors
      the next frame without tearing down the GL context — and asks for that
      frame, because with reduced motion there is no loop running to get one. */
   const scheduledRef = useRef(true);
@@ -208,7 +208,7 @@ export default function LogoSun() {
     // sun turn sage.
     scheduledRef.current = loadPrefs().scheduled;
 
-    // Device pixels are capped: this is a wash of colour behind the page, and
+    // Device pixels are capped: this is a wash of color behind the page, and
     // a retina phone gains nothing from four times the fragments.
     const ratio = () => Math.min(window.devicePixelRatio || 1, 1.5);
 

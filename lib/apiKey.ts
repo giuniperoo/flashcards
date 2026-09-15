@@ -2,7 +2,7 @@
  * The user's own Anthropic API key, for generating decks from the browser.
  *
  * Deliberately its own storage key rather than a field on the deck store.
- * `decks:custom` is the thing an export button serialises (see TASKS.md task
+ * `decks:custom` is the thing an export button serializes (see TASKS.md task
  * 4), and a credential that rides along inside a deck export is exactly the
  * leak you don't find until someone has already sent the file to a friend.
  *

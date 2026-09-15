@@ -17,7 +17,7 @@ export type ParseResult = {
 const QUESTION = /^(?:q|question)\s*[:.)-]\s*(.*)$/i;
 const ANSWER = /^(?:a|answer)\s*[:.)-]\s*(.*)$/i;
 const TITLE = /^#\s+(.*)$/;
-const META = /^(tint|colour|color|ink|blurb|order)\s*:\s*(.*)$/i;
+const META = /^(tint|color|ink|blurb|order)\s*:\s*(.*)$/i;
 const CARD_ID = /^id\s*[:.)-]\s*(.+)$/i;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HEADING = /^##+\s+(.*)$/;
@@ -27,7 +27,7 @@ function tidy(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
-function normaliseTint(value: string): string | null {
+function normalizeTint(value: string): string | null {
   const hex = value.trim().replace(/^#?/, "#");
   return /^#[0-9a-f]{6}$/i.test(hex) ? hex.toUpperCase() : null;
 }
@@ -134,15 +134,15 @@ export function parseDeck(input: string): ParseResult {
         const parsed = Number.parseInt(meta[2].trim(), 10);
         if (Number.isFinite(parsed)) result.order = parsed;
       } else if (bareKey === "ink") {
-        result.ink = normaliseTint(meta[2]);
+        result.ink = normalizeTint(meta[2]);
       } else {
-        const tint = normaliseTint(meta[2]);
+        const tint = normalizeTint(meta[2]);
         if (tint) {
           result.tint = tint;
         } else {
           result.warnings.push({
             line: lineNo,
-            message: `Not a six-digit hex colour, so a tint was picked for you: "${meta[2]}"`,
+            message: `Not a six-digit hex color, so a tint was picked for you: "${meta[2]}"`,
           });
         }
       }

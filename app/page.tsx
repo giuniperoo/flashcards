@@ -23,7 +23,7 @@ export default function Home() {
           name: "Everything, shuffled",
           blurb: `All ${decks.length} decks interleaved — the honest test`,
           // The mark's own cream ground: the card that is every deck wears
-          // the logo's colour rather than a hue that would read as a deck.
+          // the logo's color rather than a hue that would read as a deck.
           tint: "#e0d4bf",
           // Darker than `shadeForTint` gives this cream, which is 4.2:1 on the
           // card and too faint for the due count in small capitals. This is

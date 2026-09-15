@@ -83,7 +83,7 @@ Q: What does Kafka give you for consumer-side retries?
 A: Nothing built in, unlike SQS. The pattern is a retry topic consumed separately, then a dead letter queue after N failures - a fair reason to pick SQS for simple worker queues.
 
 id: 6e26d304-6252-4cb5-b713-e5e8f6e1ea39
-Q: Rough single-broker capacity for back-of-envelope maths?
+Q: Rough single-broker capacity for back-of-envelope math?
 A: Very hand-wavy, but ~1TB storage and up to ~1M messages/sec on good hardware, with messages under ~1MB. Below that, scaling is not the conversation.
 
 id: 4c7af18c-4472-466b-aad2-92d49311db66
@@ -116,7 +116,7 @@ A: Brokers keep recent segments on local disk and offload older ones to object s
 
 id: db5ee616-49de-45f0-af4d-07993250f9f4
 Q: Two producer-side performance levers?
-A: Batching (group records per send to amortise network overhead) and compression (GZIP, Snappy, LZ4). Both trade a little latency for a lot of throughput.
+A: Batching (group records per send to amortize network overhead) and compression (GZIP, Snappy, LZ4). Both trade a little latency for a lot of throughput.
 
 id: 67758d0f-5870-4df6-b488-0094605ddd6a
 Q: When do you reach for Kafka as a queue in an interview?

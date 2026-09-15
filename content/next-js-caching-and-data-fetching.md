@@ -40,7 +40,7 @@ A: It switches the app to the explicit model: nothing is cached unless you mark 
 
 id: abb3bd9a-58f0-4b11-9999-5ae0bc6c829e
 Q: revalidatePath vs revalidateTag?
-A: revalidatePath busts everything for a route; tags bust just the entries you labelled, across every route.
+A: revalidatePath busts everything for a route; tags bust just the entries you labeled, across every route.
 
 id: ab6622d9-23da-4b32-aba1-cb9f101c8893
 Q: How do you handle on-demand invalidation from a CMS?
@@ -95,5 +95,5 @@ Q: How does the CDN relate to these caches?
 A: It sits in front of them, caching full responses by URL; a stale CDN entry survives a revalidateTag.
 
 id: 85ff2982-2790-4ae7-8fe9-03481770172d
-Q: Interview one-liner: how would you explain the caching model to a sceptic?
+Q: Interview one-liner: how would you explain the caching model to a skeptic?
 A: It moved from four implicit layers you fought against to one explicit directive you opt into, per unit of work.

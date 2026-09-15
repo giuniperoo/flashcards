@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 /** Everything a card shows. Deliberately not a `Deck`: the index renders a
     dozen of these and has no use for the cards themselves, which are the bulk
-    of a deck and would otherwise be serialised into the page for nothing. */
+    of a deck and would otherwise be serialized into the page for nothing. */
 export type DeckSummary = {
   slug: string;
   name: string;

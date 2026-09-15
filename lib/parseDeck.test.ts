@@ -73,7 +73,7 @@ A: Yes.`,
 
   ["bad tint warns but still parses",
 `# Deck
-tint: not-a-colour
+tint: not-a-color
 Q: One?
 A: Two.`,
    r => r.cards.length === 1 && r.tint === null && r.warnings.length === 1],
@@ -191,7 +191,7 @@ const textCases: Array<[string, () => boolean]> = [
   ["export leaves ink out when the tint already gives it", () => {
     const derived = shadeForTint(EXPORTED.tint);
     const text = toDeckText({ ...EXPORTED, ink: derived });
-    // No line to read, and the reader lands on the same colour anyway.
+    // No line to read, and the reader lands on the same color anyway.
     return !/^ink:/m.test(text)
       && (parseDeck(text).ink ?? shadeForTint(parseDeck(text).tint!)) === derived;
   }],

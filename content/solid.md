@@ -18,7 +18,7 @@ A: One component that fetches, transforms, formats and renders, so both an API c
 
 id: 793305cf-5694-4aa1-99ef-0cdb5425c475
 Q: State the Open-Closed Principle.
-A: Entities should be open for extension but closed for modification: you add behaviour by adding code, not by editing code that already works and is already tested. Polymorphism and composition are the usual mechanisms.
+A: Entities should be open for extension but closed for modification: you add behavior by adding code, not by editing code that already works and is already tested. Polymorphism and composition are the usual mechanisms.
 
 id: 1b9229a1-0681-4758-802a-65a6e7c63718
 Q: How would you apply OCP to a switch statement over payment providers that grows every quarter?
@@ -26,7 +26,7 @@ A: Replace the switch with a registry - Record<Provider, Handler> or a strategy 
 
 id: a24980b5-d554-474b-b351-a62bc5b5d173
 Q: State the Liskov Substitution Principle.
-A: A subtype must be usable anywhere its supertype is expected without breaking the program's correctness. Subtypes may weaken preconditions and strengthen postconditions, never the other way round.
+A: A subtype must be usable anywhere its supertype is expected without breaking the program's correctness. Subtypes may weaken preconditions and strengthen postconditions, never the other way around.
 
 id: 0dd2941c-e9b5-4ff0-b1e4-5820349205f4
 Q: Give a classic LSP violation and explain what breaks.

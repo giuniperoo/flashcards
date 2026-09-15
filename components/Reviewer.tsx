@@ -28,7 +28,7 @@ import { wantsSchedule, withoutSchedule } from "@/lib/studyMode";
  *
  * Then the rows are chosen before the columns, and chosen to fill the last
  * one. `count / rows` rounded up is the column count for a given number of
- * rows, so walking the row count upwards from the fewest that fit and
+ * rows, so walking the row count upward from the fewest that fit and
  * keeping the fullest last row lands on a row count that divides the deck
  * where one exists nearby: 264 cards capped at 40 gives 7 rows of 38 with a
  * stub of 36, but 8 rows of 33 comes out exactly even, so 33 wins. On a
@@ -84,7 +84,7 @@ function verdictOf(record: CardProgress | undefined): Grade | undefined {
 }
 
 /**
- * The four colours a scheduled session paints with, box 1 to box 4. Written
+ * The four colors a scheduled session paints with, box 1 to box 4. Written
  * out rather than built from the number, so the names appear in the source.
  */
 const BOX_COLORS = [
@@ -95,13 +95,13 @@ const BOX_COLORS = [
 ];
 
 /**
- * A dash's colour.
+ * A dash's color.
  *
  * Outside a scheduled session it is the last answer: green for a card last
  * answered right, red for one last answered wrong. It reads `grade` rather than
  * the box, because free study no longer moves the box.
  *
- * Inside one it is the box, so the colour is how far up the ladder a card has
+ * Inside one it is the box, so the color is how far up the ladder a card has
  * climbed: red in box 1, then orange, yellow, and green at the top. A new card
  * answered right goes orange, not green, because green means three right in a
  * row, spread over days.
@@ -308,7 +308,7 @@ export default function Reviewer({
 
      On a schedule a card starts with an empty box, whatever you wrote last
      time. A card coming back with your old answer already in it hands you the
-     answer to read, and recognising an answer is exactly what this app is
+     answer to read, and recognizing an answer is exactly what this app is
      built to stop passing for knowing it. With the switch off, nothing here
      applies and the box opens with your draft as it always has.
 
@@ -511,7 +511,7 @@ export default function Reviewer({
     <div className="fit">
       {counts && !session?.allNew && <QueueBar counts={counts} />}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        {/* Flex-centred rather than `align-middle`, which centres on the
+        {/* Flex-centered rather than `align-middle`, which centers on the
             lowercase x-height. This label is all capitals, so the swatch sat
             below the middle of the letters beside it. */}
         <span className="label inline-flex items-center text-muted">
@@ -702,7 +702,7 @@ export default function Reviewer({
  *
  * `columnsFor` picks the count; see it for why rows come first.
  *
- * Rows are a fixed 7px with the dashes centred in them, so a row is not resized
+ * Rows are a fixed 7px with the dashes centered in them, so a row is not resized
  * by the taller current-card marker, and the row gap is wider than the column
  * gap — rows read as rows.
  */

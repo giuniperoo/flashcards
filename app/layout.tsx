@@ -61,7 +61,7 @@ export default function RootLayout({
               className="inline-flex cursor-pointer rounded-sm opacity-90 transition-opacity select-none hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink"
             >
               {/*
-                next/image has nothing to optimise in a 4KB vector already at
+                next/image has nothing to optimize in a 4KB vector already at
                 its final size, and would need dangerouslyAllowSVG turned on to
                 serve it at all. 132x38 puts the mark's letters at about 9.5px
                 against the 11px label opposite; smaller reads weedy beside it.
