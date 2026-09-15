@@ -86,7 +86,7 @@ export default function DeckImporter({
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
         >
           Choose a file
         </button>
@@ -96,7 +96,7 @@ export default function DeckImporter({
             setText(EXAMPLE_DECK);
             setFileName(null);
           }}
-          className="min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
         >
           Load the example
         </button>

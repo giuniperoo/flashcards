@@ -548,7 +548,7 @@ export default function Reviewer({
             <button
               type="button"
               onClick={shuffle}
-              className="label min-h-9 rounded-sm border border-rule px-3 text-muted hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              className="label min-h-9 rounded-sm border border-rule px-3 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
             >
               Shuffle
             </button>
@@ -636,14 +636,14 @@ export default function Reviewer({
               <button
                 type="button"
                 onClick={() => grade("held")}
-                className="min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
               >
                 I had it
               </button>
               <button
                 type="button"
                 onClick={() => grade("review")}
-                className="min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
               >
                 Needs review
               </button>
@@ -657,14 +657,14 @@ export default function Reviewer({
           type="button"
           onClick={() => move(-1)}
           aria-label="Previous card"
-          className="min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
         >
           ←
         </button>
         <button
           type="button"
           onClick={flip}
-          className="min-h-11 flex-1 rounded-sm border border-ink px-3 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 flex-1 rounded-sm border border-ink px-3 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
         >
           {flipped ? "Turn back" : "Turn card over"}
         </button>
@@ -672,7 +672,7 @@ export default function Reviewer({
           type="button"
           onClick={() => move(1)}
           aria-label="Next card"
-          className="min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
         >
           →
         </button>
@@ -799,7 +799,7 @@ function AllDecks() {
   return (
     <Link
       href="/"
-      className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+      className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
     >
       All decks
     </Link>
@@ -863,7 +863,7 @@ function SessionDone({
         <button
           type="button"
           onClick={onStudyDeck}
-          className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
         >
           {deck ? "Study the whole deck" : "Study every card"}
         </button>
@@ -905,7 +905,7 @@ function NothingDue({
         <button
           type="button"
           onClick={onStudyAnyway}
-          className="min-h-11 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="min-h-11 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
         >
           Study anyway
         </button>

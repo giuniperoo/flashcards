@@ -717,6 +717,36 @@ reader, not only someone using a screen reader: the keyboard grading bug fixed i
 
 ---
 
+### Task 14 — The whole app from the keyboard
+
+*Not started.*
+
+**Why.** Tab used to cycle through everything you could press on a page, and it no
+longer does. Nothing has been checked since; it was noticed on September 15, 2026.
+Everything this app does should be reachable and operable with the keyboard alone.
+
+**Do**
+
+- Find what broke Tab before changing anything, and say which commit did it. Suspects
+  worth checking first: the global keydown handler in `Reviewer.tsx`, the `inert`
+  turned-away face, and focus styles that make a focused element look unfocused
+- Walk every route with Tab, Shift+Tab, Enter, Space and Escape: the index (deck cards,
+  Hide and Delete, the switch, "Add your own deck"), `/new` (the key, the file picker,
+  the paste box, generating a deck), a deck in free study and on a schedule (the answer
+  box, turning over, grading, the arrows, the "?" key and its close button, the done and
+  nothing-due panels), `/study/all`, and print
+- Focus order follows the page, every focusable element shows a visible focus ring, and
+  focus never lands on something hidden or off screen. The rings are 1px since
+  September 15, 2026, a softer black on controls and the Gigs blue on links, thinner
+  than the usual 2px advice by choice; check they still read on every surface
+- After an action that removes the focused element — grading a card, closing the color
+  key, deleting a deck — focus moves somewhere sensible rather than back to the body
+
+**Done when** a session can be started from the index, a deck studied to its done panel,
+and a deck imported, all without touching the mouse, in Chromium and in Safari.
+
+---
+
 ## Not now
 
 **Progress export/import, or any control for saving progress.** Considered and
