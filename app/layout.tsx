@@ -58,7 +58,7 @@ export default function RootLayout({
           <header className="no-print mb-8 flex items-center justify-between border-b border-rule pb-4 sm:mb-10">
             <Link
               href="/"
-              className="inline-flex cursor-pointer rounded-sm opacity-90 transition-opacity select-none hover:opacity-100 focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-focus-ink"
+              className="inline-flex cursor-pointer rounded-sm opacity-90 transition-opacity select-none hover:opacity-100 focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-focus"
             >
               {/*
                 next/image has nothing to optimize in a 4KB vector already at

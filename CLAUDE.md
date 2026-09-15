@@ -344,11 +344,12 @@ stops a second read from merging a stale grade back over a newer one.
   and the import screen set `max-w-3xl` of their own: a flip card the width of
   the window no longer matches the printed one, and prose wants a line length
 - `prefers-reduced-motion` is respected by the card flip; keep it that way
-- Focus rings are 1px, not the usual 2px, by choice: `--color-focus` (the Gigs
-  deck's blue ink) from a base-layer rule for links and anything without a ring
-  of its own, `--color-focus-ink` (a softer black) for controls that draw one.
-  Use `focus-visible:outline-1 focus-visible:outline-focus-ink`, never
-  `outline-ink`, and never leave a focusable element with no visible ring
+- Focus rings are 1px, not the usual 2px, by choice, and all one color:
+  `--color-focus`, `#5f5e5a`, a softer black than the text. A base-layer rule
+  draws it on links and anything without a ring of its own; controls that draw
+  their own use `focus-visible:outline-1 focus-visible:outline-focus`, never
+  `outline-ink`. A deck card's main link has no ring: its dashed edge turns the
+  focus color instead. Never leave a focusable element with no visible ring
 - Errors are specific and actionable, and never blame the user
 
 ## Before committing

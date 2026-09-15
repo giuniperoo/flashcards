@@ -132,7 +132,7 @@ export default function ColorKey({
             icon's color at 1.5px and read too heavy beside the 3px dashes. */}
         <span
           aria-hidden
-          className={`flex h-5 w-5 items-center justify-center rounded-full border group-hover:border-ink group-hover:text-ink group-focus-visible:outline-1 group-focus-visible:outline-offset-2 group-focus-visible:outline-focus-ink ${
+          className={`flex h-5 w-5 items-center justify-center rounded-full border group-hover:border-ink group-hover:text-ink group-focus-visible:outline-1 group-focus-visible:outline-offset-2 group-focus-visible:outline-focus ${
             shown ? "border-ink text-ink" : "border-rule text-muted"
           }`}
         >
@@ -164,7 +164,7 @@ export default function ColorKey({
                 onOpenChange(false);
               }}
               aria-label="Close"
-              className="-mr-3 inline-flex h-11 w-11 items-center justify-center rounded-full text-muted hover:text-ink focus-visible:outline-1 focus-visible:-outline-offset-4 focus-visible:outline-focus-ink"
+              className="-mr-3 inline-flex h-11 w-11 items-center justify-center rounded-full text-muted hover:text-ink focus-visible:outline-1 focus-visible:-outline-offset-4 focus-visible:outline-focus"
             >
               <CloseIcon className="h-5 w-5" />
             </button>

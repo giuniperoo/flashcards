@@ -6,14 +6,13 @@
   --color-ink: #2c2c2a;
   --color-muted: #78776f;
   --color-rule: #ccc6b8;
-  /* Focus rings, both 1px. Blue for links and anything else without a ring of
-     its own, from the Gigs deck's palette: its ink rather than its pastel tint,
-     since the tint is 1.3:1 on the paper and a 1px line of it disappears. A
-     softer black than `--color-ink` for the controls that draw their own ring.
-     Thinner and quieter than a 2px ink ring or the browser's default blue, on
-     purpose; see the base layer below. */
-  --color-focus: #5e86ae;
-  --color-focus-ink: #5f5e5a;
+  /* Every focus ring, 1px, in one color: a softer black than `--color-ink`.
+     There were two for a while, a blue for links from the Gigs deck's palette
+     and this for controls, and the split meant nothing — it followed which
+     elements happened to have a focus class written. Thinner and quieter than
+     a 2px ink ring or the browser's default blue, on purpose; see the base
+     layer below. */
+  --color-focus: #5f5e5a;
   /* The two grades a card can carry, on the whole-deck strip: green for
      "I had it", red for "Needs review".
 
@@ -269,6 +268,26 @@ html[data-mode="free"] .wordmark-schedule {
   border-left: 1px solid var(--color-rule);
 }
 
+/* Focus on a deck card. The card is `overflow-hidden`, so a ring drawn outside
+   an action lost the sides that crossed the card's edge. The ring goes inside
+   each action instead, 4px in from its dividers, so all four sides show and it
+   never lands on a line that is already there. Links' own ring, drawn as a box
+   behind the text, is turned off here for the same reason. */
+.deck-actions > :focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: -4px;
+}
+
+.deck-actions > a:focus-visible::after {
+  display: none;
+}
+
+/* The card's main link, its name and blurb, has no ring: its dashed edge turns
+   the softer black instead, which says the whole card is what Enter opens. */
+.cut:has(> .deck-open:focus-visible) {
+  border-color: var(--color-focus);
+}
+
 .deck-grid {
   display: grid;
   gap: 0.75rem;
@@ -496,7 +515,7 @@ html[data-mode="free"] .wordmark-schedule {
 
 /* The focus ring for everything that does not draw its own: links, mostly. In
    the base layer so a component's `focus-visible:` utilities still win, and not
-   unlayered, which would beat every utility in the file. 1px of the Gigs blue
+   unlayered, which would beat every utility in the file. 1px of the focus color
    with 3px of room, rather than the browser's thicker default ring drawn tight
    against the text. Quieter than the usual 2px advice on purpose. */
 @layer base {

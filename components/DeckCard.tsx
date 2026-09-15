@@ -50,7 +50,7 @@ export default function DeckCard({
       />
       <Link
         href={study}
-        className="block flex-1 px-5 pt-4 pb-3 focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus-ink"
+        className="deck-open block flex-1 px-5 pt-4 pb-3 focus-visible:outline-none"
       >
         <span className="label text-muted">
           {deck.count} card{deck.count === 1 ? "" : "s"}

@@ -737,7 +737,7 @@ Everything this app does should be reachable and operable with the keyboard alon
   nothing-due panels), `/study/all`, and print
 - Focus order follows the page, every focusable element shows a visible focus ring, and
   focus never lands on something hidden or off screen. The rings are 1px since
-  September 15, 2026, a softer black on controls and the Gigs blue on links, thinner
+  September 15, 2026, all in `#5f5e5a`, a softer black than the text, thinner
   than the usual 2px advice by choice; check they still read on every surface
 - After an action that removes the focused element — grading a card, closing the color
   key, deleting a deck — focus moves somewhere sensible rather than back to the body
