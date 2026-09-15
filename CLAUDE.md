@@ -73,7 +73,8 @@ components/
   Reviewer.tsx          all study state
   DeckIndex.tsx         headline counts, and hiding the built-in decks
   DeckCard.tsx          one deck on the index; both lists render through it
-  DeckVisibility.tsx    the show/hide controls, at the foot of the index
+  DeckVisibility.tsx    the show/hide controls, and `StudyMode`: the mode bar
+                        and its interval, at the other end of the same row
   DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
   QueueBar.tsx          a scheduled session's breakdown, in the title row if it fits
   ColorKey.tsx          what the strip's colors mean, behind a "?" at its end
@@ -180,13 +181,16 @@ saving any preference wrote all three, so a version 3 `false` may never have
 been a choice. It reads as the new default. From version 4 a stored `false` is
 kept. `lib/prefs.test.ts` covers it.
 
-`scheduled` is the spaced repetition switch, at the foot of the index and **on
-by default**: spaced repetition is the app, and free study is what you switch
-to. It started off, while the scheduled reviewer was new; it flipped on September
-13, 2026, once it had been lived with. The sun on the index says which
-mode you are in — the mark's cream on a schedule, a faint sage
-(`--color-sun-free`) in free study — because the switch's label names where it
-takes you, not where you are. It governs what the *index* draws and what it writes
+`scheduled` is the mode, at the foot of the index and **on by default**: spaced
+repetition is the app, and free study is what you switch to. It started off,
+while the scheduled reviewer was new; it flipped on September 13, 2026, once it
+had been lived with. It is a bar of two segments, free study then spaced
+repetition, with the current one filled in the color of the mark in the header —
+the mark's cream, or the free study sage. Both modes on show is what lets the
+labels name the modes themselves; the button it replaced named the mode it moved
+*to*, with an arrow, since a bare "Free study" would have read as the mode you
+were in. The sun on the index says the same thing a third time, the mark's cream
+against a faint sage (`--color-sun-free`). It governs what the *index* draws and what it writes
 into its own study links; what the reviewer reads is `?scheduled` in the URL,
 never the preference. The two are separate on purpose: a link then says which
 reviewer it opens and a bookmark cannot change under the reader, and scrapping

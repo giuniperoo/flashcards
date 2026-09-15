@@ -10,17 +10,15 @@ import { loadReviewerPrefs, saveReviewerPrefs } from "@/lib/reviewerPrefs";
 import { usePrefs } from "@/lib/usePrefs";
 
 /**
- * The controls for what the index shows, and which app it is.
+ * What the index shows: the built-in decks, and bringing hidden ones back.
  *
- * They live at the foot of the page, beside "Add your own deck", rather than
+ * These live at the foot of the page, beside "Add your own deck", rather than
  * above the grid. Someone who has hidden the built-in decks because none of
  * them are theirs is never going to press "show" again, and a control they will
- * not use has no business sitting in the middle of the page. The schedule
- * switch is pressed about as often, and answers the same kind of question —
- * what this index is for — so it belongs in the same row.
- *
- * Each label names the mode it moves to rather than the state it is in, the way
- * "Hide built-in decks" already does.
+ * not use has no business sitting in the middle of the page. Both of these are
+ * about the decks on the page, which is why they sit with the button that adds
+ * one; what the app *is* — the mode, and the one setting it has — is `StudyMode`
+ * at the other end of the row.
  */
 export default function DeckVisibility({ slugs }: { slugs: string[] }) {
   const [prefs, update] = usePrefs();
@@ -32,73 +30,110 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
     : 0;
 
   return (
-    /* Two lines, not one wrapping row: the switches, then the interval under
-       them. All of it together is wider than the 3xl column the index sits in,
-       and a row that wraps on its own put a separating bullet at the start of a
-       line, separating nothing and reading as a list. The bullets stay for what
-       does share a line, the same separator as "Print · All decks" on a study
-       page. Right-aligned, like the row it sits in. */
-    <span className="flex flex-col items-end gap-y-1">
-      <span className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
-        {hidden > 0 && (
-          <button
-            type="button"
-            onClick={() => update({ ...prefs, hiddenDecks: [] })}
-            className="label inline-flex min-h-11 items-center text-muted hover:text-ink"
-          >
-            {`Bring back ${hidden} deck${hidden === 1 ? "" : "s"}`}
-          </button>
-        )}
+    <span className="flex flex-wrap items-center gap-x-6 gap-y-2">
+      {hidden > 0 && (
         <button
           type="button"
-          onClick={() =>
-            update({ ...prefs, showBuiltIns: !prefs.showBuiltIns })
-          }
+          onClick={() => update({ ...prefs, hiddenDecks: [] })}
           className="label inline-flex min-h-11 items-center text-muted hover:text-ink"
         >
-          {prefs.showBuiltIns ? "Hide built-in decks" : "Show built-in decks"}
+          {`Bring back ${hidden} deck${hidden === 1 ? "" : "s"}`}
         </button>
-        {/* On by default: spaced repetition is the app, and free study is the
-            choice. What it changes is which reviewer the links on this page
-            open; a link that already exists keeps opening what it always did.
-            The sun behind the page and the mark in the header show the mode.
+      )}
+      <button
+        type="button"
+        onClick={() => update({ ...prefs, showBuiltIns: !prefs.showBuiltIns })}
+        className="label inline-flex min-h-11 items-center text-muted hover:text-ink"
+      >
+        {prefs.showBuiltIns ? "Hide built-in decks" : "Show built-in decks"}
+      </button>
+    </span>
+  );
+}
 
-            The label names the mode the button takes you to, with an arrow to
-            say it is a destination: "Free study →" while you are on a schedule.
-            A bare "Free study" could read as the mode you are already in, which
-            is also why there is no styling for the on state — emphasis on the
-            destination's name says the opposite of what it means. The arrow is
-            hidden from screen readers, which hear "Switch to free study".
+/**
+ * Which app this is, and the one setting that mode has.
+ *
+ * The far end of the same row: the mode, then the interval beside it, since the
+ * interval is the mode's setting and nothing else's.
+ */
+export function StudyMode() {
+  const [prefs, update] = usePrefs();
 
-            Both labels sit in one grid cell and only one is visible, so the
-            button is always as wide as the longer of them. This row is
-            right-aligned: a button that changed width with its label pushed
-            "Hide built-in decks" sideways every time the mode was switched. The
-            visible label starts from the left, so the gap after the bullet
-            holds too, and the reserved width follows the real text in whatever
-            font renders it rather than a number. */}
-        <Separated>
-          <button
-            type="button"
-            onClick={() => update({ ...prefs, scheduled: !prefs.scheduled })}
-            aria-label={
-              prefs.scheduled
-                ? "Switch to free study"
-                : "Switch to spaced repetition"
-            }
-            className="label inline-flex min-h-11 items-center text-muted hover:text-ink"
-          >
-            <span className="grid">
-              <ModeLabel text="Free study" shown={prefs.scheduled} />
-              <ModeLabel text="Spaced repetition" shown={!prefs.scheduled} />
-            </span>
-          </button>
-        </Separated>
+  return (
+    <span className="ml-auto flex flex-wrap items-center justify-end gap-x-6 gap-y-2">
+      <Mode
+        scheduled={prefs.scheduled}
+        onChange={(scheduled) => update({ ...prefs, scheduled })}
+      />
+      {/* Beside the mode it belongs to, and only on a schedule: in free study
+          nothing comes back at all, so the setting governs nothing. Its room is
+          kept either way, so pressing the mode does not slide the bar you just
+          pressed out from under the pointer. */}
+      <span
+        className={prefs.scheduled ? undefined : "invisible"}
+        aria-hidden={!prefs.scheduled}
+      >
+        <FirstInterval disabled={!prefs.scheduled} />
       </span>
-      {/* Under the mode it belongs to, and only on a schedule: in free study
-          nothing comes back at all, so the setting would govern nothing and has
-          no business on the page. */}
-      {prefs.scheduled && <FirstInterval />}
+    </span>
+  );
+}
+
+/**
+ * Which app this is: spaced repetition, or free study.
+ *
+ * A bar of two, the way the interval beside it is a bar of five, with the
+ * current mode filled in the color of the mark in the header — the mark's cream
+ * on a schedule, the free study sage otherwise. Both modes on show is what lets
+ * the labels name the modes themselves; the button this replaces had to name the
+ * mode it moved *to*, with an arrow, since a bare "Free study" would have read
+ * as the mode you were already in.
+ *
+ * Spaced repetition sits on the right, against the interval, because the
+ * interval is its setting and nothing else's.
+ *
+ * What it changes is which reviewer the links on this page open; a link that
+ * already exists keeps opening what it always did.
+ */
+function Mode({
+  scheduled,
+  onChange,
+}: {
+  scheduled: boolean;
+  onChange: (scheduled: boolean) => void;
+}) {
+  const name = useId();
+  return (
+    <span
+      role="radiogroup"
+      aria-label="Study mode"
+      className="inline-flex min-h-11 items-center"
+    >
+      <span className="segment-bar">
+        <label className={scheduled ? undefined : "chosen mode-free"}>
+          <input
+            type="radio"
+            name={name}
+            checked={!scheduled}
+            onChange={() => onChange(false)}
+            aria-label="Free study"
+            className="sr-only"
+          />
+          <span aria-hidden>Free study</span>
+        </label>
+        <label className={scheduled ? "chosen" : undefined}>
+          <input
+            type="radio"
+            name={name}
+            checked={scheduled}
+            onChange={() => onChange(true)}
+            aria-label="Spaced repetition"
+            className="sr-only"
+          />
+          <span aria-hidden>Spaced repetition</span>
+        </label>
+      </span>
     </span>
   );
 }
@@ -107,16 +142,18 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
  * How soon a card answered wrong comes back: 1, 2, 4 or 8 hours, or a day.
  *
  * A bar of five segments, drawn like the queue bar on a study page, with the
- * current one filled. Every choice is on show, so there is nothing to open to
- * find out what the others are. Underneath it is a radio group: Tab reaches it
- * once, the arrow keys move between the choices, and a screen reader hears
- * "1 hour", "2 hours" and so on rather than the short labels.
+ * current one filled in the same cream as the mode beside it, since this bar
+ * only ever shows on a schedule. Every choice is on show, so there
+ * is nothing to open to find out what the others are. Underneath it is a radio
+ * group: Tab reaches it once, the arrow keys move between the choices, and a
+ * screen reader hears "1 hour", "2 hours" and so on rather than the short
+ * labels.
  *
  * Each segment is as tall as the queue bar, 22px, and a box behind it stretches
  * what it answers to a press to 44px. Starts at the default, which is what the
  * server renders, and reads the stored value after mount.
  */
-function FirstInterval() {
+function FirstInterval({ disabled }: { disabled: boolean }) {
   const name = useId();
   const [hours, setHours] = useState(DEFAULT_FIRST_INTERVAL);
   useEffect(() => {
@@ -132,7 +169,7 @@ function FirstInterval() {
       <span id={`${name}-label`} className="label text-muted">
         Retry misses in
       </span>
-      <span className="interval-bar">
+      <span className="segment-bar">
         {FIRST_INTERVALS.map((value) => (
           <label key={value} className={value === hours ? "chosen" : undefined}>
             <input
@@ -140,6 +177,9 @@ function FirstInterval() {
               name={name}
               value={value}
               checked={value === hours}
+              // Held out of the tab order while the bar is only holding its
+              // room open: there is nothing to set in free study.
+              disabled={disabled}
               onChange={() => {
                 setHours(value);
                 saveReviewerPrefs({ firstInterval: value });
@@ -151,35 +191,6 @@ function FirstInterval() {
           </label>
         ))}
       </span>
-    </span>
-  );
-}
-
-/**
- * A control behind its separator. The two never part: a bullet left at the end
- * of a line when the row wraps is a bullet separating nothing.
- */
-function Separated({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="flex items-center gap-x-4">
-      {/* Gone at phone width, where the two switches stack: a bullet at the
-          start of a line separates nothing. */}
-      <span aria-hidden className="label hidden text-muted sm:inline">
-        ·
-      </span>
-      {children}
-    </span>
-  );
-}
-
-function ModeLabel({ text, shown }: { text: string; shown: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={`col-start-1 row-start-1 inline-flex gap-2 ${shown ? "" : "invisible"}`}
-    >
-      {text}
-      <span>→</span>
     </span>
   );
 }

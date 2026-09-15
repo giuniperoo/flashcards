@@ -44,6 +44,11 @@
      mark. At this faintness the sun barely shows the mode; the mark in the
      header carries that, on every page. */
   --color-sun-free: #ebeee9;
+  /* The free study mark's sage ground, for the mode bar at the foot of the
+     index. Duplicated from `tools/wordmark.py` the way `--color-mark` is: that
+     script writes `public/logo-free.svg`, so change it there first. The sun's
+     rays are a far fainter sage of the same hue; this is the mark's own. */
+  --color-mark-free: #d1d8c9;
   --color-question: #185fa5;
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
@@ -164,17 +169,23 @@ body {
   border-left: 1px solid var(--color-rule);
 }
 
-/* The first interval at the foot of the index, drawn like the queue bar: a
-   22px bar of segments with the chosen one filled. No overflow clipping, so the
-   box behind each segment can stretch its press area to 44px, and so the focus
-   ring, drawn inside the segment, is never cut off. */
-.interval-bar {
+/* The two bars at the foot of the index — the mode, and how soon a missed card
+   comes back — drawn like the queue bar: 22px segments with the chosen one
+   filled. No overflow clipping, so the box behind each segment can stretch its
+   press area to 44px, and so the focus ring, drawn inside the segment, is never
+   cut off.
+
+   A chosen segment is the color of the mark in the header: the mark's cream,
+   and the free study sage on that one segment. The interval bar only ever shows
+   on a schedule, so its chosen segment is the same cream as the mode beside it,
+   and the bars, the mark and the sun behind the page all say the mode. */
+.segment-bar {
   display: inline-flex;
   border: 1px solid var(--color-rule);
   border-radius: 2px;
 }
 
-.interval-bar > label {
+.segment-bar > label {
   position: relative;
   display: flex;
   align-items: center;
@@ -189,26 +200,30 @@ body {
   background: var(--color-card);
 }
 
-.interval-bar > label + label {
+.segment-bar > label + label {
   border-left: 1px solid var(--color-rule);
 }
 
-.interval-bar > label::after {
+.segment-bar > label::after {
   content: "";
   position: absolute;
   inset: -11px 0;
 }
 
-.interval-bar > label:hover {
+.segment-bar > label:hover {
   color: var(--color-ink);
 }
 
-.interval-bar > label.chosen {
-  background: var(--color-queue-today);
+.segment-bar > label.chosen {
+  background: var(--color-mark);
   color: var(--color-ink);
 }
 
-.interval-bar > label:has(input:focus-visible) {
+.segment-bar > label.mode-free {
+  background: var(--color-mark-free);
+}
+
+.segment-bar > label:has(input:focus-visible) {
   outline: 1px solid var(--color-focus);
   outline-offset: -3px;
 }

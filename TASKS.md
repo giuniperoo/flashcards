@@ -460,11 +460,22 @@ undecided as a task of its own.)*
 
 **As built.**
 
-- **The setting** sits at the foot of the index, under the mode switch and only on a
-  schedule: "Retry misses in", then a bar of 1h, 2h, 4h, 8h and 1 day with the current
-  one filled. It names the current value, unlike the switch above it, because it is a
-  choice among five rather than a way out. It was a select first, and a bar shows every
-  choice without opening anything
+- **The setting** sits at the foot of the index, beside the mode and only on a
+  schedule: "Retry misses in", then a bar of 1h, 2h, 4h, 8h and 1 day with the current one
+  filled. It was a select first, and a bar shows every choice without opening anything.
+  In free study it goes, since it governs nothing there, but its room is kept so the
+  mode bar does not slide out from under the pointer that just pressed it
+- **The mode became a bar too**, of two segments, free study then spaced repetition —
+  that order so the mode sits against the setting that belongs to it. A chosen segment
+  is filled in the mark's cream, or the free study sage, so the bars, the mark in the
+  header and the sun behind the page say the mode together. The interval's chosen
+  segment is that same cream, since the bar only shows on a schedule
+- **The footer is two groups**: what the page *shows* on the left, "Add your own deck"
+  and "Show built-in decks", and what the app *is* on the right, the mode and its
+  setting — `StudyMode` in `components/DeckVisibility.tsx`. One line past 1300px, where
+  the shell widens past the 3xl column; below that the right group wraps to a line of
+  its own, still right-aligned. Trimming the labels to hold one line at 704px was tried
+  and taken back out: the words are worth more than the line
 - **The bar is a radio group.** Tab reaches it once, the arrow keys move between the
   choices and save as they go, and a screen reader hears "1 hour" rather than "1h". Each
   segment is the queue bar's 22px, with a box behind it taking the press area to 44px,
