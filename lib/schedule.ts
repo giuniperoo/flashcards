@@ -46,9 +46,29 @@ export const INTERVALS = [1, 2, 3, 4];
 export const FIRST_BOX = 1;
 export const LAST_BOX = INTERVALS.length;
 
+/**
+ * How soon a card in box 1 comes back, in hours: the one setting the schedule
+ * has. A choice rather than a slider, since the difference between five hours
+ * and six is noise and a control with twenty-four positions invites tuning
+ * something that does not repay it. 24 is box 1's ordinary day, and the default.
+ *
+ * Only box 1 moves. The day before an interview, a card you just got wrong is the
+ * one you want back this afternoon; the rungs above it are already inside the
+ * horizon, and the morning is the right time for all of them.
+ */
+export const FIRST_INTERVALS = [1, 2, 4, 8, 24];
+export const DEFAULT_FIRST_INTERVAL = 24;
+
+const HOUR = 3_600_000;
+
 /** What `isDue` needs. `lib/progress.ts` records satisfy it structurally, which
-    is what keeps the schedule from importing the store it schedules. */
-export type Scheduled = { seen: boolean; due: string };
+    is what keeps the schedule from importing the store it schedules.
+
+    `dueAt` is an ISO timestamp that only a box 1 card carries, and only when
+    the first interval is shorter than a day. `due` is still the day it falls
+    on, so everything that thinks in days — the queue's grouping by day, what
+    counts as overdue, the words for when a deck comes back — keeps working. */
+export type Scheduled = { seen: boolean; due: string; dueAt?: string };
 
 /** Boxes outside the ladder are pulled back onto it rather than trusted: the
     store is hand-editable and a stray value should not index off the end.
@@ -78,11 +98,59 @@ export function dueOn(box: number, today: string) {
   return addDays(today, INTERVALS[clampBox(box) - 1]);
 }
 
-/** A card is due when it has been graded and its day has come. Unseen cards are
-    not due — they are the new pool, which the queue draws from separately and
-    under a cap. */
-export function isDue(record: Scheduled, today: string) {
-  return record.seen && record.due !== "" && record.due <= today;
+/** "4 hours", "1 hour", or "1 day": a first interval in words, for the setting
+    at the foot of the index and the color key, so the two say it the same way. */
+export function intervalWords(hours: number) {
+  if (hours >= 24) return "1 day";
+  return `${hours} hour${hours === 1 ? "" : "s"}`;
+}
+
+/** A first interval off the list is pulled back to the default rather than
+    trusted: the preference is hand-editable. */
+export function clampFirstInterval(hours: unknown) {
+  return typeof hours === "number" && FIRST_INTERVALS.includes(hours)
+    ? hours
+    : DEFAULT_FIRST_INTERVAL;
+}
+
+/**
+ * When a card placed in `box` comes back: a day key, and a time when box 1's
+ * interval is shorter than a day.
+ *
+ * With a sub-day interval the time is counted from `now`, the moment of the
+ * answer, and `due` is the local day that time falls on. So a card missed at
+ * eleven at night with eight hours to wait carries tomorrow's day and a seven
+ * o'clock time. Every other case is the day key alone, exactly as before.
+ */
+export function comesBack(
+  box: number,
+  today: string,
+  now: number,
+  firstInterval: number = DEFAULT_FIRST_INTERVAL,
+): { due: string; dueAt?: string } {
+  const hours = clampFirstInterval(firstInterval);
+  if (clampBox(box) === FIRST_BOX && hours < 24) {
+    const at = new Date(now + hours * HOUR);
+    return { due: dayKey(at), dueAt: at.toISOString() };
+  }
+  return { due: dueOn(box, today) };
+}
+
+/**
+ * A card is due when it has been graded and its time has come. Unseen cards are
+ * not due — they are the new pool, which the queue draws from separately.
+ *
+ * A card with a `dueAt` is due once `now` reaches it. Without `now` only the day
+ * is known, and it is due once its day has come, like any other card; every
+ * caller that builds a session or counts one passes `now`.
+ */
+export function isDue(record: Scheduled, today: string, now?: number) {
+  if (!record.seen || record.due === "") return false;
+  if (record.dueAt && now !== undefined) {
+    const at = Date.parse(record.dueAt);
+    if (Number.isFinite(at)) return now >= at;
+  }
+  return record.due <= today;
 }
 
 /** A `Date` as a local day key. */

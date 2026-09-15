@@ -58,10 +58,11 @@ export function buildQueue(
   records: Record<string, CardProgress>,
   today: string,
   shuffle: Shuffle = shuffled,
+  now?: number,
 ): StudyCard[] {
   // No record, or one carrying only a draft: never graded, so not scheduled.
   const unseen = cards.filter((card) => !records[cardKey(card)]?.seen);
-  return [...buildDueQueue(cards, records, today, shuffle), ...unseen];
+  return [...buildDueQueue(cards, records, today, shuffle, now), ...unseen];
 }
 
 /**
@@ -76,12 +77,21 @@ export function buildQueue(
  *
  * **Interleaved for free.** Days sort, cards inside a day shuffle, and nothing
  * ever sorts by deck.
+ *
+ * **`now` is read once, when the session is dealt.** A box 1 card with a time
+ * (see `comesBack` in `lib/schedule.ts`) is dealt only if that time has passed
+ * by then, so a card answered twenty minutes ago never comes back into the
+ * session it was answered in, however short the first interval. It is grouped
+ * by its `due` day like every other card, which keeps the shuffle within a day:
+ * grouped by the minute, every group would be one card and the shuffle would
+ * silently stop existing.
  */
 export function buildDueQueue(
   cards: StudyCard[],
   records: Record<string, CardProgress>,
   today: string,
   shuffle: Shuffle = shuffled,
+  now?: number,
 ): StudyCard[] {
   /* Keyed by due date rather than collected into one list and sorted, because
      the shuffle has to run inside a day and not across the boundary. */
@@ -89,7 +99,7 @@ export function buildDueQueue(
 
   for (const card of cards) {
     const record = records[cardKey(card)];
-    if (!record || !isDue(record, today)) continue;
+    if (!record || !isDue(record, today, now)) continue;
     const day = byDay.get(record.due);
     if (day) day.push(card);
     else byDay.set(record.due, [card]);
@@ -114,10 +124,14 @@ export function buildDueQueue(
  * deleting an imported deck forgets its records, so that is a deck edited by
  * hand, and the count is out by the cards removed.
  */
-export function dueByDeck(records: Record<string, CardProgress>, today: string) {
+export function dueByDeck(
+  records: Record<string, CardProgress>,
+  today: string,
+  now?: number,
+) {
   const due: Record<string, number> = {};
   for (const [key, record] of Object.entries(records)) {
-    if (!isDue(record, today)) continue;
+    if (!isDue(record, today, now)) continue;
     const slug = deckOfKey(key);
     due[slug] = (due[slug] ?? 0) + 1;
   }

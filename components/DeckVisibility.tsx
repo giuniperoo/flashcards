@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useId, useState } from "react";
+import { FIRST_INTERVALS, DEFAULT_FIRST_INTERVAL, intervalWords } from "@/lib/schedule";
+import { loadReviewerPrefs, saveReviewerPrefs } from "@/lib/reviewerPrefs";
 import { usePrefs } from "@/lib/usePrefs";
 
 /**
@@ -50,6 +53,14 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
           : "Show built-in decks"}
       </button>
       <Bullet />
+      {/* Only on a schedule: in free study nothing comes back at all, so the
+          setting would govern nothing and has no business on the page. */}
+      {prefs.scheduled && (
+        <>
+          <FirstInterval />
+          <Bullet />
+        </>
+      )}
       {/* On by default: spaced repetition is the app, and free study is the
           choice. What it changes is which reviewer the links on this page
           open; a link that already exists keeps opening what it always did.
@@ -83,6 +94,44 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
         </span>
       </button>
     </span>
+  );
+}
+
+/**
+ * How soon a card answered wrong comes back: 1, 2, 4 or 8 hours, or a day.
+ *
+ * A native select, styled as one of this row's labels. It names the current
+ * value rather than a destination, unlike the mode switch beside it, because it
+ * is a choice among five rather than a way out. Starts at the default, which is
+ * what the server renders, and reads the stored value after mount.
+ */
+function FirstInterval() {
+  const id = useId();
+  const [hours, setHours] = useState(DEFAULT_FIRST_INTERVAL);
+  useEffect(() => {
+    setHours(loadReviewerPrefs().firstInterval);
+  }, []);
+
+  return (
+    <label htmlFor={id} className="label inline-flex min-h-11 items-center gap-2 text-muted">
+      Red cards back in
+      <select
+        id={id}
+        value={hours}
+        onChange={(event) => {
+          const next = Number(event.target.value);
+          setHours(next);
+          saveReviewerPrefs({ firstInterval: next });
+        }}
+        className="label cursor-pointer appearance-none border-b border-dotted border-muted bg-transparent text-ink hover:border-ink"
+      >
+        {FIRST_INTERVALS.map((value) => (
+          <option key={value} value={value}>
+            {intervalWords(value)}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

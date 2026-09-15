@@ -325,6 +325,49 @@ const cases: Array<[string, () => boolean]> = [
       return !("d" in due);
     },
   ],
+
+  [
+    "a card with a time is dealt only once its time has passed when the session opens",
+    () => {
+      const cards = deckOfSize(2);
+      const records: Record<string, CardProgress> = {
+        "d:c0": { ...seen(TODAY, 1), dueAt: new Date(2026, 8, 10, 18, 0).toISOString() },
+        "d:c1": seen(TODAY),
+      };
+      const early = buildDueQueue(cards, records, TODAY, (items) => items, new Date(2026, 8, 10, 17, 0).getTime());
+      const late = buildDueQueue(cards, records, TODAY, (items) => items, new Date(2026, 8, 10, 18, 30).getTime());
+      return ids(early) === "c1" && ids(late) === "c0,c1";
+    },
+  ],
+
+  [
+    "cards with times still group by their day, so the shuffle runs across them",
+    () => {
+      const cards = deckOfSize(3);
+      const records: Record<string, CardProgress> = {
+        "d:c0": { ...seen(TODAY, 1), dueAt: new Date(2026, 8, 10, 9, 0).toISOString() },
+        "d:c1": { ...seen(TODAY, 1), dueAt: new Date(2026, 8, 10, 11, 0).toISOString() },
+        "d:c2": seen(TODAY),
+      };
+      const groups: string[][] = [];
+      buildDueQueue(cards, records, TODAY, <T,>(items: T[]) => { groups.push((items as StudyCard[]).map((c) => c.id)); return items; }, new Date(2026, 8, 10, 12, 0).getTime());
+      return groups.length === 1 && groups[0].join(",") === "c0,c1,c2";
+    },
+  ],
+
+  [
+    "a due count leaves out a card whose time has not come",
+    () => {
+      const records: Record<string, CardProgress> = {
+        "d:c0": { ...seen(TODAY, 1), dueAt: new Date(2026, 8, 10, 18, 0).toISOString() },
+        "d:c1": seen(TODAY),
+      };
+      return (
+        dueByDeck(records, TODAY, new Date(2026, 8, 10, 17, 0).getTime()).d === 1 &&
+        dueByDeck(records, TODAY, new Date(2026, 8, 10, 18, 0).getTime()).d === 2
+      );
+    },
+  ],
 ];
 
 let failed = 0;

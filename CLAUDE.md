@@ -164,9 +164,12 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
 - `progress` — `{ version: 4, cards }`, keyed by `{deckSlug}:{cardId}`
 - `prefs:index` — `{ version: 4, showBuiltIns, hiddenDecks, scheduled }`
-- `prefs:reviewer` — `{ version: 1, colorKeyShown }`, whether the color key beside
-  the strip has opened by itself yet. Its own key because the reviewer reads it and
-  `prefs:index` is what the index acts on; see `lib/reviewerPrefs.ts`
+- `prefs:reviewer` — `{ version: 1, colorKeyShown, firstInterval }`: whether the
+  color key beside the strip has opened by itself yet, and how many hours a card
+  answered wrong waits (1, 2, 4, 8, or 24 for a day, the default). Its own key
+  because the reviewer reads both and `prefs:index` is what the index acts on,
+  even though the interval is set at the foot of the index; see
+  `lib/reviewerPrefs.ts`
 
 Version 1 of `prefs:index` held `showBuiltIns` alone and version 2 added
 `hiddenDecks`. Each reads as the version after it with the new field at its
@@ -197,10 +200,21 @@ interleaved. New cards are met in a deck of their own. That is also why the
 index's due counts leave new cards out, so the "Everything" card's count is what
 the session deals.
 
-A card's record is `{ draft, grade, box, misses, due, reviewed, seen }`. `box`,
-`misses`, `due` and `reviewed` mean nothing while `seen` is false — a card written on but never
-graded has no place in the schedule — and `seen` is the authority on that
-rather than a sentinel box or an empty date.
+A card's record is `{ draft, grade, box, misses, due, dueAt?, reviewed, seen }`.
+`box`, `misses`, `due` and `reviewed` mean nothing while `seen` is false — a card
+written on but never graded has no place in the schedule — and `seen` is the
+authority on that rather than a sentinel box or an empty date.
+
+**`due` is a day, and `dueAt` is the one exception.** Days are what the schedule
+thinks in: a card answered at eleven at night comes back in the morning. When the
+first interval is set shorter than a day, a card answered wrong on a schedule also
+gets `dueAt`, an ISO time counted from the answer, and `due` holds the day that
+time falls on. Only box 1 ever carries one, and any other answer takes it off.
+`isDue` compares the time when there is one; the queue still groups by `due`, so
+the shuffle within a day survives. A session reads the clock once when it is
+dealt, so a card answered in a session never comes back into it, however short
+the interval — see `comesBack` in `lib/schedule.ts` and `buildDueQueue`.
+`dueAt` arrived inside version 4, like `misses`.
 
 **Free study never touches the schedule.** One store and one record per card,
 but two kinds of field. `grade` is the last answer, "held" or "review", and is

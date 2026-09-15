@@ -30,7 +30,7 @@ is due today, and it ends.
 | 4 — The reviewer studies the queue | merged |
 | 5 — Due counts on the index | merged |
 | 6 — The cross-deck due queue | merged |
-| 7 — A first interval shorter than a day | not started |
+| 7 — A first interval shorter than a day | built, in review |
 | 8 — An empty box when a card comes back | merged |
 | 9 — Say what the colors mean, once | merged |
 | 10 — The queue bar | merged |
@@ -389,7 +389,7 @@ change here.
 
 ### Task 7 — A first interval shorter than a day
 
-*Not started.*
+*Built, in review. See "As built" below.*
 
 **Why.** Box 1 is a day, and the day before an interview a day is too long. A card
 you have just got wrong is the one you most want back this afternoon, and the ladder
@@ -455,7 +455,44 @@ interview horizon at a time, not twelve.
 ten minutes before it starts spacing by days, and this app has nothing like it — the
 first answer always waits at least a day. That is the biggest reason a card cannot
 reach green quickly. This task could grow into it, or it could be its own task. Not
-agreed yet either way.
+agreed yet either way. *(Decided when task 7 started: not in task 7. It stays
+undecided as a task of its own.)*
+
+**As built.**
+
+- **The setting** sits at the foot of the index between "Hide built-in decks" and the
+  mode switch, only on a schedule: "Red cards back in [1 day]", a native select of 1,
+  2, 4 or 8 hours or a day. It names the current value, unlike the switch beside it,
+  because it is a choice among five rather than a way out
+- **Stored in `prefs:reviewer`, not `prefs:schedule`.** The plan predates that key,
+  which task 9 added for what the reviewer reads, and a fifth key for one number was
+  not worth it. `firstInterval` arrived inside its version 1, reading as 24 when absent
+  or off the list. Saving now merges, so the index setting the interval and the
+  reviewer marking the color key shown cannot undo each other
+- **The representation is the plan's second way.** `comesBack` in `lib/schedule.ts`
+  gives a box 1 card a `dueAt`, counted from the moment of the answer, when the interval
+  is under a day; `due` is the local day it falls on. Any other scheduled answer takes
+  `dueAt` off; free study leaves it alone. `isDue` compares the time when `now` is
+  given, and the day otherwise
+- **A card graded in a session never returns to it.** The reviewer reads the clock once
+  when it opens, alongside the day, and deals with that; grading counts from the real
+  moment of the answer. The index's due counts read the clock when they are drawn
+- **The tiebreak survives.** Cards with times group by their `due` day, and a test
+  holds the shuffle to one group across them
+- **Copy with hours.** A deck with a card back later today "comes back at 3:57 PM", or
+  "tomorrow at 7:00 AM" past midnight. The panels say "Done for now" and "Nothing due
+  right now" when the next card is back today, and the color key says "Red comes back
+  in 1 hour"
+- `pnpm run test:schedule` covers a wrong answer at four hours coming back four hours
+  later, a right answer still in the morning, a time past midnight carrying the next
+  day, and real hours across the clocks going forward, under `TZ=Europe/London`
+
+**Checked in Chromium.** With the setting at 1 hour, a card answered wrong went to box 1
+due exactly 60 minutes later, and the done panel read "Done for now … ACID comes back at
+3:57 PM". Reopening straight away dealt nothing, "Nothing due right now". With the time
+moved into the past, reopening dealt it again, and the index counted it. The setting is
+not on the page in free study. At 800px wide the footer's controls wrap to a line of
+their own under "Add your own deck".
 
 ---
 
@@ -541,7 +578,8 @@ rung, and that is the whole of the ladder. And the interval paragraph came out: 
 described task 7, which is not built.
 
 **When task 7 lands**, this panel gains one line about the setting, saying plainly that
-it only changes how soon a red card comes back.
+it only changes how soon a red card comes back. *(Landed as the key's note following
+the setting instead: "Red comes back in 4 hours, orange in two days, …".)*
 
 **Done when** turning the switch on shows it once and never again unasked, the link
 beside the switch brings it back, and the dashes in it are the same three pixels tall
