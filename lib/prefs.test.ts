@@ -116,6 +116,31 @@ const cases: Array<[string, () => boolean]> = [
       return mangled === false && loadReviewerPrefs().colorKeyShown === false;
     },
   ],
+
+  [
+    "the first interval is a day until it is set, and only a value on the list is kept",
+    () => {
+      store.clear();
+      const first = loadReviewerPrefs().firstInterval;
+      store.set(REVIEWER_PREFS_KEY, JSON.stringify({ version: 1, colorKeyShown: true, firstInterval: 5 }));
+      const offList = loadReviewerPrefs().firstInterval;
+      store.set(REVIEWER_PREFS_KEY, JSON.stringify({ version: 1, colorKeyShown: true, firstInterval: 4 }));
+      return first === 24 && offList === 24 && loadReviewerPrefs().firstInterval === 4;
+    },
+  ],
+
+  [
+    "marking the color key shown keeps the interval, and setting the interval keeps the key",
+    () => {
+      store.clear();
+      saveReviewerPrefs({ firstInterval: 2 });
+      saveReviewerPrefs({ colorKeyShown: true });
+      const both = loadReviewerPrefs();
+      saveReviewerPrefs({ firstInterval: 8 });
+      const after = loadReviewerPrefs();
+      return both.firstInterval === 2 && both.colorKeyShown && after.firstInterval === 8 && after.colorKeyShown;
+    },
+  ],
 ];
 
 let failed = 0;

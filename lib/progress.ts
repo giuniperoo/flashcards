@@ -1,5 +1,13 @@
 import type { StudyCard } from "./types";
-import { FIRST_BOX, addDays, dueOn, nextBox, nextMisses, type Grade } from "./schedule";
+import {
+  DEFAULT_FIRST_INTERVAL,
+  FIRST_BOX,
+  addDays,
+  comesBack,
+  nextBox,
+  nextMisses,
+  type Grade,
+} from "./schedule";
 
 /**
  * What the app remembers about one card: what you wrote, and when it comes back.
@@ -34,6 +42,12 @@ import { FIRST_BOX, addDays, dueOn, nextBox, nextMisses, type Grade } from "./sc
  * weeks ago carries a later `due` than a box-1 card done this morning. It
  * is what a future sync would need to resolve a conflict, and it is empty on
  * every record migrated from an older store, because those stores never knew.
+ *
+ * `dueAt` is a time, and only a box 1 card has one: when the first interval is
+ * shorter than a day, a card answered wrong comes back hours later rather than
+ * the next morning. `due` still holds the day that time falls on. It is absent
+ * on every other record, and arrived inside version 4 like `misses`, so a record
+ * without it reads exactly as it did. See `comesBack` in `lib/schedule.ts`.
  */
 export type CardProgress = {
   draft: string;
@@ -41,6 +55,7 @@ export type CardProgress = {
   box: number;
   misses: number;
   due: string;
+  dueAt?: string;
   reviewed: string;
   seen: boolean;
 };
@@ -303,6 +318,11 @@ function readRecords(value: unknown): Record<string, CardProgress> {
       due: typeof entry.due === "string" ? entry.due : "",
       reviewed: typeof entry.reviewed === "string" ? entry.reviewed : "",
       seen,
+      // Kept only when it is a time, and left off otherwise rather than written
+      // as an empty string, so a record that never had one serializes as before.
+      ...(typeof entry.dueAt === "string" && Number.isFinite(Date.parse(entry.dueAt))
+        ? { dueAt: entry.dueAt }
+        : {}),
     };
   }
   return out;
@@ -446,7 +466,10 @@ function remove(key: string) {
  * own: a card marked seen with no due date would never be dealt at all.
  *
  * On a schedule it records the answer and moves the card: up a box or back to
- * box 1, a new due date counted from today, and the miss count.
+ * box 1, a new due date counted from today, and the miss count. A card sent to
+ * box 1 with a first interval shorter than a day also gets a `dueAt`, counted
+ * from `now`; any other answer clears it, so a card that climbs out of box 1
+ * goes back to coming back in the morning.
  *
  * An unseen card sits at box 1, so held promotes it to 2 and review leaves it
  * there. The two buttons still say the same two things.
@@ -456,18 +479,24 @@ export function applyGrade(
   grade: Grade,
   today: string,
   scheduled: boolean,
+  firstInterval: number = DEFAULT_FIRST_INTERVAL,
+  now: number = Date.now(),
 ): CardProgress {
   if (!scheduled) return { ...record, grade };
   const box = nextBox(record.box, grade);
-  return {
+  const next: CardProgress = {
     ...record,
     grade,
     box,
     misses: nextMisses(record.misses, grade),
-    due: dueOn(box, today),
+    ...comesBack(box, today, now, firstInterval),
     reviewed: today,
     seen: true,
   };
+  // `comesBack` gives no time outside box 1, so an old one is taken off here:
+  // a card that leaves box 1 must not keep a time that would bring it back early.
+  if (!comesBack(box, today, now, firstInterval).dueAt) delete next.dueAt;
+  return next;
 }
 
 export function saveProgress(store: ProgressStore) {

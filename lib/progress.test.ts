@@ -609,6 +609,53 @@ const cases: Array<[string, () => boolean]> = [
       return cardKey(card) === "d:aaa";
     },
   ],
+
+  [
+    "a scheduled wrong answer with a short first interval carries a time, and a right one clears it",
+    () => {
+      const at = new Date(2026, 8, 14, 14, 0).getTime();
+      const wrong = applyGrade({ ...unseenCard, box: 3, seen: true, due: "2026-09-14" }, "review", "2026-09-14", true, 4, at);
+      const right = applyGrade(wrong, "held", "2026-09-14", true, 4, at);
+      return (
+        wrong.box === 1 &&
+        wrong.dueAt === new Date(at + 4 * 3_600_000).toISOString() &&
+        wrong.due === "2026-09-14" &&
+        right.box === 2 &&
+        !("dueAt" in right) &&
+        right.due === "2026-09-16"
+      );
+    },
+  ],
+
+  [
+    "free study leaves a card's time where it was",
+    () => {
+      const dueAt = new Date(2026, 8, 14, 18, 0).toISOString();
+      const before = { ...unseenCard, box: 1, seen: true, due: "2026-09-14", dueAt };
+      const after = applyGrade(before, "held", "2026-09-14", false, 4);
+      return after.dueAt === dueAt && after.box === 1;
+    },
+  ],
+
+  [
+    "a stored time is read back, and a malformed one is left off",
+    () => {
+      store.clear();
+      const dueAt = new Date(2026, 8, 14, 18, 0).toISOString();
+      store.set(
+        PROGRESS_KEY,
+        JSON.stringify({
+          version: 4,
+          cards: {
+            "d:aaa": { draft: "", grade: "review", box: 1, misses: 1, due: TODAY, dueAt, reviewed: TODAY, seen: true },
+            "d:bbb": { draft: "", grade: "review", box: 1, misses: 1, due: TODAY, dueAt: "soon", reviewed: TODAY, seen: true },
+          },
+        }),
+      );
+      const p = read(studyCards(deckOf("d", ["aaa", "bbb"])));
+      return p.cards["d:aaa"].dueAt === dueAt && !("dueAt" in p.cards["d:bbb"]);
+    },
+  ],
 ];
 
 let failed = 0;

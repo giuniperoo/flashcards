@@ -12,7 +12,13 @@ import {
   saveProgress,
   unseenCard,
 } from "@/lib/progress";
-import { clampBox, dayKey, daysBetween, type Grade } from "@/lib/schedule";
+import {
+  DEFAULT_FIRST_INTERVAL,
+  clampBox,
+  dayKey,
+  daysBetween,
+  type Grade,
+} from "@/lib/schedule";
 import { breakdown, buildDueQueue, buildQueue } from "@/lib/queue";
 import QueueBar from "@/components/QueueBar";
 import ColorKey from "@/components/ColorKey";
@@ -121,23 +127,49 @@ function dashColor(record: CardProgress | undefined, scheduled: boolean) {
   return BOX_COLORS[clampBox(record.box) - 1];
 }
 
-/** The soonest day any card in this deck comes back, or "" if none is scheduled. */
+/** When a card comes back: its day, and a time if it is a box 1 card with one. */
+type Return = { due: string; dueAt?: string };
+
+/** A return as a moment, for comparing: its time, or the start of its day. */
+function momentOf({ due, dueAt }: Return) {
+  const at = dueAt ? Date.parse(dueAt) : Number.NaN;
+  if (Number.isFinite(at)) return at;
+  const [year, month, date] = due.split("-").map(Number);
+  return new Date(year, month - 1, date).getTime();
+}
+
+/** The soonest any card in this deck comes back, or null if none is scheduled.
+    A box 1 card due at four this afternoon comes before the rest of the deck's
+    tomorrow morning, which is why this compares moments and not days. */
 function nextReturn(
   cards: StudyCard[],
   records: Record<string, CardProgress>,
-) {
-  let soonest = "";
+): Return | null {
+  let soonest: Return | null = null;
   for (const card of cards) {
     const record = records[cardKey(card)];
     if (!record?.seen || !record.due) continue;
-    if (!soonest || record.due < soonest) soonest = record.due;
+    if (!soonest || momentOf(record) < momentOf(soonest)) soonest = record;
   }
-  return soonest;
+  return soonest && { due: soonest.due, dueAt: soonest.dueAt };
 }
 
-/** When a deck comes back, in the words somebody would use for it. */
-function returnsIn(day: string, today: string) {
+/** Whether a return lands today, which is when "today" in a title is wrong. */
+function laterToday(returns: Return | null, today: string) {
+  return !!returns && daysBetween(today, returns.due) <= 0;
+}
+
+/** When a deck comes back, in the words somebody would use for it: a time when
+    it is a box 1 card with one, which the day words cannot say. */
+function returnsIn({ due: day, dueAt }: Return, today: string) {
   const days = daysBetween(today, day);
+  if (dueAt && days <= 1) {
+    const time = new Date(dueAt).toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    return days <= 0 ? `at ${time}` : `tomorrow at ${time}`;
+  }
   if (days <= 0) return "today";
   if (days === 1) return "tomorrow";
   const [year, month, date] = day.split("-").map(Number);
@@ -231,10 +263,23 @@ export default function Reviewer({
   // a session that runs past midnight should keep the date it opened with
   // rather than move a card's due date under the reader mid-deck.
   const [today] = useState(dayKey);
+  // The time, read once for the same reason: a box 1 card with a time comes due
+  // only if that time had passed when the session was dealt, so a card answered
+  // in this session never comes back into it. See `buildDueQueue`.
+  const [openedAt] = useState(() => Date.now());
   useEffect(() => {
     setSaved(loadProgress(cardsRef.current, today));
     setReady(true);
   }, [today]);
+
+  // How soon a card answered wrong comes back, set at the foot of the index.
+  // Read after mount, since storage is not there on the server, and read once:
+  // grading uses it, and nothing on screen before the first grade depends on it
+  // except the color key's words, which follow it.
+  const [firstInterval, setFirstInterval] = useState(DEFAULT_FIRST_INTERVAL);
+  useEffect(() => {
+    setFirstInterval(loadReviewerPrefs().firstInterval);
+  }, []);
 
   useEffect(() => {
     if (!ready) return;
@@ -271,7 +316,7 @@ export default function Reviewer({
   useEffect(() => {
     if (!ready || !scheduled || left || session) return;
     const deal = crossDeck ? buildDueQueue : buildQueue;
-    const queue = deal(cardsRef.current, saved.cards, today);
+    const queue = deal(cardsRef.current, saved.cards, today, undefined, openedAt);
     setSession({
       cards: queue,
       right: 0,
@@ -280,7 +325,7 @@ export default function Reviewer({
     });
     setOrder(queue);
     setPosition(0);
-  }, [ready, scheduled, left, session, saved.cards, today, crossDeck]);
+  }, [ready, scheduled, left, session, saved.cards, today, crossDeck, openedAt]);
 
   /* The color key beside the strip. It opens by itself once, the first time a
      scheduled session starts with cards in it, because that session is where
@@ -405,7 +450,16 @@ export default function Reviewer({
         ...prev,
         cards: {
           ...prev.cards,
-          [key]: applyGrade(prev.cards[key] ?? unseenCard, value, today, scheduled),
+          // The moment of the answer, not when the page opened: "back in four
+          // hours" counts from now.
+          [key]: applyGrade(
+            prev.cards[key] ?? unseenCard,
+            value,
+            today,
+            scheduled,
+            firstInterval,
+            Date.now(),
+          ),
         },
       }));
 
@@ -429,7 +483,7 @@ export default function Reviewer({
       setOrder(remaining);
       setPosition(remaining.length === 0 ? 0 : Math.min(position, remaining.length - 1));
     },
-    [card, key, today, scheduled, session, move, commitDraft, draft, order, position],
+    [card, key, today, scheduled, firstInterval, session, move, commitDraft, draft, order, position],
   );
 
   const shuffle = useCallback(() => {
@@ -688,6 +742,7 @@ export default function Reviewer({
         />
         <ColorKey
           scheduled={scheduled}
+          firstInterval={firstInterval}
           ink={card.deck.ink}
           open={keyOpen}
           onOpenChange={setKeyOpen}
@@ -826,7 +881,7 @@ function SessionDone({
   deck: string | null;
   cards: StudyCard[];
   records: Record<string, CardProgress>;
-  returns: string;
+  returns: Return | null;
   today: string;
   onStudyDeck: () => void;
 }) {
@@ -839,7 +894,8 @@ function SessionDone({
     session.missed > 0 && `${session.missed} need${session.missed === 1 ? "s" : ""} review`,
   ].filter(Boolean);
   return (
-    <Panel title="Done for today">
+    // "For today" is wrong when a card is back this afternoon.
+    <Panel title={laterToday(returns, today) ? "Done for now" : "Done for today"}>
       <p className="mt-2 max-w-[46ch] text-sm text-muted">
         {total} card{total === 1 ? "" : "s"}.{moves.length > 0 && ` ${moves.join(", ")}.`}
         {returns &&
@@ -881,7 +937,7 @@ function NothingDue({
 }: {
   /** The deck's name, or null for a set of decks. */
   deck: string | null;
-  returns: string;
+  returns: Return | null;
   today: string;
   onStudyAnyway: () => void;
 }) {
@@ -896,7 +952,7 @@ function NothingDue({
       ? `The next cards come back ${returnsIn(returns, today)}.`
       : "Nothing is scheduled yet. Cards join the schedule when you answer them in their own deck.";
   return (
-    <Panel title="Nothing due today">
+    <Panel title={laterToday(returns, today) ? "Nothing due right now" : "Nothing due today"}>
       <p className="mt-2 max-w-[42ch] text-sm text-muted">
         {where} You can still study {deck ? "the whole deck" : "every card"}. That
         won’t change when any card comes back.

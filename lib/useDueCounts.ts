@@ -20,7 +20,7 @@ export function useDueCounts(): Record<string, number> {
   const [due, setDue] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const read = () => setDue(dueByDeck(peekProgress(), dayKey()));
+    const read = () => setDue(dueByDeck(peekProgress(), dayKey(), Date.now()));
     read();
     const onStorage = (event: StorageEvent) => {
       if (event.key === null || event.key === PROGRESS_KEY) read();

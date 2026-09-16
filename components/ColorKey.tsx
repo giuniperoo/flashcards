@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { intervalWords } from "@/lib/schedule";
 
 /*
  * What the strip's colors mean, behind a small "?" at the end of the strip.
@@ -71,11 +72,14 @@ function QuestionIcon({ className }: { className?: string }) {
 
 export default function ColorKey({
   scheduled,
+  firstInterval,
   ink,
   open,
   onOpenChange,
 }: {
   scheduled: boolean;
+  /** Hours before a red card comes back, set at the foot of the index. */
+  firstInterval: number;
   /** The current card's deck ink, for the taller dash. */
   ink: string;
   open: boolean;
@@ -190,8 +194,9 @@ export default function ColorKey({
         {scheduled && (
           <p className="mt-3 text-sm text-muted">
             One wrong answer sends a card back to red, so green means three in a
-            row, not three in total. Red comes back the next day, orange in two
-            days, yellow in three, green in four.
+            row, not three in total. Red comes back{" "}
+            {firstInterval >= 24 ? "the next day" : `in ${intervalWords(firstInterval)}`},
+            orange in two days, yellow in three, green in four.
           </p>
         )}
       </div>

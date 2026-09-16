@@ -30,9 +30,9 @@ is due today, and it ends.
 | 4 — The reviewer studies the queue | merged |
 | 5 — Due counts on the index | merged |
 | 6 — The cross-deck due queue | merged |
-| 7 — A first interval shorter than a day | not started |
+| 7 — A first interval shorter than a day | built, in review |
 | 8 — An empty box when a card comes back | merged |
-| 9 — Say what the colors mean, once | built, in review |
+| 9 — Say what the colors mean, once | merged |
 | 10 — The queue bar | merged |
 | 11 — Docs | not started |
 
@@ -389,7 +389,7 @@ change here.
 
 ### Task 7 — A first interval shorter than a day
 
-*Not started.*
+*Built, in review. See "As built" below.*
 
 **Why.** Box 1 is a day, and the day before an interview a day is too long. A card
 you have just got wrong is the one you most want back this afternoon, and the ladder
@@ -455,7 +455,77 @@ interview horizon at a time, not twelve.
 ten minutes before it starts spacing by days, and this app has nothing like it — the
 first answer always waits at least a day. That is the biggest reason a card cannot
 reach green quickly. This task could grow into it, or it could be its own task. Not
-agreed yet either way.
+agreed yet either way. *(Decided when task 7 started: not in task 7. It stays
+undecided as a task of its own.)*
+
+**As built.**
+
+- **The setting** sits at the foot of the index, beside the mode and only on a
+  schedule: "Retry misses in", then a bar of 1h, 2h, 4h, 8h and 1 day with the current one
+  filled. It was a select first, and a bar shows every choice without opening anything.
+  In free study it goes, since it governs nothing there, but its room is kept so the
+  mode bar does not slide out from under the pointer that just pressed it
+- **The mode became a bar too**, of two segments, free study then spaced repetition —
+  that order so the mode sits against the setting that belongs to it. A chosen segment
+  is filled in the mark's cream, or the free study sage, so the bars, the mark in the
+  header and the sun behind the page say the mode together. The interval's chosen
+  segment is that same cream, since the bar only shows on a schedule
+- **The footer is two sides that stay two sides**: what the page *shows* on the left,
+  "Add your own deck" and "Show built-in decks", and what the app *is* on the right, the
+  mode and its setting — `StudyMode` in `components/DeckVisibility.tsx`. Neither wraps
+  under the other. As the room runs out each side stacks within itself, the right first
+  — the mode above its interval — and then the left, the button above "Show built-in
+  decks", which holds its line down to 768px. Flex shares a shortfall between both sides
+  however lopsided the shrink weights, and even a fraction of a pixel off the left is
+  enough to break it onto two lines when its two controls exactly fill the line — so
+  from 768px up, the narrowest the column still holds both sides with the right one
+  stacked, the left neither shrinks nor wraps. Below 640px there are no two sides to keep and the groups sit one above the
+  other. Trimming the labels to hold one
+  line further down was tried and taken back out: the words are worth more than the line
+- **Stacked, the labels line up.** "Show built-in decks" carries the button's own text
+  inset — its 1px border and 1rem of padding — so that under "Add your own deck" the two
+  start on the same line, with the button's border still on the column's edge. Pulling
+  the button out by its padding instead would have hung it off that edge, which the
+  headline, the paragraph and the deck grid all sit on. The inset comes off again from
+  768px up, where the two are side by side: there is nothing to line up with, and its
+  32px is 32px the line does not have
+- **The bar is a radio group.** Tab reaches it once, the arrow keys move between the
+  choices and save as they go, and a screen reader hears "1 hour" rather than "1h". Each
+  segment is the queue bar's 22px, with a box behind it taking the press area to 44px,
+  and the focus ring is drawn inside the segment so the bar cannot clip it
+- **The footer is two lines now**, the switches and then the setting, right-aligned. All
+  of it on one line is wider than the 3xl column the index sits in, and a row left to
+  wrap on its own put a separating bullet at the start of a line, separating nothing.
+  At phone width the switches stack and the bullets go, for the same reason
+- **Stored in `prefs:reviewer`, not `prefs:schedule`.** The plan predates that key,
+  which task 9 added for what the reviewer reads, and a fifth key for one number was
+  not worth it. `firstInterval` arrived inside its version 1, reading as 24 when absent
+  or off the list. Saving now merges, so the index setting the interval and the
+  reviewer marking the color key shown cannot undo each other
+- **The representation is the plan's second way.** `comesBack` in `lib/schedule.ts`
+  gives a box 1 card a `dueAt`, counted from the moment of the answer, when the interval
+  is under a day; `due` is the local day it falls on. Any other scheduled answer takes
+  `dueAt` off; free study leaves it alone. `isDue` compares the time when `now` is
+  given, and the day otherwise
+- **A card graded in a session never returns to it.** The reviewer reads the clock once
+  when it opens, alongside the day, and deals with that; grading counts from the real
+  moment of the answer. The index's due counts read the clock when they are drawn
+- **The tiebreak survives.** Cards with times group by their `due` day, and a test
+  holds the shuffle to one group across them
+- **Copy with hours.** A deck with a card back later today "comes back at 3:57 PM", or
+  "tomorrow at 7:00 AM" past midnight. The panels say "Done for now" and "Nothing due
+  right now" when the next card is back today, and the color key says "Red comes back
+  in 1 hour"
+- `pnpm run test:schedule` covers a wrong answer at four hours coming back four hours
+  later, a right answer still in the morning, a time past midnight carrying the next
+  day, and real hours across the clocks going forward, under `TZ=Europe/London`
+
+**Checked in Chromium.** With the setting at 1 hour, a card answered wrong went to box 1
+due exactly 60 minutes later, and the done panel read "Done for now … ACID comes back at
+3:57 PM". Reopening straight away dealt nothing, "Nothing due right now". With the time
+moved into the past, reopening dealt it again, and the index counted it. The setting is
+not on the page in free study. The bar was checked at 1280px and at phone width, by
+press and by keyboard: clicking a segment and arrowing between them both save.
 
 ---
 
@@ -488,7 +558,7 @@ a schedule, because the whole-deck reviewer is the one being kept as it was.
 
 ### Task 9 — Say what the colors mean, once
 
-*Built, in review, as a key beside the strip rather than a panel. See "As built" below.*
+*Merged, in #30, as a key beside the strip rather than a panel. See "As built" below.*
 
 **Why.** The strip is four colors and a gray and nothing on screen says what any of
 them mean. A reader who answers a new card correctly, sees orange, and expects green
@@ -541,7 +611,8 @@ rung, and that is the whole of the ladder. And the interval paragraph came out: 
 described task 7, which is not built.
 
 **When task 7 lands**, this panel gains one line about the setting, saying plainly that
-it only changes how soon a red card comes back.
+it only changes how soon a red card comes back. *(Landed as the key's note following
+the setting instead: "Red comes back in 4 hours, orange in two days, …".)*
 
 **Done when** turning the switch on shows it once and never again unasked, the link
 beside the switch brings it back, and the dashes in it are the same three pixels tall

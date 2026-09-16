@@ -6,7 +6,11 @@
  * 2025, and back on October 26, 2025, which is what the boundary cases straddle.
  */
 import {
+  DEFAULT_FIRST_INTERVAL,
   INTERVALS,
+  clampFirstInterval,
+  comesBack,
+  intervalWords,
   LAST_BOX,
   addDays,
   dayKey,
@@ -137,6 +141,80 @@ const cases: Array<[string, () => boolean]> = [
   [
     "a malformed day falls back to counting from today rather than throwing",
     () => addDays("not-a-day", 1) === dayKey(new Date(Date.now() + 86400000)),
+  ],
+
+  [
+    "a card answered wrong with the setting at four hours comes back four hours later",
+    () => {
+      // Two in the afternoon, London time.
+      const answered = new Date(2026, 8, 15, 14, 0).getTime();
+      const back = comesBack(1, "2026-09-15", answered, 4);
+      const record = { seen: true, ...back };
+      return (
+        back.due === "2026-09-15" &&
+        back.dueAt === new Date(2026, 8, 15, 18, 0).toISOString() &&
+        !isDue(record, "2026-09-15", new Date(2026, 8, 15, 17, 59).getTime()) &&
+        isDue(record, "2026-09-15", new Date(2026, 8, 15, 18, 0).getTime())
+      );
+    },
+  ],
+
+  [
+    "a card answered right still comes back in the morning, with no time",
+    () => {
+      const answered = new Date(2026, 8, 15, 14, 0).getTime();
+      const back = comesBack(2, "2026-09-15", answered, 4);
+      return back.due === "2026-09-17" && back.dueAt === undefined;
+    },
+  ],
+
+  [
+    "a day for box 1 is the ordinary day, with no time",
+    () => {
+      const back = comesBack(1, "2026-09-15", new Date(2026, 8, 15, 14, 0).getTime(), 24);
+      return back.due === "2026-09-16" && back.dueAt === undefined;
+    },
+  ],
+
+  [
+    "a time past midnight carries the day it falls on",
+    () => {
+      // Eleven at night with eight hours to wait: seven tomorrow morning.
+      const back = comesBack(1, "2026-09-15", new Date(2026, 8, 15, 23, 0).getTime(), 8);
+      return back.due === "2026-09-16" && back.dueAt === new Date(2026, 8, 16, 7, 0).toISOString();
+    },
+  ],
+
+  [
+    "hours are real hours across the clocks going forward",
+    () => {
+      // Half past midnight on March 30, 2025; the clocks jump from one to two.
+      const answered = new Date(2025, 2, 30, 0, 30).getTime();
+      const back = comesBack(1, "2025-03-30", answered, 4);
+      return back.due === "2025-03-30" && Date.parse(back.dueAt!) - answered === 4 * 3_600_000;
+    },
+  ],
+
+  [
+    "a first interval off the list is pulled back to a day",
+    () =>
+      clampFirstInterval(5) === DEFAULT_FIRST_INTERVAL &&
+      clampFirstInterval("4") === DEFAULT_FIRST_INTERVAL &&
+      clampFirstInterval(8) === 8 &&
+      comesBack(1, "2026-09-15", Date.now(), 3).dueAt === undefined,
+  ],
+
+  [
+    "without a time to compare, a card with one is due by its day",
+    () => {
+      const record = { seen: true, due: "2026-09-15", dueAt: new Date(2026, 8, 15, 18, 0).toISOString() };
+      return isDue(record, "2026-09-15") && !isDue(record, "2026-09-14");
+    },
+  ],
+
+  [
+    "the interval reads as hours or a day",
+    () => intervalWords(1) === "1 hour" && intervalWords(4) === "4 hours" && intervalWords(24) === "1 day",
   ],
 ];
 

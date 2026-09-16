@@ -44,6 +44,11 @@
      mark. At this faintness the sun barely shows the mode; the mark in the
      header carries that, on every page. */
   --color-sun-free: #ebeee9;
+  /* The free study mark's sage ground, for the mode bar at the foot of the
+     index. Duplicated from `tools/wordmark.py` the way `--color-mark` is: that
+     script writes `public/logo-free.svg`, so change it there first. The sun's
+     rays are a far fainter sage of the same hue; this is the mark's own. */
+  --color-mark-free: #d1d8c9;
   --color-question: #185fa5;
   --color-answer: #0f6e56;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
@@ -162,6 +167,68 @@ body {
 
 .queue-bar > span + span {
   border-left: 1px solid var(--color-rule);
+}
+
+/* The two bars at the foot of the index — the mode, and how soon a missed card
+   comes back — drawn like the queue bar: 22px segments with the chosen one
+   filled. No overflow clipping, so the box behind each segment can stretch its
+   press area to 44px, and so the focus ring, drawn inside the segment, is never
+   cut off.
+
+   A chosen segment is the color of the mark in the header: the mark's cream,
+   and the free study sage on that one segment. The interval bar only ever shows
+   on a schedule, so its chosen segment is the same cream as the mode beside it,
+   and the bars, the mark and the sun behind the page all say the mode. */
+.segment-bar {
+  display: inline-flex;
+  border: 1px solid var(--color-rule);
+  border-radius: 2px;
+}
+
+.segment-bar > label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 1.375rem;
+  padding: 0 0.5rem;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  /* A segment is one line, whatever room it is given: "Free study" broken over
+     two lines is not a segment of a bar any more. */
+  white-space: nowrap;
+  color: var(--color-muted);
+  background: var(--color-card);
+}
+
+.segment-bar > label + label {
+  border-left: 1px solid var(--color-rule);
+}
+
+.segment-bar > label::after {
+  content: "";
+  position: absolute;
+  inset: -11px 0;
+}
+
+.segment-bar > label:hover {
+  color: var(--color-ink);
+}
+
+.segment-bar > label.chosen {
+  background: var(--color-mark);
+  color: var(--color-ink);
+}
+
+.segment-bar > label.mode-free {
+  background: var(--color-mark-free);
+}
+
+.segment-bar > label:has(input:focus-visible) {
+  outline: 1px solid var(--color-focus);
+  outline-offset: -3px;
 }
 
 /* The hidden copy `QueueBar` measures to decide whether the bar fits in the
@@ -533,6 +600,24 @@ html[data-mode="free"] .wordmark-schedule {
   a:focus-visible:not([class*="focus-visible:outline"]) {
     position: relative;
     outline: none;
+  }
+
+  /* A plain text button — no border, a 44px press area around small words —
+     gets the same ring as a text link, drawn around the words rather than
+     around the box, so the two match in a row that holds both. The words are
+     wrapped in `.ring-words` for it; a ring on the button itself would be a
+     rectangle the height of the press area. */
+  button:focus-visible > .ring-words {
+    position: relative;
+  }
+
+  button:focus-visible > .ring-words::after {
+    content: "";
+    position: absolute;
+    inset: -3px -5px;
+    border: 1px solid var(--color-focus);
+    border-radius: 2px;
+    pointer-events: none;
   }
 
   a:focus-visible:not([class*="focus-visible:outline"])::after {
