@@ -30,14 +30,17 @@ import {
     only these is kinder than letting someone pick 25 and warning them after. */
 const COUNTS = [8, 16, 24, 32];
 
+/* 44px for a finger and 36px for a mouse, like every control in the app; see
+   the tap target convention in CLAUDE.md. The selects trim their padding with a
+   mouse too, or their line and border would hold them at 38px. */
 const FIELD =
-  "min-h-11 w-full rounded-sm border border-rule bg-card px-3 text-base outline-none placeholder:text-muted focus:border-ink sm:text-sm";
+  "min-h-11 pointer-fine:min-h-9 w-full rounded-sm border border-rule bg-card px-3 text-base outline-none placeholder:text-muted focus:border-ink sm:text-sm";
 
 const SELECT =
-  "min-h-11 w-full appearance-none rounded-sm border border-rule bg-card py-2 pl-3 pr-9 text-base outline-none focus:border-ink disabled:cursor-not-allowed disabled:text-muted sm:text-sm";
+  "min-h-11 pointer-fine:min-h-9 w-full appearance-none rounded-sm border border-rule bg-card py-2 pl-3 pr-9 text-base pointer-fine:py-1.5 outline-none focus:border-ink disabled:cursor-not-allowed disabled:text-muted sm:text-sm";
 
 const BUTTON =
-  "press min-h-11 shrink-0 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent";
+  "press min-h-11 pointer-fine:min-h-9 shrink-0 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent";
 
 const TEXT_BUTTON = "underline underline-offset-2 hover:text-ink";
 
@@ -269,7 +272,7 @@ export default function DeckGenerator({
                   setKeyDraft("");
                   setError(null);
                 }}
-                className="min-h-11 shrink-0 px-2 text-sm text-muted hover:text-ink"
+                className="min-h-11 pointer-fine:min-h-9 shrink-0 px-2 text-sm text-muted hover:text-ink"
               >
                 Cancel
               </button>
@@ -364,7 +367,7 @@ export default function DeckGenerator({
                 <button
                   type="button"
                   onClick={() => apiKey && fetchModels(provider, apiKey)}
-                  className={`min-h-11 ${TEXT_BUTTON}`}
+                  className={`min-h-11 pointer-fine:min-h-9 ${TEXT_BUTTON}`}
                 >
                   Try again
                 </button>
@@ -375,7 +378,7 @@ export default function DeckGenerator({
                 key&rsquo;s permissions, or use another provider.
               </p>
             ) : (
-              <span role="status" className="flex min-h-11 items-center text-sm text-muted">
+              <span role="status" className="flex min-h-11 pointer-fine:min-h-9 items-center text-sm text-muted">
                 Loading the models this key can use…
               </span>
             )}
@@ -491,7 +494,7 @@ function ProviderPicker({
 }) {
   const name = useId();
   return (
-    <span role="radiogroup" aria-label="Who writes the deck" className="inline-flex min-h-11 items-center">
+    <span role="radiogroup" aria-label="Who writes the deck" className="inline-flex min-h-11 pointer-fine:min-h-9 items-center">
       <span className="segment-bar">
         {PROVIDERS.map((provider) => (
           <label key={provider} className={provider === value ? "chosen" : undefined}>

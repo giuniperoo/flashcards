@@ -27,7 +27,7 @@ import { usePrefs } from "@/lib/usePrefs";
    comes off so the gap between them is the gap the row sets — and so the two
    fit the line they have. */
 const PLAIN =
-  "label inline-flex min-h-11 items-center border border-transparent px-4 text-muted hover:text-ink focus-visible:outline-none md:border-0 md:px-0";
+  "label inline-flex min-h-11 pointer-fine:min-h-9 items-center border border-transparent px-4 text-muted hover:text-ink focus-visible:outline-none md:border-0 md:px-0";
 
 export default function DeckVisibility({ slugs }: { slugs: string[] }) {
   const [prefs, update] = usePrefs();
@@ -127,7 +127,7 @@ function Mode({
     <span
       role="radiogroup"
       aria-label="Study mode"
-      className="inline-flex min-h-11 items-center"
+      className="inline-flex min-h-11 pointer-fine:min-h-9 items-center"
     >
       <span className="segment-bar">
         <label className={scheduled ? undefined : "chosen mode-free"}>
@@ -208,7 +208,7 @@ function FirstInterval({ disabled }: { disabled: boolean }) {
       id="interval"
       role="radiogroup"
       aria-labelledby={`${name}-label`}
-      className="inline-flex min-h-11 items-center gap-2"
+      className="inline-flex min-h-11 pointer-fine:min-h-9 items-center gap-2"
     >
       <span id={`${name}-label`} className="label whitespace-nowrap text-muted">
         Spaced by

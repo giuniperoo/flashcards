@@ -86,7 +86,7 @@ export default function DeckImporter({
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="press min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 pointer-fine:min-h-9 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Choose a file
         </button>
@@ -96,7 +96,7 @@ export default function DeckImporter({
             setText(EXAMPLE_DECK);
             setFileName(null);
           }}
-          className="press min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 pointer-fine:min-h-9 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Load the example
         </button>
@@ -199,7 +199,7 @@ export default function DeckImporter({
         type="button"
         onClick={save}
         disabled={!canSave}
-        className="press mt-4 min-h-11 w-full rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent sm:w-auto sm:px-6"
+        className="press mt-4 min-h-11 pointer-fine:min-h-9 w-full rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent sm:w-auto sm:px-6"
       >
         {canSave
           ? `Add ${parsed!.cards.length} ${parsed!.cards.length === 1 ? "card" : "cards"}`

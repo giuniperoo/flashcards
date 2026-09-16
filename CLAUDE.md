@@ -379,8 +379,14 @@ stops a second read from merging a stale grade back over a newer one.
   "behavior", "a fraction of a cent", "two weeks" rather than "a fortnight", and
   dates as "September 13, 2026"
 - Copy names what happens: "Turn card over", not "Submit"
-- Tap targets at least 44px; the answer box uses 16px on mobile so iOS doesn't
-  zoom on focus
+- Tap targets at least 44px where the pointer is a finger, and 36px where it is
+  a mouse or trackpad, which does not need the room: `min-h-11
+  pointer-fine:min-h-9`. `pointer-fine` reads the primary pointer, so a
+  touchscreen laptop gets the mouse size. A control with vertical padding trims
+  it with a mouse too (`pointer-fine:py-1.5`), or its line and border hold it at
+  38px. Press areas nobody sees — the color key's "?" and close, a segment bar's
+  stretched label — stay 44px, since shrinking them changes nothing on screen.
+  The answer box uses 16px text on mobile so iOS doesn't zoom on focus
 - Colors come from the Tailwind theme in `globals.css`, never hardcoded hex in
   components, except deck tints which are data
 - The shell is `max-w-3xl` up to 1300px and 75% of the viewport past it. The
