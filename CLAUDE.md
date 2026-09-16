@@ -51,9 +51,10 @@ to need one of them, stop and ask rather than introducing it.
 
 Server components by default. Only `Reviewer.tsx`, `PrintButton.tsx`,
 `DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx`, `DeckIndex.tsx`,
-`CustomDeckView.tsx` and `PrintPreview.tsx` are client components, and that
-list should not grow without a reason. `PrintPreview.tsx` has one: it has to
-measure its column to zoom the pages to fit. The point is that
+`CustomDeckView.tsx`, `PrintPreview.tsx` and `PrintIntro.tsx` are client
+components, and that list should not grow without a reason. The last two have
+theirs: the preview has to measure its column to zoom the pages to fit, and the
+print page's "Study" link has to carry the reader's mode and `?deck=` set. The point is that
 the JavaScript shipped is the interactive parts and nothing else.
 
 `DeckIndex.tsx` earns its place by counting: the headline totals span the
@@ -81,6 +82,7 @@ components/
   ColorKey.tsx          what the strip's colors mean, behind a "?" at its end
   PrintSheets.tsx       shared by the built-in and custom print paths
   PrintPreview.tsx      zooms the pages to fit the column on screen, never in print
+  PrintIntro.tsx        a print page's title row, and what to set in the dialog
 lib/
   loadDecks.ts          reads content/*.md at build time — SERVER ONLY
   types.ts              Card, Deck, StudyCard — safe for client components
