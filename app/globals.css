@@ -602,6 +602,24 @@ html[data-mode="free"] .wordmark-schedule {
     outline: none;
   }
 
+  /* A plain text button — no border, a 44px press area around small words —
+     gets the same ring as a text link, drawn around the words rather than
+     around the box, so the two match in a row that holds both. The words are
+     wrapped in `.ring-words` for it; a ring on the button itself would be a
+     rectangle the height of the press area. */
+  button:focus-visible > .ring-words {
+    position: relative;
+  }
+
+  button:focus-visible > .ring-words::after {
+    content: "";
+    position: absolute;
+    inset: -3px -5px;
+    border: 1px solid var(--color-focus);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
   a:focus-visible:not([class*="focus-visible:outline"])::after {
     content: "";
     position: absolute;

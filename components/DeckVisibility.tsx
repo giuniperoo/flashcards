@@ -27,7 +27,7 @@ import { usePrefs } from "@/lib/usePrefs";
    comes off so the gap between them is the gap the row sets — and so the two
    fit the line they have. */
 const PLAIN =
-  "label inline-flex min-h-11 items-center border border-transparent px-4 text-muted hover:text-ink md:border-0 md:px-0";
+  "label inline-flex min-h-11 items-center border border-transparent px-4 text-muted hover:text-ink focus-visible:outline-none md:border-0 md:px-0";
 
 export default function DeckVisibility({ slugs }: { slugs: string[] }) {
   const [prefs, update] = usePrefs();
@@ -46,7 +46,9 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
           onClick={() => update({ ...prefs, hiddenDecks: [] })}
           className={PLAIN}
         >
-          {`Bring back ${hidden} deck${hidden === 1 ? "" : "s"}`}
+          <span className="ring-words">
+            {`Bring back ${hidden} deck${hidden === 1 ? "" : "s"}`}
+          </span>
         </button>
       )}
       <button
@@ -54,7 +56,9 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
         onClick={() => update({ ...prefs, showBuiltIns: !prefs.showBuiltIns })}
         className={PLAIN}
       >
-        {prefs.showBuiltIns ? "Hide built-in decks" : "Show built-in decks"}
+        <span className="ring-words">
+          {prefs.showBuiltIns ? "Hide built-in decks" : "Show built-in decks"}
+        </span>
       </button>
     </span>
   );

@@ -366,8 +366,12 @@ stops a second read from merging a stale grade back over a newer one.
   `--color-focus`, `#5f5e5a`, a softer black than the text. A base-layer rule
   draws it on links and anything without a ring of its own; controls that draw
   their own use `focus-visible:outline-1 focus-visible:outline-focus`, never
-  `outline-ink`. A deck card's main link has no ring: its dashed edge turns the
-  focus color instead. Never leave a focusable element with no visible ring
+  `outline-ink`. A text link's ring is drawn around its words, 3px above and
+  below and 5px to the sides; a plain text button matches it by wrapping its
+  words in `.ring-words`, since a ring on the button would be a rectangle the
+  height of its 44px press area. A deck card's main link has no ring: its dashed
+  edge turns the focus color instead. Never leave a focusable element with no
+  visible ring
 - Errors are specific and actionable, and never blame the user
 
 ## Before committing
