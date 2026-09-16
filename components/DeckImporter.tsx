@@ -130,7 +130,10 @@ export default function DeckImporter({
         rows={14}
         spellCheck={false}
         placeholder={"# My deck\n\nQ: First question?\nA: First answer."}
-        className="w-full resize-y rounded-sm border border-rule bg-card p-3 font-mono text-base leading-relaxed outline-none placeholder:text-muted focus:border-ink sm:text-[13px]"
+        // Grows down, never sideways, as the answer box in `Reviewer` does:
+        // WebKit gave both a horizontal scrollbar, and a long line wraps
+        // instead of scrolling off to the right.
+        className="w-full resize-y overflow-x-hidden rounded-sm border border-rule bg-card p-3 font-mono text-base leading-relaxed wrap-anywhere outline-none placeholder:text-muted focus:border-ink sm:text-[13px]"
       />
 
       {parsed && (
