@@ -1,4 +1,5 @@
 import type { StudyCard } from "@/lib/types";
+import PrintPreview from "@/components/PrintPreview";
 import { toSheets, type Sheet, type Slot } from "@/lib/print";
 
 export default function PrintSheets({
@@ -9,20 +10,30 @@ export default function PrintSheets({
   title: string;
 }) {
   return (
-    <div className="sheet-frame">
-      {toSheets(cards).map((sheet) => (
-        <SheetPair key={sheet.first} sheet={sheet} title={title} />
+    <PrintPreview>
+      {toSheets(cards).map((sheet, i) => (
+        <SheetPair key={sheet.first} sheet={sheet} number={i + 1} title={title} />
       ))}
-    </div>
+    </PrintPreview>
   );
 }
 
-function SheetPair({ sheet, title }: { sheet: Sheet; title: string }) {
+function SheetPair({
+  sheet,
+  number,
+  title,
+}: {
+  sheet: Sheet;
+  number: number;
+  title: string;
+}) {
   const range = `cards ${sheet.first}-${sheet.last}`;
 
   return (
     <>
-      <section className="sheet">
+      {/* `data-label` names the page above it on screen, and never prints;
+          see `.sheet::before` in `app/globals.css`. */}
+      <section className="sheet" data-label={`Sheet ${number} · front`}>
         <header className="sheet-head">
           <span>
             {title} flashcards — questions ({range})
@@ -38,7 +49,7 @@ function SheetPair({ sheet, title }: { sheet: Sheet; title: string }) {
         </div>
       </section>
 
-      <section className="sheet">
+      <section className="sheet" data-label={`Sheet ${number} · back`}>
         <header className="sheet-head">
           <span>
             {title} flashcards — answers ({range})
