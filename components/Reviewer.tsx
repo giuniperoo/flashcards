@@ -745,7 +745,10 @@ export default function Reviewer({
         </button>
       </div>
 
-      <div className="mt-5 flex items-center gap-3">
+      {/* The "?" ring sits 14px below the arrow above it, and its side gap
+          matches: 2px here plus the 12px of press area left of the ring. At
+          `gap-3` it was 24px, and the strip stopped short of the arrow. */}
+      <div className="mt-5 flex items-center gap-0.5">
         <Strip
           className="min-w-0 flex-1"
           cards={strip}
