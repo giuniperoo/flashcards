@@ -5,7 +5,7 @@ import { DEFAULT_FIRST_INTERVAL, clampFirstInterval } from "./schedule";
  *
  * Two things. Whether the color key beside the strip has already opened by
  * itself: it opens once, the first time a scheduled session starts, and never
- * again unasked. And how soon a card answered wrong comes back, in hours — see
+ * again unasked. And the interval the schedule is counted in, in hours — see
  * `FIRST_INTERVALS` in `lib/schedule.ts`. The index is where that one is set,
  * at the foot of the page beside the mode switch, but the reviewer is what reads
  * it when a card is graded.
@@ -15,7 +15,8 @@ import { DEFAULT_FIRST_INTERVAL, clampFirstInterval } from "./schedule";
  *
  * `firstInterval` arrived inside version 1, the way `misses` arrived inside the
  * progress store's version 4: a store without it reads as a day, which is what
- * box 1 always was, so there is nothing to migrate.
+ * the schedule always was, so there is nothing to migrate. It is still named for
+ * box 1, whose wait it is; the rungs above wait two, three and four of it.
  */
 
 export const REVIEWER_PREFS_KEY = "prefs:reviewer";
@@ -24,7 +25,8 @@ export const REVIEWER_PREFS_VERSION = 1;
 export type ReviewerPrefs = {
   /** The color key has opened on its own once. */
   colorKeyShown: boolean;
-  /** Hours before a card answered wrong comes back. 24 is the ordinary day. */
+  /** Hours before a card answered wrong comes back, and the unit every box's
+      wait is counted in. 24 is the ordinary day. */
   firstInterval: number;
 };
 

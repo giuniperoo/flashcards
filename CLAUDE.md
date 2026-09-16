@@ -166,8 +166,9 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 - `progress` — `{ version: 4, cards }`, keyed by `{deckSlug}:{cardId}`
 - `prefs:index` — `{ version: 4, showBuiltIns, hiddenDecks, scheduled }`
 - `prefs:reviewer` — `{ version: 1, colorKeyShown, firstInterval }`: whether the
-  color key beside the strip has opened by itself yet, and how many hours a card
-  answered wrong waits (1, 2, 4, 8, or 24 for a day, the default). Its own key
+  color key beside the strip has opened by itself yet, and the interval the
+  schedule is counted in, in hours (1, 2, 4, 8, or 24 for a day, the default):
+  box 1 waits one of it, box 2 two, box 3 three, box 4 four. Its own key
   because the reviewer reads both and `prefs:index` is what the index acts on,
   even though the interval is set at the foot of the index; see
   `lib/reviewerPrefs.ts`
@@ -209,11 +210,15 @@ A card's record is `{ draft, grade, box, misses, due, dueAt?, reviewed, seen }`.
 written on but never graded has no place in the schedule — and `seen` is the
 authority on that rather than a sentinel box or an empty date.
 
-**`due` is a day, and `dueAt` is the one exception.** Days are what the schedule
-thinks in: a card answered at eleven at night comes back in the morning. When the
-first interval is set shorter than a day, a card answered wrong on a schedule also
-gets `dueAt`, an ISO time counted from the answer, and `due` holds the day that
-time falls on. Only box 1 ever carries one, and any other answer takes it off.
+**`due` is a day, and `dueAt` is the exception.** At the default interval days
+are what the schedule thinks in: a card answered at eleven at night comes back in
+the morning. When the interval is set shorter than a day, every scheduled answer
+also writes `dueAt`, an ISO time counted from the answer — the box's step times
+the interval, so 8, 16, 24 or 32 hours at eight — and `due` holds the day that
+time falls on. An answer at a day takes it off. Until September 16, 2026 the
+interval moved box 1 alone and only box 1 carried a time; see `FIRST_INTERVALS`
+in `lib/schedule.ts` for why it changed. A card graded before then keeps the day
+it was given until it is answered again.
 `isDue` compares the time when there is one; the queue still groups by `due`, so
 the shuffle within a day survives. A session reads the clock once when it is
 dealt, so a card answered in a session never comes back into it, however short

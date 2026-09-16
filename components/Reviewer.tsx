@@ -110,7 +110,7 @@ const BOX_COLORS = [
  * Inside one it is the box, so the color is how far up the ladder a card has
  * climbed: red in box 1, then orange, yellow, and green at the top. A new card
  * answered right goes orange, not green, because green means three right in a
- * row, spread over days.
+ * row, spread over three returns.
  *
  * For a while it reported misses instead, and one right answer turned any card
  * green. That let a whole deck go green after a single pass, which is the
@@ -127,7 +127,7 @@ function dashColor(record: CardProgress | undefined, scheduled: boolean) {
   return BOX_COLORS[clampBox(record.box) - 1];
 }
 
-/** When a card comes back: its day, and a time if it is a box 1 card with one. */
+/** When a card comes back: its day, and a time if it has one. */
 type Return = { due: string; dueAt?: string };
 
 /** A return as a moment, for comparing: its time, or the start of its day. */
@@ -139,8 +139,10 @@ function momentOf({ due, dueAt }: Return) {
 }
 
 /** The soonest any card in this deck comes back, or null if none is scheduled.
-    A box 1 card due at four this afternoon comes before the rest of the deck's
-    tomorrow morning, which is why this compares moments and not days. */
+    A deck can hold cards with a time and cards with only a day — the second
+    graded while the interval was a day — and one due at four this afternoon
+    comes before one due tomorrow, which is why this compares moments and not
+    days. */
 function nextReturn(
   cards: StudyCard[],
   records: Record<string, CardProgress>,
@@ -160,7 +162,7 @@ function laterToday(returns: Return | null, today: string) {
 }
 
 /** When a deck comes back, in the words somebody would use for it: a time when
-    it is a box 1 card with one, which the day words cannot say. */
+    it is a card with one, which the day words cannot say. */
 function returnsIn({ due: day, dueAt }: Return, today: string) {
   const days = daysBetween(today, day);
   if (dueAt && days <= 1) {
@@ -274,7 +276,7 @@ export default function Reviewer({
   // a session that runs past midnight should keep the date it opened with
   // rather than move a card's due date under the reader mid-deck.
   const [today] = useState(dayKey);
-  // The time, read once for the same reason: a box 1 card with a time comes due
+  // The time, read once for the same reason: a card with a time comes due
   // only if that time had passed when the session was dealt, so a card answered
   // in this session never comes back into it. See `buildDueQueue`.
   const [openedAt] = useState(() => Date.now());
@@ -283,7 +285,7 @@ export default function Reviewer({
     setReady(true);
   }, [today]);
 
-  // How soon a card answered wrong comes back, set at the foot of the index.
+  // The interval every box is counted in, set at the foot of the index.
   // Read after mount, since storage is not there on the server, and read once:
   // grading uses it, and nothing on screen before the first grade depends on it
   // except the color key's words, which follow it.

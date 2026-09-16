@@ -158,7 +158,12 @@ function Mode({
 }
 
 /**
- * How soon a card answered wrong comes back: 1, 2, 4 or 8 hours, or a day.
+ * The interval the schedule is counted in: 1, 2, 4 or 8 hours, or a day. A card
+ * answered wrong comes back after one of it, and each rung above waits one more,
+ * so at a day this is the ordinary one, two, three and four days.
+ *
+ * Labeled "Spaced by" rather than the "Retry misses in" it had while it moved
+ * the bottom rung alone: it spaces every card now, not only the ones missed.
  *
  * A bar of five segments, drawn like the queue bar on a study page, with the
  * current one filled in the same cream as the mode beside it, since this bar
@@ -186,7 +191,7 @@ function FirstInterval({ disabled }: { disabled: boolean }) {
       className="inline-flex min-h-11 items-center gap-2"
     >
       <span id={`${name}-label`} className="label whitespace-nowrap text-muted">
-        Retry misses in
+        Spaced by
       </span>
       <span className="segment-bar">
         {FIRST_INTERVALS.map((value) => (

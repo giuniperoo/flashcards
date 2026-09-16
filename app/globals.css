@@ -80,13 +80,15 @@
 
 /* The four colors of the strip in a scheduled session, one per box.
 
-   red     box 1  wrong last time         back in 1 day
-   orange  box 2  one right in a row      back in 2 days
-   yellow  box 3  two right in a row      back in 3 days
-   green   box 4  three or more in a row  back in 4 days
+   red     box 1  wrong last time         back in 1 interval
+   orange  box 2  one right in a row      back in 2
+   yellow  box 3  two right in a row      back in 3
+   green   box 4  three or more in a row  back in 4
+
+   The interval is a day unless it is set shorter at the foot of the index.
 
    The color is how far up the ladder a card has climbed, so green is earned
-   over days rather than given for one right answer. A version that colored
+   over three returns rather than given for one right answer. A version that colored
    by misses instead turned a card green on its first right answer, and a deck
    could go all green in a single pass. See `dashColor` in `Reviewer.tsx`.
 

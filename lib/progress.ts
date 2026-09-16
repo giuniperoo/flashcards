@@ -43,11 +43,13 @@ import {
  * is what a future sync would need to resolve a conflict, and it is empty on
  * every record migrated from an older store, because those stores never knew.
  *
- * `dueAt` is a time, and only a box 1 card has one: when the first interval is
- * shorter than a day, a card answered wrong comes back hours later rather than
- * the next morning. `due` still holds the day that time falls on. It is absent
- * on every other record, and arrived inside version 4 like `misses`, so a record
- * without it reads exactly as it did. See `comesBack` in `lib/schedule.ts`.
+ * `dueAt` is a time: when the interval is shorter than a day, a scheduled answer
+ * brings a card back hours later rather than on a morning, in any box. `due`
+ * still holds the day that time falls on. It is absent when the interval is a
+ * day, and arrived inside version 4 like `misses`, so a record without it reads
+ * exactly as it did. Until September 16, 2026 only box 1 carried one; a card
+ * graded before then keeps the day it was given until it is answered again. See
+ * `comesBack` in `lib/schedule.ts`.
  */
 export type CardProgress = {
   draft: string;
@@ -466,10 +468,9 @@ function remove(key: string) {
  * own: a card marked seen with no due date would never be dealt at all.
  *
  * On a schedule it records the answer and moves the card: up a box or back to
- * box 1, a new due date counted from today, and the miss count. A card sent to
- * box 1 with a first interval shorter than a day also gets a `dueAt`, counted
- * from `now`; any other answer clears it, so a card that climbs out of box 1
- * goes back to coming back in the morning.
+ * box 1, a new due date, and the miss count. With an interval shorter than a
+ * day the card also gets a `dueAt`, counted from `now`; at a day it is cleared,
+ * so the card goes back to coming back in the morning.
  *
  * An unseen card sits at box 1, so held promotes it to 2 and review leaves it
  * there. The two buttons still say the same two things.
@@ -493,8 +494,9 @@ export function applyGrade(
     reviewed: today,
     seen: true,
   };
-  // `comesBack` gives no time outside box 1, so an old one is taken off here:
-  // a card that leaves box 1 must not keep a time that would bring it back early.
+  // `comesBack` gives no time at a day, so an old one is taken off here: a card
+  // answered after the interval went back to a day must not keep a time that
+  // would bring it back early.
   if (!comesBack(box, today, now, firstInterval).dueAt) delete next.dueAt;
   return next;
 }

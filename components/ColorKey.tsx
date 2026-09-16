@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { intervalWords } from "@/lib/schedule";
+import { INTERVALS, intervalWords } from "@/lib/schedule";
 
 /*
  * What the strip's colors mean, behind a small "?" at the end of the strip.
@@ -47,6 +47,17 @@ const FREE_ROWS: Array<[string, string]> = [
 const RING =
   "M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10S17.523 2 12 2M3.5 12a8.5 8.5 0 1 1 17 0a8.5 8.5 0 0 1-17 0";
 
+/* When each color comes back, in the sentence under the key. The interval is
+   the unit for every rung, so at hours it is four numbers of hours, 8, 16, 24
+   and 32, and at a day it is the days in words. See `FIRST_INTERVALS`. */
+function returnsSentence(hours: number) {
+  if (hours >= 24) {
+    return "Red comes back the next day, orange in two days, yellow in three, green in four.";
+  }
+  const [red, orange, yellow, green] = INTERVALS.map((step) => step * hours);
+  return `Red comes back in ${intervalWords(red)}, orange in ${orange}, yellow in ${yellow}, green in ${green}.`;
+}
+
 function CloseIcon({ className }: { className?: string }) {
   return (
     <svg aria-hidden viewBox="0 0 24 24" className={className}>
@@ -78,7 +89,8 @@ export default function ColorKey({
   onOpenChange,
 }: {
   scheduled: boolean;
-  /** Hours before a red card comes back, set at the foot of the index. */
+  /** Hours before a red card comes back, and the unit every other color's wait
+      is counted in. Set at the foot of the index. */
   firstInterval: number;
   /** The current card's deck ink, for the taller dash. */
   ink: string;
@@ -194,9 +206,7 @@ export default function ColorKey({
         {scheduled && (
           <p className="mt-3 text-sm text-muted">
             One wrong answer sends a card back to red, so green means three in a
-            row, not three in total. Red comes back{" "}
-            {firstInterval >= 24 ? "the next day" : `in ${intervalWords(firstInterval)}`},
-            orange in two days, yellow in three, green in four.
+            row, not three in total. {returnsSentence(firstInterval)}
           </p>
         )}
       </div>

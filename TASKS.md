@@ -520,6 +520,18 @@ undecided as a task of its own.)*
   later, a right answer still in the morning, a time past midnight carrying the next
   day, and real hours across the clocks going forward, under `TZ=Europe/London`
 
+**Changed after review: every rung moves.** On September 16, 2026 the interval became the
+unit the whole ladder is counted in, rather than box 1's wait alone: red waits one
+interval, orange two, yellow three, green four, so at 8 hours that is 8, 16, 24 and 32
+hours, and at a day it is the ladder above unchanged. Moving box 1 alone meant a card
+missed this afternoon was back within the hour and then gone for two days once it was
+answered right, which is not what the day before an interview wants. The cost is the
+morning: at hours, every card comes back at an hour counted from its answer, which is
+the eleven o'clock problem the plan's second way was chosen to avoid, now taken on
+knowingly. `comesBack` gives every box a `dueAt` under a day. The setting's label went
+from "Retry misses in" to "Spaced by", and the color key names all four waits. Cards
+graded before the change keep their days until answered again.
+
 **Checked in Chromium.** With the setting at 1 hour, a card answered wrong went to box 1
 due exactly 60 minutes later, and the done panel read "Done for now … ACID comes back at
 3:57 PM". Reopening straight away dealt nothing, "Nothing due right now". With the time
