@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
 import { INTERVALS, intervalWords } from "@/lib/schedule";
 
 /*
@@ -206,7 +207,15 @@ export default function ColorKey({
         {scheduled && (
           <p className="mt-3 text-sm text-muted">
             One wrong answer sends a card back to red, so green means three in a
-            row, not three in total. {returnsSentence(firstInterval)}
+            row, not three in total. {returnsSentence(firstInterval)}{" "}
+            {/* The setting is on the index, and nothing in a session says so.
+                Leaving ends the session; grades are already saved, and coming
+                back deals what is left. Changing it moves nothing already
+                scheduled, which is the surprise worth heading off. */}
+            <Link href="/#interval" className="underline underline-offset-2 hover:text-ink">
+              Change the interval
+            </Link>{" "}
+            at the bottom of the deck list. Cards already scheduled aren’t moved.
           </p>
         )}
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   FIRST_INTERVALS,
   DEFAULT_FIRST_INTERVAL,
@@ -184,8 +184,27 @@ function FirstInterval({ disabled }: { disabled: boolean }) {
     setHours(loadReviewerPrefs().firstInterval);
   }, []);
 
+  /* The color key in a study session links to `/#interval`. The browser jumps
+     to the anchor on arrival, before the deck grid is drawn: the grid comes with
+     the stored preferences and imported decks, both read in effects on mount,
+     and it pushes this bar a screen or more further down. So the jump is made
+     again a render later. Those reads and `arrived` below are set in the same
+     round of mount effects, so they render together, and by the time this
+     effect runs the grid is on the page. Tested before trusting it: without it
+     the page sat at the top, 1,000px above the bar. */
+  const [arrived, setArrived] = useState(false);
+  const bar = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (window.location.hash === "#interval") setArrived(true);
+  }, []);
+  useEffect(() => {
+    if (arrived) bar.current?.scrollIntoView({ block: "center" });
+  }, [arrived]);
+
   return (
     <span
+      ref={bar}
+      id="interval"
       role="radiogroup"
       aria-labelledby={`${name}-label`}
       className="inline-flex min-h-11 items-center gap-2"
