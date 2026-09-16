@@ -196,9 +196,20 @@ function isTyping(target: EventTarget | null) {
  * the rotation as they are graded, but the strip keeps holding all of them, so
  * it fills as the session goes rather than eating itself — which is the whole
  * of what makes it a progress bar rather than a map.
+ *
+ * `graded` is the cards answered so far, in the order they were answered, and
+ * the strip draws them first and the rotation after. It used to draw `cards` as
+ * dealt, which left answered cards scattered among the ones still to come: the
+ * arrows skip an answered card, so a dash in the middle of the strip was a place
+ * nothing could reach. Now everything left of the gray is done and everything
+ * from the gray on is what the arrows move through, so the strip fills from the
+ * left like the bar it is. In answer order rather than dealt order, so a card
+ * answered after skipping ahead joins the end of the colored run instead of
+ * reshuffling it.
  */
 type Session = {
   cards: StudyCard[];
+  graded: StudyCard[];
   /** Graded this session. Together they are every card graded, so they add up. */
   right: number;
   missed: number;
@@ -319,6 +330,7 @@ export default function Reviewer({
     const queue = deal(cardsRef.current, saved.cards, today, undefined, openedAt);
     setSession({
       cards: queue,
+      graded: [],
       right: 0,
       missed: 0,
       allNew: cardsRef.current.every((c) => !saved.cards[cardKey(c)]?.seen),
@@ -474,6 +486,7 @@ export default function Reviewer({
       setSession((s) =>
         s && {
           ...s,
+          graded: [...s.graded, card],
           right: s.right + (value === "held" ? 1 : 0),
           missed: s.missed + (value === "review" ? 1 : 0),
         },
@@ -563,7 +576,7 @@ export default function Reviewer({
 
   if (!card) return null;
 
-  const strip = session ? session.cards : order;
+  const strip = session ? [...session.graded, ...order] : order;
   const done = session ? session.cards.length - order.length : 0;
   const counts = session ? breakdown(cards, session.cards, order, saved.cards, today) : null;
 
