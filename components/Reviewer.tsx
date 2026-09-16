@@ -587,15 +587,23 @@ export default function Reviewer({
         {/* Flex-centered rather than `align-middle`, which centers on the
             lowercase x-height. This label is all capitals, so the swatch sat
             below the middle of the letters beside it. */}
+        {/* The deck's name and swatch only where cards from several decks are
+            mixed. On a single deck the page title above is the same name, and
+            the card's corner is the same color. */}
         <span className="label inline-flex items-center text-muted">
-          <span
-            aria-hidden
-            className="mr-2 inline-block h-2 w-2 shrink-0 rounded-[2px]"
-            style={{ background: card.deck.ink }}
-          />
+          {crossDeck && (
+            <>
+              <span
+                aria-hidden
+                className="mr-2 inline-block h-2 w-2 shrink-0 rounded-[2px]"
+                style={{ background: card.deck.ink }}
+              />
+              {card.deck.name} ·{" "}
+            </>
+          )}
           {/* The card's place in its own deck, not in today's queue: on
               `/study/all` it is still "card 3 of 12" of the deck it came from. */}
-          {card.deck.name} · card {card.index + 1} of {card.deck.cards.length}
+          {crossDeck ? "card" : "Card"} {card.index + 1} of {card.deck.cards.length}
         </span>
         <div className="flex items-center gap-3">
           {/* On a schedule the queue bar above carries this, so the count is
