@@ -672,11 +672,56 @@ html[data-index-pending] [data-index] {
   line-height: 1.37;
 }
 
-.sheet-frame {
-  overflow-x: auto;
-  border: 1px solid var(--color-rule);
-  background: #ffffff;
-  padding: 1rem;
+/* The preview of the printed pages. Screen only, all of it: the sheet itself
+   above is what prints, at its real size, and nothing here may reach it.
+
+   Each page sits on the app's paper like a page, with a label over it, zoomed
+   to fit the column by `components/PrintPreview.tsx`, which measures it and
+   sets `--sheet-zoom` and `data-fit`. With room, a sheet's front and back sit
+   side by side; otherwise they stack. Hidden until that first measurement, so
+   full-size pages never flash and scroll the column sideways.
+
+   The label is drawn inside the zoomed page, so its size and offset are
+   divided by the zoom to come out at the app's own label size. */
+@media screen {
+  .sheet-frame {
+    display: grid;
+    grid-template-columns: max-content;
+    justify-content: start;
+    column-gap: 24px;
+    row-gap: 3rem;
+    padding-top: 1.5rem;
+  }
+
+  .sheet-frame[data-fit="pairs"] {
+    grid-template-columns: repeat(2, max-content);
+  }
+
+  .sheet-frame:not([data-fit]) {
+    visibility: hidden;
+  }
+
+  .sheet-frame .sheet {
+    position: relative;
+    zoom: var(--sheet-zoom, 1);
+    box-shadow:
+      0 1px 2px rgba(44, 44, 42, 0.08),
+      0 4px 18px rgba(44, 44, 42, 0.08);
+  }
+
+  .sheet-frame .sheet::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    margin-bottom: calc(0.5rem / var(--sheet-zoom, 1));
+    font-family: var(--font-mono);
+    font-size: calc(0.6875rem / var(--sheet-zoom, 1));
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-muted);
+  }
 }
 
 @media print {

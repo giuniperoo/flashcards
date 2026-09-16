@@ -50,9 +50,11 @@ to need one of them, stop and ask rather than introducing it.
 ## Architecture
 
 Server components by default. Only `Reviewer.tsx`, `PrintButton.tsx`,
-`DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx`, `DeckIndex.tsx`
-and `CustomDeckView.tsx` are client components, and that list should not grow
-without a reason. The point is that
+`DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx`, `DeckIndex.tsx`,
+`CustomDeckView.tsx`, `PrintPreview.tsx` and `PrintIntro.tsx` are client
+components, and that list should not grow without a reason. The last two have
+theirs: the preview has to measure its column to zoom the pages to fit, and the
+print page's "Study" link has to carry the reader's mode and `?deck=` set. The point is that
 the JavaScript shipped is the interactive parts and nothing else.
 
 `DeckIndex.tsx` earns its place by counting: the headline totals span the
@@ -79,6 +81,8 @@ components/
   QueueBar.tsx          a scheduled session's breakdown, in the title row if it fits
   ColorKey.tsx          what the strip's colors mean, behind a "?" at its end
   PrintSheets.tsx       shared by the built-in and custom print paths
+  PrintPreview.tsx      zooms the pages to fit the column on screen, never in print
+  PrintIntro.tsx        a print page's title row, and what to set in the dialog
 lib/
   loadDecks.ts          reads content/*.md at build time — SERVER ONLY
   types.ts              Card, Deck, StudyCard — safe for client components
@@ -138,7 +142,9 @@ generated PDFs: 12.7mm margin, 2×4 grid, 8 cards per side. `mirrorRows()` in
 `lib/print.ts` reverses each row so answers land on the back of their own
 questions under a long-edge flip. Verified output is questions `1,2,3,4,5,6,7,8`
 and answers `2,1,4,3,6,5,8,7`. Changing either without printing a test sheet will
-silently produce misaligned cards.
+silently produce misaligned cards. The on-screen preview zooms, labels and pairs
+the pages, but all of that sits in `@media screen`; printing to PDF before and
+after a change to it should give identical pages.
 
 **Answers stay to one or two sentences.** Not a style preference — longer answers
 overflow a printed card and there is no scrollbar on paper.
