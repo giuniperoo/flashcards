@@ -28,6 +28,7 @@ pnpm run test:schedule # box and due date test cases, under a fixed timezone
 pnpm run test:queue    # what a session deals: a backlog, then the new cards
 pnpm run test:filter   # which decks the shuffled set draws from
 pnpm run test:prefs    # index preferences, and the switch's default
+pnpm run test:llm      # deck generation: keys, model lists, each provider's stream
 ```
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
@@ -77,7 +78,7 @@ components/
   DeckCard.tsx          one deck on the index; both lists render through it
   DeckVisibility.tsx    the show/hide controls, and `StudyMode`: the mode bar
                         and its interval, at the other end of the same row
-  DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
+  DeckGenerator.tsx     asks Claude, OpenAI or Gemini for a deck, streams it into the importer
   QueueBar.tsx          a scheduled session's breakdown, in the title row if it fits
   ColorKey.tsx          what the strip's colors mean, behind a "?" at its end
   PrintSheets.tsx       shared by the built-in and custom print paths
@@ -95,14 +96,19 @@ lib/
   queue.ts              what a session deals — due cards, then the unseen ones
   shuffle.ts            Fisher-Yates, shared by the reviewer and the queue
   cardId.ts             uuid for new cards
-  apiKey.ts             the user's own Anthropic key, its own localStorage key
+  apiKey.ts             the reader's own keys and chosen models, one per provider
   prefs.ts              index preferences: the built-in decks, and the mode
   studyMode.ts          the `?scheduled` parameter, and links that carry it
   useCustomDecks.ts     the imported decks, kept in step with localStorage
   usePrefs.ts           index preferences, shared by the grid and the controls
   reviewerPrefs.ts      what the reviewer remembers: the color key has been shown
   useDueCounts.ts       cards each deck owes today, for the counts on the index
-  generateDeck.ts       browser-direct call to Anthropic — CLIENT ONLY
+  generateDeck.ts       writes a deck or lists models, loading one adapter — CLIENT ONLY
+  llm/providers.ts      the providers: names, where keys come from, what keys look like
+  llm/shared.ts         the prompt, the cleanup, the stream reader, `GenerateError`
+  llm/anthropic.ts      Claude through the SDK, shaped by the model's capabilities
+  llm/openai.ts         OpenAI Chat Completions over `fetch`, no SDK
+  llm/gemini.ts         Gemini `streamGenerateContent` over `fetch`, no SDK
 ```
 
 Both `[deck]` routes set `dynamicParams = true`: built-in slugs are prerendered,
