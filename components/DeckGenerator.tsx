@@ -19,7 +19,7 @@ const FIELD =
   "min-h-11 w-full rounded-sm border border-rule bg-card px-3 text-base outline-none placeholder:text-muted focus:border-ink sm:text-sm";
 
 const BUTTON =
-  "min-h-11 shrink-0 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent";
+  "press min-h-11 shrink-0 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent";
 
 /**
  * Asks Claude for a deck and streams it into the importer's textarea.

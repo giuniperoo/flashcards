@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import {
   FIRST_INTERVALS,
   DEFAULT_FIRST_INTERVAL,
@@ -158,7 +158,12 @@ function Mode({
 }
 
 /**
- * How soon a card answered wrong comes back: 1, 2, 4 or 8 hours, or a day.
+ * The interval the schedule is counted in: 1, 2, 4 or 8 hours, or a day. A card
+ * answered wrong comes back after one of it, and each rung above waits one more,
+ * so at a day this is the ordinary one, two, three and four days.
+ *
+ * Labeled "Spaced by" rather than the "Retry misses in" it had while it moved
+ * the bottom rung alone: it spaces every card now, not only the ones missed.
  *
  * A bar of five segments, drawn like the queue bar on a study page, with the
  * current one filled in the same cream as the mode beside it, since this bar
@@ -175,18 +180,38 @@ function Mode({
 function FirstInterval({ disabled }: { disabled: boolean }) {
   const name = useId();
   const [hours, setHours] = useState(DEFAULT_FIRST_INTERVAL);
-  useEffect(() => {
+  // Before paint, so the bar does not show "1 day" first; see `usePrefs`.
+  useLayoutEffect(() => {
     setHours(loadReviewerPrefs().firstInterval);
   }, []);
 
+  /* The color key in a study session links to `/#interval`. The browser jumps
+     to the anchor on arrival, before the deck grid is drawn: the grid comes with
+     the stored preferences and imported decks, both read in effects on mount,
+     and it pushes this bar a screen or more further down. So the jump is made
+     again a render later. Those reads and `arrived` below are set in the same
+     round of mount effects, so they render together, and by the time this
+     effect runs the grid is on the page. Tested before trusting it: without it
+     the page sat at the top, 1,000px above the bar. */
+  const [arrived, setArrived] = useState(false);
+  const bar = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (window.location.hash === "#interval") setArrived(true);
+  }, []);
+  useEffect(() => {
+    if (arrived) bar.current?.scrollIntoView({ block: "center" });
+  }, [arrived]);
+
   return (
     <span
+      ref={bar}
+      id="interval"
       role="radiogroup"
       aria-labelledby={`${name}-label`}
       className="inline-flex min-h-11 items-center gap-2"
     >
       <span id={`${name}-label`} className="label whitespace-nowrap text-muted">
-        Retry misses in
+        Spaced by
       </span>
       <span className="segment-bar">
         {FIRST_INTERVALS.map((value) => (

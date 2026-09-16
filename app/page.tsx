@@ -6,7 +6,9 @@ import LogoSun from "@/components/LogoSun";
 import { decks, totalCards } from "@/lib/loadDecks";
 export default function Home() {
   return (
-    <div>
+    // `data-index`: hidden until the reader's preferences are read, on a
+    // reload. See `data-index-pending` in `app/globals.css`.
+    <div data-index>
       <LogoSun />
 
       <DeckIndex
@@ -54,7 +56,7 @@ export default function Home() {
         <span className="flex min-w-0 shrink flex-wrap items-center gap-x-6 gap-y-2 md:shrink-0 md:flex-nowrap">
           <Link
             href="/new"
-            className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink"
+            className="press label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink"
           >
             Add your own deck
           </Link>

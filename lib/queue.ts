@@ -78,7 +78,7 @@ export function buildQueue(
  * **Interleaved for free.** Days sort, cards inside a day shuffle, and nothing
  * ever sorts by deck.
  *
- * **`now` is read once, when the session is dealt.** A box 1 card with a time
+ * **`now` is read once, when the session is dealt.** A card with a time
  * (see `comesBack` in `lib/schedule.ts`) is dealt only if that time has passed
  * by then, so a card answered twenty minutes ago never comes back into the
  * session it was answered in, however short the first interval. It is grouped

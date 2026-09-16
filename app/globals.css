@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+/* `hover:` also means pressed. Tailwind's own `hover:` only applies where the
+   pointer can hover, which is right, since a tapped button otherwise keeps its
+   hover style until something else is tapped. But it left a phone with no
+   response to a press at all: every button here says it heard you through
+   `hover:`, and a finger never hovers. `:active` is the press, on every kind of
+   input, so the look a mouse gets on the way to a click is what a finger gets
+   while it is down. With a mouse it changes nothing, because a button being
+   clicked is already hovered.
+
+   Overriding the variant rather than writing `active:` beside every `hover:`
+   keeps the two from drifting apart, and covers `group-hover:` and
+   `disabled:hover:` the same way. */
+@custom-variant hover {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+  &:active {
+    @slot;
+  }
+}
+
 @theme {
   --color-paper: #f6f4ef;
   --color-card: #fcfbf8;
@@ -57,13 +80,15 @@
 
 /* The four colors of the strip in a scheduled session, one per box.
 
-   red     box 1  wrong last time         back in 1 day
-   orange  box 2  one right in a row      back in 2 days
-   yellow  box 3  two right in a row      back in 3 days
-   green   box 4  three or more in a row  back in 4 days
+   red     box 1  wrong last time         back in 1 interval
+   orange  box 2  one right in a row      back in 2
+   yellow  box 3  two right in a row      back in 3
+   green   box 4  three or more in a row  back in 4
+
+   The interval is a day unless it is set shorter at the foot of the index.
 
    The color is how far up the ladder a card has climbed, so green is earned
-   over days rather than given for one right answer. A version that colored
+   over three returns rather than given for one right answer. A version that colored
    by misses instead turned a card green on its first right answer, and a deck
    could go all green in a single pass. See `dashColor` in `Reviewer.tsx`.
 
@@ -84,8 +109,61 @@
   --color-box-4: #4f9e72;
 }
 
+/* No gray flash over a tapped control. iOS and Android paint one over
+   anything clickable, on top of whatever the control does itself; every
+   control here answers a press with its own `:active` look instead (see the
+   `hover` variant above). `text-size-adjust` stops iOS enlarging the text when
+   a phone turns to landscape. */
 html {
   background: var(--color-paper);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* `manipulation` lets a tap fire at once instead of waiting to see whether it
+   was the first half of a double-tap zoom. Pinch zoom is untouched.
+
+   Holding a finger on a button selects its label on iOS, which no native
+   control does. Only controls: links stay selectable, since a link in the
+   import guide is part of a sentence someone may copy. */
+a,
+button,
+label,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+button,
+.press,
+.segment-bar > label {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* A bordered button gives a little under a press, as well as changing color.
+   On a phone the color alone is easy to miss under the finger that is making
+   it.
+
+   The edge comes in 1px on every side. It was a `scale(0.97)` first, which
+   takes a share of each side rather than a distance: on a 44px-tall button
+   that was under a pixel off the top and bottom, and on "Turn card over",
+   several times as wide as it is tall, several pixels off each end, which
+   read as the button lurching sideways. Here `clip-path` cuts the outer pixel
+   away and an inset ring draws the border again just inside the cut. Ink,
+   because every pressed button's border is ink by then: `hover:border-ink`
+   on the outlined ones, and `border-ink` already on the rest. Nothing moves
+   and the label stays its size.
+
+   No transition: a pixel eased over 100ms looks the same as a pixel at once,
+   and with nothing moving there is nothing for reduced motion to take out.
+   Not while focus is showing, since the clip would cut away the focus ring
+   for as long as Space is held. */
+.press:active:not(:disabled, :focus-visible) {
+  clip-path: inset(1px round calc(var(--radius-sm) - 1px));
+  box-shadow: inset 0 0 0 1px var(--color-ink);
 }
 
 body {
@@ -213,7 +291,15 @@ body {
   inset: -11px 0;
 }
 
-.segment-bar > label:hover {
+/* Gated the way Tailwind's `hover:` is, and pressed the way it now is too; see
+   the variant at the top of this file. */
+@media (hover: hover) {
+  .segment-bar > label:hover {
+    color: var(--color-ink);
+  }
+}
+
+.segment-bar > label:active {
   color: var(--color-ink);
 }
 
@@ -315,6 +401,50 @@ html[data-mode="free"] .wordmark-schedule {
   display: none;
 }
 
+/* What a study page draws before it knows what to draw, kept out of sight.
+
+   The study routes are prerendered without the address, so the server's frame
+   is always the free study reviewer. On a schedule that was a card, "1/12",
+   Shuffle and the whole deck's strip, then "Dealing today's cards…", then the
+   real session: three screens on every reload. `data-mode` is set before paint
+   by the script in `app/layout.tsx`, and the reviewer marks what it draws
+   before a session exists `data-pending`, so on a schedule nothing shows until
+   the session does. An imported deck's "Loading deck…" is the same flash in
+   either mode.
+
+   Both are keyed off `data-mode`, which only a script sets, so with scripts off
+   the prerendered page stays visible. `visibility` rather than `display`, so
+   the page keeps its height and nothing below it jumps. */
+html[data-mode="schedule"] [data-pending],
+html[data-mode] [data-loading] {
+  visibility: hidden;
+}
+
+/* The index, the same way. The server renders it with the default preferences,
+   since it cannot see the reader's, so its first frame had no built-in decks,
+   "No decks yet", "Show built-in decks" and the default mode and interval, all
+   replaced a moment later by the reader's own. The script in `app/layout.tsx`
+   marks the page before it paints, and `DeckIndex` takes the mark off once the
+   preferences and imported decks are read, so the index appears once, as it
+   is. The header stays: the script sets its mark's mode from storage too. */
+html[data-index-pending] [data-index] {
+  visibility: hidden;
+}
+
+/* A study page in free study is the free study sun's ray color rather than
+   the paper, so the page says which app it is in its ground as well as in the
+   mark. On the index the rays are that color against the paper; here the whole
+   page is. Study pages only, marked `data-study` in `app/study/[deck]/page.tsx`:
+   the index carries `data-mode="free"` too, and a ground the color of its rays
+   would erase the sun. Both `html` and `body`, because the body paints its own
+   `bg-paper`. Screen only, so a printout stays white. */
+@media screen {
+  html[data-mode="free"]:has([data-study]),
+  html[data-mode="free"]:has([data-study]) body {
+    background: var(--color-sun-free);
+  }
+}
+
 .deck-actions {
   display: flex;
   flex-wrap: wrap;
@@ -352,6 +482,12 @@ html[data-mode="free"] .wordmark-schedule {
 /* The card's main link, its name and blurb, has no ring: its dashed edge turns
    the softer black instead, which says the whole card is what Enter opens. */
 .cut:has(> .deck-open:focus-visible) {
+  border-color: var(--color-focus);
+}
+
+/* The same edge while a finger or the mouse is down on it: a deck opens on a
+   route change, and the card should say it was pressed before that arrives. */
+.cut:has(> .deck-open:active) {
   border-color: var(--color-focus);
 }
 

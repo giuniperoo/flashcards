@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect } from "react";
 import DeckCard, { type DeckSummary } from "@/components/DeckCard";
 import { visibleDecks } from "@/lib/prefs";
 import { DECK_PARAM, deckParamFor } from "@/lib/deckFilter";
@@ -22,7 +23,8 @@ function count(n: number, noun: string) {
  *
  * The built-in decks are off until somebody asks for them, so the first render
  * — the server's, and the browser's before it has read `localStorage` — is an
- * index without them, and the grid below arrives with the preferences.
+ * index without them, and the grid below arrives with the preferences. On a
+ * reload that first frame is kept out of sight: see `data-index-pending`.
  */
 export default function DeckIndex({
   decks,
@@ -36,6 +38,16 @@ export default function DeckIndex({
   const [prefs, update] = usePrefs();
   const custom = useCustomDecks();
   const due = useDueCounts();
+
+  /* Reveal the index once what it depends on is read. `custom` stops being
+     null in the same render as the preferences and due counts arrive, since
+     all three read in layout effects on mount, so this runs with the reader's
+     own index in hand and before it paints. */
+  useLayoutEffect(() => {
+    if (custom !== null) {
+      document.documentElement.removeAttribute("data-index-pending");
+    }
+  }, [custom]);
 
   const hide = (slug: string) =>
     update({ ...prefs, hiddenDecks: [...prefs.hiddenDecks, slug] });

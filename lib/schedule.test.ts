@@ -160,19 +160,33 @@ const cases: Array<[string, () => boolean]> = [
   ],
 
   [
-    "a card answered right still comes back in the morning, with no time",
+    "every box is counted in the interval: at eight hours, 8, 16, 24 and 32",
     () => {
+      // Two in the afternoon, London time.
       const answered = new Date(2026, 8, 15, 14, 0).getTime();
-      const back = comesBack(2, "2026-09-15", answered, 4);
-      return back.due === "2026-09-17" && back.dueAt === undefined;
+      const waits = [1, 2, 3, 4].map((box) => {
+        const back = comesBack(box, "2026-09-15", answered, 8);
+        return (Date.parse(back.dueAt!) - answered) / 3_600_000;
+      });
+      const green = comesBack(4, "2026-09-15", answered, 8);
+      return (
+        waits.join() === "8,16,24,32" &&
+        // Thirty-two hours on is ten at night the next day.
+        green.due === "2026-09-16" &&
+        green.dueAt === new Date(2026, 8, 16, 22, 0).toISOString()
+      );
     },
   ],
 
   [
-    "a day for box 1 is the ordinary day, with no time",
+    "at a day, every box is its days with no time, in the morning",
     () => {
-      const back = comesBack(1, "2026-09-15", new Date(2026, 8, 15, 14, 0).getTime(), 24);
-      return back.due === "2026-09-16" && back.dueAt === undefined;
+      const answered = new Date(2026, 8, 15, 14, 0).getTime();
+      return [1, 2, 3, 4].every((box) => {
+        const back = comesBack(box, "2026-09-15", answered, 24);
+        return back.due === ["2026-09-16", "2026-09-17", "2026-09-18", "2026-09-19"][box - 1] &&
+          back.dueAt === undefined;
+      });
     },
   ],
 

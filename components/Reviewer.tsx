@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { StudyCard } from "@/lib/types";
 import type { CardProgress, ProgressStore } from "@/lib/progress";
@@ -54,7 +54,13 @@ const EXTRA_ROWS = 4;
 
 function columnsFor(count: number, width: number) {
   if (count < 1) return 1;
-  const fits = Math.floor((width + COL_GAP) / (MIN_DASH + COL_GAP));
+  /* Not measured yet, which is every server render and the first client one.
+     The widest row is the best guess: it is the right answer on a desktop, and
+     close on a phone. Measuring 0px used to give a capacity of one, so the first
+     frame was a column of dashes, one per row, a dozen rows tall for a small
+     deck, before it snapped into place. */
+  const fits =
+    width > 0 ? Math.floor((width + COL_GAP) / (MIN_DASH + COL_GAP)) : MAX_PER_ROW;
   const capacity = Math.max(1, Math.min(MAX_PER_ROW, fits));
   const fewest = Math.ceil(count / capacity);
 
@@ -110,7 +116,7 @@ const BOX_COLORS = [
  * Inside one it is the box, so the color is how far up the ladder a card has
  * climbed: red in box 1, then orange, yellow, and green at the top. A new card
  * answered right goes orange, not green, because green means three right in a
- * row, spread over days.
+ * row, spread over three returns.
  *
  * For a while it reported misses instead, and one right answer turned any card
  * green. That let a whole deck go green after a single pass, which is the
@@ -127,7 +133,7 @@ function dashColor(record: CardProgress | undefined, scheduled: boolean) {
   return BOX_COLORS[clampBox(record.box) - 1];
 }
 
-/** When a card comes back: its day, and a time if it is a box 1 card with one. */
+/** When a card comes back: its day, and a time if it has one. */
 type Return = { due: string; dueAt?: string };
 
 /** A return as a moment, for comparing: its time, or the start of its day. */
@@ -139,8 +145,10 @@ function momentOf({ due, dueAt }: Return) {
 }
 
 /** The soonest any card in this deck comes back, or null if none is scheduled.
-    A box 1 card due at four this afternoon comes before the rest of the deck's
-    tomorrow morning, which is why this compares moments and not days. */
+    A deck can hold cards with a time and cards with only a day — the second
+    graded while the interval was a day — and one due at four this afternoon
+    comes before one due tomorrow, which is why this compares moments and not
+    days. */
 function nextReturn(
   cards: StudyCard[],
   records: Record<string, CardProgress>,
@@ -160,7 +168,7 @@ function laterToday(returns: Return | null, today: string) {
 }
 
 /** When a deck comes back, in the words somebody would use for it: a time when
-    it is a box 1 card with one, which the day words cannot say. */
+    it is a card with one, which the day words cannot say. */
 function returnsIn({ due: day, dueAt }: Return, today: string) {
   const days = daysBetween(today, day);
   if (dueAt && days <= 1) {
@@ -196,9 +204,20 @@ function isTyping(target: EventTarget | null) {
  * the rotation as they are graded, but the strip keeps holding all of them, so
  * it fills as the session goes rather than eating itself — which is the whole
  * of what makes it a progress bar rather than a map.
+ *
+ * `graded` is the cards answered so far, in the order they were answered, and
+ * the strip draws them first and the rotation after. It used to draw `cards` as
+ * dealt, which left answered cards scattered among the ones still to come: the
+ * arrows skip an answered card, so a dash in the middle of the strip was a place
+ * nothing could reach. Now everything left of the gray is done and everything
+ * from the gray on is what the arrows move through, so the strip fills from the
+ * left like the bar it is. In answer order rather than dealt order, so a card
+ * answered after skipping ahead joins the end of the colored run instead of
+ * reshuffling it.
  */
 type Session = {
   cards: StudyCard[];
+  graded: StudyCard[];
   /** Graded this session. Together they are every card graded, so they add up. */
   right: number;
   missed: number;
@@ -263,7 +282,7 @@ export default function Reviewer({
   // a session that runs past midnight should keep the date it opened with
   // rather than move a card's due date under the reader mid-deck.
   const [today] = useState(dayKey);
-  // The time, read once for the same reason: a box 1 card with a time comes due
+  // The time, read once for the same reason: a card with a time comes due
   // only if that time had passed when the session was dealt, so a card answered
   // in this session never comes back into it. See `buildDueQueue`.
   const [openedAt] = useState(() => Date.now());
@@ -272,7 +291,7 @@ export default function Reviewer({
     setReady(true);
   }, [today]);
 
-  // How soon a card answered wrong comes back, set at the foot of the index.
+  // The interval every box is counted in, set at the foot of the index.
   // Read after mount, since storage is not there on the server, and read once:
   // grading uses it, and nothing on screen before the first grade depends on it
   // except the color key's words, which follow it.
@@ -291,8 +310,11 @@ export default function Reviewer({
      from state, because `scheduled` starts false until the effect below reads
      the parameter, and a scheduled session must not flash the sage mark. The
      layout sets the same attribute before paint on a full load; this keeps it
-     right on client navigation and through "Study anyway". */
-  useEffect(() => {
+     right on client navigation and through "Study anyway". A layout effect, so
+     it lands before paint there too: on a schedule the attribute is what keeps
+     the prerendered free study reviewer out of sight (see `data-pending`), and
+     a plain effect would let that frame through first. */
+  useLayoutEffect(() => {
     const html = document.documentElement;
     const onSchedule =
       schedulable && !left && (scheduled || wantsSchedule(window.location.search));
@@ -319,6 +341,7 @@ export default function Reviewer({
     const queue = deal(cardsRef.current, saved.cards, today, undefined, openedAt);
     setSession({
       cards: queue,
+      graded: [],
       right: 0,
       missed: 0,
       allNew: cardsRef.current.every((c) => !saved.cards[cardKey(c)]?.seen),
@@ -474,6 +497,7 @@ export default function Reviewer({
       setSession((s) =>
         s && {
           ...s,
+          graded: [...s.graded, card],
           right: s.right + (value === "held" ? 1 : 0),
           missed: s.missed + (value === "review" ? 1 : 0),
         },
@@ -533,7 +557,11 @@ export default function Reviewer({
   /* Waiting on the queue. Only ever reached with the parameter in the URL, so
      the reviewer nobody asked to change never renders this. */
   if (scheduled && !session && !left) {
-    return <p className="label text-muted">Dealing today’s cards…</p>;
+    return (
+      <p data-pending className="label text-muted">
+        Dealing today’s cards…
+      </p>
+    );
   }
 
   if (session && session.cards.length === 0) {
@@ -563,26 +591,37 @@ export default function Reviewer({
 
   if (!card) return null;
 
-  const strip = session ? session.cards : order;
+  const strip = session ? [...session.graded, ...order] : order;
   const done = session ? session.cards.length - order.length : 0;
   const counts = session ? breakdown(cards, session.cards, order, saved.cards, today) : null;
 
   return (
-    <div className="fit">
+    // `data-pending` while no session is dealt: on a schedule this is the
+    // prerendered free study reviewer, and it is kept out of sight until the
+    // session replaces it. In free study the attribute does nothing.
+    <div data-pending={session ? undefined : true} className="fit">
       {counts && !session?.allNew && <QueueBar counts={counts} />}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         {/* Flex-centered rather than `align-middle`, which centers on the
             lowercase x-height. This label is all capitals, so the swatch sat
             below the middle of the letters beside it. */}
+        {/* The deck's name and swatch only where cards from several decks are
+            mixed. On a single deck the page title above is the same name, and
+            the card's corner is the same color. */}
         <span className="label inline-flex items-center text-muted">
-          <span
-            aria-hidden
-            className="mr-2 inline-block h-2 w-2 shrink-0 rounded-[2px]"
-            style={{ background: card.deck.ink }}
-          />
+          {crossDeck && (
+            <>
+              <span
+                aria-hidden
+                className="mr-2 inline-block h-2 w-2 shrink-0 rounded-[2px]"
+                style={{ background: card.deck.ink }}
+              />
+              {card.deck.name} ·{" "}
+            </>
+          )}
           {/* The card's place in its own deck, not in today's queue: on
               `/study/all` it is still "card 3 of 12" of the deck it came from. */}
-          {card.deck.name} · card {card.index + 1} of {card.deck.cards.length}
+          {crossDeck ? "card" : "Card"} {card.index + 1} of {card.deck.cards.length}
         </span>
         <div className="flex items-center gap-3">
           {/* On a schedule the queue bar above carries this, so the count is
@@ -602,7 +641,7 @@ export default function Reviewer({
             <button
               type="button"
               onClick={shuffle}
-              className="label min-h-9 rounded-sm border border-rule px-3 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              className="press label min-h-9 rounded-sm border border-rule px-3 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               Shuffle
             </button>
@@ -690,14 +729,14 @@ export default function Reviewer({
               <button
                 type="button"
                 onClick={() => grade("held")}
-                className="min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                className="press min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 I had it
               </button>
               <button
                 type="button"
                 onClick={() => grade("review")}
-                className="min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                className="press min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 Needs review
               </button>
@@ -711,14 +750,14 @@ export default function Reviewer({
           type="button"
           onClick={() => move(-1)}
           aria-label="Previous card"
-          className="min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           ←
         </button>
         <button
           type="button"
           onClick={flip}
-          className="min-h-11 flex-1 rounded-sm border border-ink px-3 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 flex-1 rounded-sm border border-ink px-3 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           {flipped ? "Turn back" : "Turn card over"}
         </button>
@@ -726,13 +765,16 @@ export default function Reviewer({
           type="button"
           onClick={() => move(1)}
           aria-label="Next card"
-          className="min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           →
         </button>
       </div>
 
-      <div className="mt-5 flex items-center gap-3">
+      {/* The "?" ring sits 14px below the arrow above it, and its side gap
+          matches: 2px here plus the 12px of press area left of the ring. At
+          `gap-3` it was 24px, and the strip stopped short of the arrow. */}
+      <div className="mt-5 flex items-center gap-0.5">
         <Strip
           className="min-w-0 flex-1"
           cards={strip}
@@ -787,8 +829,8 @@ function Strip({
 }) {
   /* The strip needs its own width to choose a column count, and the width
      depends on the viewport. Measured rather than guessed, so the count is
-     right at any size; `columns` starts at 0 and the strip renders a single
-     row until the first measurement lands, one frame later. */
+     right at any size; `width` starts at 0, and `columnsFor` lays the strip
+     out at the widest row until the first measurement lands, one frame later. */
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
 
@@ -854,7 +896,7 @@ function AllDecks() {
   return (
     <Link
       href="/"
-      className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      className="press label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
       All decks
     </Link>
@@ -919,7 +961,7 @@ function SessionDone({
         <button
           type="button"
           onClick={onStudyDeck}
-          className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           {deck ? "Study the whole deck" : "Study every card"}
         </button>
@@ -961,7 +1003,7 @@ function NothingDue({
         <button
           type="button"
           onClick={onStudyAnyway}
-          className="min-h-11 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Study anyway
         </button>

@@ -48,13 +48,20 @@ export const LAST_BOX = INTERVALS.length;
 
 /**
  * How soon a card in box 1 comes back, in hours: the one setting the schedule
- * has. A choice rather than a slider, since the difference between five hours
+ * has, and the unit the whole ladder is counted in. Box n waits `INTERVALS[n - 1]`
+ * of it, so at 8 hours red comes back in 8, orange in 16, yellow in 24 and green
+ * in 32. A choice rather than a slider, since the difference between five hours
  * and six is noise and a control with twenty-four positions invites tuning
- * something that does not repay it. 24 is box 1's ordinary day, and the default.
+ * something that does not repay it. 24 is the ordinary day, and the default,
+ * which is the one, two, three and four days above.
  *
- * Only box 1 moves. The day before an interview, a card you just got wrong is the
- * one you want back this afternoon; the rungs above it are already inside the
- * horizon, and the morning is the right time for all of them.
+ * It moved box 1 alone at first, on the grounds that the rungs above were
+ * already inside the horizon and the morning was the right time for all of
+ * them. In use, a short interval on the bottom rung only was a card missed this
+ * afternoon and back in an hour, then gone for two days the moment it was
+ * answered right: the day before an interview, the whole deck wants the shorter
+ * clock, not the one card. What that gives up is the morning — at hours, a card
+ * answered at eleven at night comes back at an hour of the night too.
  */
 export const FIRST_INTERVALS = [1, 2, 4, 8, 24];
 export const DEFAULT_FIRST_INTERVAL = 24;
@@ -98,8 +105,8 @@ export function dueOn(box: number, today: string) {
   return addDays(today, INTERVALS[clampBox(box) - 1]);
 }
 
-/** "4 hours", "1 hour", or "1 day": a first interval in words, for the setting
-    at the foot of the index and the color key, so the two say it the same way. */
+/** "4 hours", "1 hour", or "1 day": the interval in words, for the setting at
+    the foot of the index and the color key, so the two say it the same way. */
 export function intervalWords(hours: number) {
   if (hours >= 24) return "1 day";
   return `${hours} hour${hours === 1 ? "" : "s"}`;
@@ -114,13 +121,15 @@ export function clampFirstInterval(hours: unknown) {
 }
 
 /**
- * When a card placed in `box` comes back: a day key, and a time when box 1's
+ * When a card placed in `box` comes back: a day key, and a time when the
  * interval is shorter than a day.
  *
- * With a sub-day interval the time is counted from `now`, the moment of the
- * answer, and `due` is the local day that time falls on. So a card missed at
- * eleven at night with eight hours to wait carries tomorrow's day and a seven
- * o'clock time. Every other case is the day key alone, exactly as before.
+ * With a sub-day interval the wait is the box's step times the interval,
+ * counted from `now`, the moment of the answer, and `due` is the local day that
+ * time falls on. So a card missed at eleven at night with eight hours to wait
+ * carries tomorrow's day and a seven o'clock time, and the same card answered
+ * right into box 2 waits sixteen. At a day it is the day key alone, counted in
+ * calendar days from `today`, so the card comes back in the morning.
  */
 export function comesBack(
   box: number,
@@ -129,8 +138,8 @@ export function comesBack(
   firstInterval: number = DEFAULT_FIRST_INTERVAL,
 ): { due: string; dueAt?: string } {
   const hours = clampFirstInterval(firstInterval);
-  if (clampBox(box) === FIRST_BOX && hours < 24) {
-    const at = new Date(now + hours * HOUR);
+  if (hours < 24) {
+    const at = new Date(now + INTERVALS[clampBox(box) - 1] * hours * HOUR);
     return { due: dayKey(at), dueAt: at.toISOString() };
   }
   return { due: dueOn(box, today) };

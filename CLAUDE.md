@@ -166,8 +166,9 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 - `progress` — `{ version: 4, cards }`, keyed by `{deckSlug}:{cardId}`
 - `prefs:index` — `{ version: 4, showBuiltIns, hiddenDecks, scheduled }`
 - `prefs:reviewer` — `{ version: 1, colorKeyShown, firstInterval }`: whether the
-  color key beside the strip has opened by itself yet, and how many hours a card
-  answered wrong waits (1, 2, 4, 8, or 24 for a day, the default). Its own key
+  color key beside the strip has opened by itself yet, and the interval the
+  schedule is counted in, in hours (1, 2, 4, 8, or 24 for a day, the default):
+  box 1 waits one of it, box 2 two, box 3 three, box 4 four. Its own key
   because the reviewer reads both and `prefs:index` is what the index acts on,
   even though the interval is set at the foot of the index; see
   `lib/reviewerPrefs.ts`
@@ -209,11 +210,15 @@ A card's record is `{ draft, grade, box, misses, due, dueAt?, reviewed, seen }`.
 written on but never graded has no place in the schedule — and `seen` is the
 authority on that rather than a sentinel box or an empty date.
 
-**`due` is a day, and `dueAt` is the one exception.** Days are what the schedule
-thinks in: a card answered at eleven at night comes back in the morning. When the
-first interval is set shorter than a day, a card answered wrong on a schedule also
-gets `dueAt`, an ISO time counted from the answer, and `due` holds the day that
-time falls on. Only box 1 ever carries one, and any other answer takes it off.
+**`due` is a day, and `dueAt` is the exception.** At the default interval days
+are what the schedule thinks in: a card answered at eleven at night comes back in
+the morning. When the interval is set shorter than a day, every scheduled answer
+also writes `dueAt`, an ISO time counted from the answer — the box's step times
+the interval, so 8, 16, 24 or 32 hours at eight — and `due` holds the day that
+time falls on. An answer at a day takes it off. Until September 16, 2026 the
+interval moved box 1 alone and only box 1 carried a time; see `FIRST_INTERVALS`
+in `lib/schedule.ts` for why it changed. A card graded before then keeps the day
+it was given until it is answered again.
 `isDue` compares the time when there is one; the queue still groups by `due`, so
 the shuffle within a day survives. A session reads the clock once when it is
 dealt, so a card answered in a session never comes back into it, however short
@@ -276,16 +281,26 @@ a key, which is what `forgetDeck()` is for.
 `DEFAULT_PREFS`, and only a stored `true` turns them on. The decks in
 `content/` are the author's, and somebody arriving at this app has not asked
 for them; they are one press of "Show built-in decks" away, at the foot of the
-index. That default is also what the server prerenders, which is what keeps the
-index honest on load: it renders no built-in grid, so there is nothing to paint
-and then take away, and the grid arrives with the preferences the same way the
-imported decks do. A reader who has turned the decks on sees them appear on
-hydration; that is the trade, and it is the smaller one, because the reverse
-flashed content away on every load for everybody who had not chosen anything.
-An earlier version of this app kept a pre-paint inline script in
-`app/layout.tsx` that hid decks before they could flash. It had a job only
-while the server rendered decks the reader did not want; if the default is ever
-flipped back, it has to come back with it.
+index. That default is also what the server prerenders.
+
+**Nothing storage-dependent is painted before storage is read.** The server
+cannot see the preferences, the imported decks or the address's `?scheduled`,
+so its frame is the defaults: on the index no built-in decks, "No decks yet"
+and the default mode and interval; on a scheduled study page the free study
+reviewer, with card 1, Shuffle and the whole deck's strip. Both used to show
+for a moment on every reload and then be replaced. The pre-paint script in
+`app/layout.tsx` now sets `data-mode` on both routes, from the address on a
+study page and from `prefs:index` on the index, and marks the index
+`data-index-pending`. CSS keeps the index's content, and a scheduled page's
+`data-pending` reviewer, out of sight until the client has what it needs:
+`DeckIndex` takes the index's mark off once the preferences and imported decks
+are read, and a dealt session carries no `data-pending`. The storage hooks read
+in layout effects, so a client navigation, which the script does not see, has
+the reader's values before its first paint too. Everything is keyed off
+attributes only a script sets, so with scripts off the prerendered page stays
+visible, and the index's mark comes off after two seconds regardless. The cost
+is a blank index or card area until hydration, a few hundred milliseconds,
+rather than the wrong one. See `app/globals.css`.
 
 The controls sit at the foot of the index, beside "Add your own deck", not
 above the grid. Someone who has hidden the built-in decks because none of them

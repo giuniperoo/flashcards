@@ -611,18 +611,22 @@ const cases: Array<[string, () => boolean]> = [
   ],
 
   [
-    "a scheduled wrong answer with a short first interval carries a time, and a right one clears it",
+    "with a short interval every scheduled answer carries a time, and at a day none does",
     () => {
       const at = new Date(2026, 8, 14, 14, 0).getTime();
       const wrong = applyGrade({ ...unseenCard, box: 3, seen: true, due: "2026-09-14" }, "review", "2026-09-14", true, 4, at);
       const right = applyGrade(wrong, "held", "2026-09-14", true, 4, at);
+      const daily = applyGrade(right, "held", "2026-09-14", true, 24, at);
       return (
         wrong.box === 1 &&
         wrong.dueAt === new Date(at + 4 * 3_600_000).toISOString() &&
         wrong.due === "2026-09-14" &&
         right.box === 2 &&
-        !("dueAt" in right) &&
-        right.due === "2026-09-16"
+        right.dueAt === new Date(at + 8 * 3_600_000).toISOString() &&
+        right.due === "2026-09-14" &&
+        daily.box === 3 &&
+        !("dueAt" in daily) &&
+        daily.due === "2026-09-17"
       );
     },
   ],

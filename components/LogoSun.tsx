@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { loadPrefs } from "@/lib/prefs";
 import { usePrefs } from "@/lib/usePrefs";
 
@@ -142,8 +142,10 @@ export default function LogoSun() {
 
   /* The header's mark follows the same mode, sage in free study. Read from
      storage rather than the hook's first value, which is the default until the
-     stored one arrives, so a reader in free study is not shown cream first. */
-  useEffect(() => {
+     stored one arrives, so a reader in free study is not shown cream first.
+     A layout effect for a client navigation; a reload has it set already, by
+     the script in `app/layout.tsx`. */
+  useLayoutEffect(() => {
     const html = document.documentElement;
     html.dataset.mode = loadPrefs().scheduled ? "schedule" : "free";
     return () => {

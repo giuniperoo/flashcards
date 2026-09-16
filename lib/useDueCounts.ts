@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { PROGRESS_KEY, peekProgress } from "./progress";
 import { dueByDeck } from "./queue";
 import { dayKey } from "./schedule";
@@ -19,7 +19,8 @@ import { dayKey } from "./schedule";
 export function useDueCounts(): Record<string, number> {
   const [due, setDue] = useState<Record<string, number>>({});
 
-  useEffect(() => {
+  // A layout effect, so the counts are in place before paint; see `usePrefs`.
+  useLayoutEffect(() => {
     const read = () => setDue(dueByDeck(peekProgress(), dayKey(), Date.now()));
     read();
     const onStorage = (event: StorageEvent) => {
