@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
@@ -19,6 +19,19 @@ const label = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Flashcards",
   description: "Interview flashcard decks, drilled by recall.",
+};
+
+/*
+ * The browser's own bar on a phone takes this color, so it runs into the page
+ * rather than sitting above it in white. It is `--color-paper` from
+ * `app/globals.css`, duplicated because a meta tag cannot read a CSS variable:
+ * change it there first, then here. One value, because the app has one scheme;
+ * a phone in dark mode still shows the paper.
+ *
+ * Next still writes `width=device-width, initial-scale=1` alongside it.
+ */
+export const viewport: Viewport = {
+  themeColor: "#f6f4ef",
 };
 
 /*

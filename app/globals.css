@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+/* `hover:` also means pressed. Tailwind's own `hover:` only applies where the
+   pointer can hover, which is right, since a tapped button otherwise keeps its
+   hover style until something else is tapped. But it left a phone with no
+   response to a press at all: every button here says it heard you through
+   `hover:`, and a finger never hovers. `:active` is the press, on every kind of
+   input, so the look a mouse gets on the way to a click is what a finger gets
+   while it is down. With a mouse it changes nothing, because a button being
+   clicked is already hovered.
+
+   Overriding the variant rather than writing `active:` beside every `hover:`
+   keeps the two from drifting apart, and covers `group-hover:` and
+   `disabled:hover:` the same way. */
+@custom-variant hover {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+  &:active {
+    @slot;
+  }
+}
+
 @theme {
   --color-paper: #f6f4ef;
   --color-card: #fcfbf8;
@@ -84,8 +107,61 @@
   --color-box-4: #4f9e72;
 }
 
+/* No gray flash over a tapped control. iOS and Android paint one over
+   anything clickable, on top of whatever the control does itself; every
+   control here answers a press with its own `:active` look instead (see the
+   `hover` variant above). `text-size-adjust` stops iOS enlarging the text when
+   a phone turns to landscape. */
 html {
   background: var(--color-paper);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* `manipulation` lets a tap fire at once instead of waiting to see whether it
+   was the first half of a double-tap zoom. Pinch zoom is untouched.
+
+   Holding a finger on a button selects its label on iOS, which no native
+   control does. Only controls: links stay selectable, since a link in the
+   import guide is part of a sentence someone may copy. */
+a,
+button,
+label,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+button,
+.press,
+.segment-bar > label {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* A bordered button gives a little under a press, as well as changing color.
+   On a phone the color alone is easy to miss under the finger that is making
+   it.
+
+   The edge comes in 1px on every side. It was a `scale(0.97)` first, which
+   takes a share of each side rather than a distance: on a 44px-tall button
+   that was under a pixel off the top and bottom, and on "Turn card over",
+   several times as wide as it is tall, several pixels off each end, which
+   read as the button lurching sideways. Here `clip-path` cuts the outer pixel
+   away and an inset ring draws the border again just inside the cut. Ink,
+   because every pressed button's border is ink by then: `hover:border-ink`
+   on the outlined ones, and `border-ink` already on the rest. Nothing moves
+   and the label stays its size.
+
+   No transition: a pixel eased over 100ms looks the same as a pixel at once,
+   and with nothing moving there is nothing for reduced motion to take out.
+   Not while focus is showing, since the clip would cut away the focus ring
+   for as long as Space is held. */
+.press:active:not(:disabled, :focus-visible) {
+  clip-path: inset(1px round calc(var(--radius-sm) - 1px));
+  box-shadow: inset 0 0 0 1px var(--color-ink);
 }
 
 body {
@@ -213,7 +289,15 @@ body {
   inset: -11px 0;
 }
 
-.segment-bar > label:hover {
+/* Gated the way Tailwind's `hover:` is, and pressed the way it now is too; see
+   the variant at the top of this file. */
+@media (hover: hover) {
+  .segment-bar > label:hover {
+    color: var(--color-ink);
+  }
+}
+
+.segment-bar > label:active {
   color: var(--color-ink);
 }
 
@@ -352,6 +436,12 @@ html[data-mode="free"] .wordmark-schedule {
 /* The card's main link, its name and blurb, has no ring: its dashed edge turns
    the softer black instead, which says the whole card is what Enter opens. */
 .cut:has(> .deck-open:focus-visible) {
+  border-color: var(--color-focus);
+}
+
+/* The same edge while a finger or the mouse is down on it: a deck opens on a
+   route change, and the card should say it was pressed before that arrives. */
+.cut:has(> .deck-open:active) {
   border-color: var(--color-focus);
 }
 
