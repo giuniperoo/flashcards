@@ -475,10 +475,11 @@ undecided as a task of its own.)*
   mode and its setting — `StudyMode` in `components/DeckVisibility.tsx`. Neither wraps
   under the other. As the room runs out each side stacks within itself, the right first
   — the mode above its interval — and then the left, the button above "Show built-in
-  decks", which holds its line until 1024px. Flex shares a shortfall between both sides
-  however lopsided the shrink weights, and a few pixels off the left was enough to break
-  it onto two lines with half the row still empty, so from 1024px up it neither shrinks
-  nor wraps. Below 640px there are no two sides to keep and the groups sit one above the
+  decks", which holds its line down to 768px. Flex shares a shortfall between both sides
+  however lopsided the shrink weights, and even a fraction of a pixel off the left is
+  enough to break it onto two lines when its two controls exactly fill the line — so
+  from 768px up, the narrowest the column still holds both sides with the right one
+  stacked, the left neither shrinks nor wraps. Below 640px there are no two sides to keep and the groups sit one above the
   other. Trimming the labels to hold one
   line further down was tried and taken back out: the words are worth more than the line
 - **Stacked, the labels line up.** "Show built-in decks" carries the button's own text
@@ -486,7 +487,8 @@ undecided as a task of its own.)*
   start on the same line, with the button's border still on the column's edge. Pulling
   the button out by its padding instead would have hung it off that edge, which the
   headline, the paragraph and the deck grid all sit on. The inset comes off again from
-  1024px up, where the two are side by side and there is nothing to line up with
+  768px up, where the two are side by side: there is nothing to line up with, and its
+  32px is 32px the line does not have
 - **The bar is a radio group.** Tab reaches it once, the arrow keys move between the
   choices and save as they go, and a screen reader hears "1 hour" rather than "1h". Each
   segment is the queue bar's 22px, with a box behind it taking the press area to 44px,

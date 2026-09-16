@@ -42,15 +42,16 @@ export default function Home() {
           first (mode above its interval), then the left (the button above
           "Show built-in decks"); see the shrink weights on each.
 
-          From 1024px up the left side does not stack at all: it neither shrinks
-          nor wraps, so the right side gives up both its lines before the button
-          gives up any. Flex shares a shortfall between both sides however
-          lopsided the weights, and a few pixels off the left side is enough to
-          break "Show built-in decks" onto a line of its own while half the row
-          is still empty. Below 640px there are no two sides to keep: the groups
+          From 768px up — where the column is wide enough to hold both sides
+          with the right one stacked — the left side neither shrinks nor wraps,
+          so the right gives up both its lines before the button gives up any.
+          Flex shares a shortfall between both sides however lopsided the
+          weights, and even a fraction of a pixel off the left is enough to
+          break "Show built-in decks" onto a line of its own when its two
+          controls exactly fill the line. Below 640px there are no two sides to keep: the groups
           sit one above the other. */}
       <div className="mt-10 flex flex-col gap-y-2 sm:mt-25 sm:flex-row sm:items-start sm:justify-between sm:gap-x-6">
-        <span className="flex min-w-0 shrink flex-wrap items-center gap-x-6 gap-y-2 lg:shrink-0 lg:flex-nowrap">
+        <span className="flex min-w-0 shrink flex-wrap items-center gap-x-6 gap-y-2 md:shrink-0 md:flex-nowrap">
           <Link
             href="/new"
             className="label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink"

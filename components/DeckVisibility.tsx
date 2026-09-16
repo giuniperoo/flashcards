@@ -23,10 +23,11 @@ import { usePrefs } from "@/lib/usePrefs";
 /* The two plain controls on the left carry the button's own text inset — its
    1px border and 1rem of padding — so that when the group stacks, their labels
    start on the same line as "Add your own deck" rather than 17px to its left.
-   Side by side from 1024px up there is nothing to line up with, and the inset
-   comes off so the gap between them is the gap the row sets. */
+   Side by side from 768px up there is nothing to line up with, and the inset
+   comes off so the gap between them is the gap the row sets — and so the two
+   fit the line they have. */
 const PLAIN =
-  "label inline-flex min-h-11 items-center border border-transparent px-4 text-muted hover:text-ink lg:border-0 lg:px-0";
+  "label inline-flex min-h-11 items-center border border-transparent px-4 text-muted hover:text-ink md:border-0 md:px-0";
 
 export default function DeckVisibility({ slugs }: { slugs: string[] }) {
   const [prefs, update] = usePrefs();
