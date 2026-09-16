@@ -26,7 +26,11 @@ export default function CustomDeckView({
   }, [slug]);
 
   if (state.status === "loading") {
-    return <p className="label text-muted">Loading deck…</p>;
+    return (
+      <p data-loading className="label text-muted">
+        Loading deck…
+      </p>
+    );
   }
 
   if (state.status === "missing") {

@@ -281,16 +281,26 @@ a key, which is what `forgetDeck()` is for.
 `DEFAULT_PREFS`, and only a stored `true` turns them on. The decks in
 `content/` are the author's, and somebody arriving at this app has not asked
 for them; they are one press of "Show built-in decks" away, at the foot of the
-index. That default is also what the server prerenders, which is what keeps the
-index honest on load: it renders no built-in grid, so there is nothing to paint
-and then take away, and the grid arrives with the preferences the same way the
-imported decks do. A reader who has turned the decks on sees them appear on
-hydration; that is the trade, and it is the smaller one, because the reverse
-flashed content away on every load for everybody who had not chosen anything.
-An earlier version of this app kept a pre-paint inline script in
-`app/layout.tsx` that hid decks before they could flash. It had a job only
-while the server rendered decks the reader did not want; if the default is ever
-flipped back, it has to come back with it.
+index. That default is also what the server prerenders.
+
+**Nothing storage-dependent is painted before storage is read.** The server
+cannot see the preferences, the imported decks or the address's `?scheduled`,
+so its frame is the defaults: on the index no built-in decks, "No decks yet"
+and the default mode and interval; on a scheduled study page the free study
+reviewer, with card 1, Shuffle and the whole deck's strip. Both used to show
+for a moment on every reload and then be replaced. The pre-paint script in
+`app/layout.tsx` now sets `data-mode` on both routes, from the address on a
+study page and from `prefs:index` on the index, and marks the index
+`data-index-pending`. CSS keeps the index's content, and a scheduled page's
+`data-pending` reviewer, out of sight until the client has what it needs:
+`DeckIndex` takes the index's mark off once the preferences and imported decks
+are read, and a dealt session carries no `data-pending`. The storage hooks read
+in layout effects, so a client navigation, which the script does not see, has
+the reader's values before its first paint too. Everything is keyed off
+attributes only a script sets, so with scripts off the prerendered page stays
+visible, and the index's mark comes off after two seconds regardless. The cost
+is a blank index or card area until hydration, a few hundred milliseconds,
+rather than the wrong one. See `app/globals.css`.
 
 The controls sit at the foot of the index, beside "Add your own deck", not
 above the grid. Someone who has hidden the built-in decks because none of them

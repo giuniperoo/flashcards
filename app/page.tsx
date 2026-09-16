@@ -6,7 +6,9 @@ import LogoSun from "@/components/LogoSun";
 import { decks, totalCards } from "@/lib/loadDecks";
 export default function Home() {
   return (
-    <div>
+    // `data-index`: hidden until the reader's preferences are read, on a
+    // reload. See `data-index-pending` in `app/globals.css`.
+    <div data-index>
       <LogoSun />
 
       <DeckIndex

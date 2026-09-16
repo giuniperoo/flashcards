@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 import type { Deck } from "./types";
 import { loadCustomDecks } from "./customDecks";
 
@@ -17,7 +17,8 @@ export function useCustomDecks(): Deck[] | null {
 
   const refresh = useCallback(() => setDecks(loadCustomDecks()), []);
 
-  useEffect(() => {
+  // A layout effect, so the decks are in place before paint; see `usePrefs`.
+  useLayoutEffect(() => {
     refresh();
     // `custom-decks-changed` is this tab; `storage` is another one.
     window.addEventListener("custom-decks-changed", refresh);

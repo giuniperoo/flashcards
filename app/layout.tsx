@@ -35,19 +35,33 @@ export const viewport: Viewport = {
 };
 
 /*
- * Marks the page as free study before it paints, on the study routes, so the
- * sage mark is there from the first frame instead of the cream one flashing
- * first. It only has to answer from the address: a study route is free study
- * unless it carries `?scheduled`, `/study/all` included. The
+ * Marks the page's mode before it paints, on the study routes, so the sage mark
+ * is there from the first frame instead of the cream one flashing first. It
+ * only has to answer from the address: a study route is free study unless it
+ * carries `?scheduled`, `/study/all` included.
+ *
+ * "schedule" is set too, not left to the reviewer, because the page is
+ * prerendered without the address and so draws the free study reviewer; on a
+ * schedule that frame is hidden until the session is dealt. See `data-pending`
+ * in `app/globals.css`. The
  * reviewer then keeps the attribute in step — "Study anyway" drops into free
  * study without a page load — and removes it when it goes. On the index the
- * mode is a stored preference instead, and `LogoSun` sets it; that is the same
- * trade the built-in decks already make there, appearing on hydration.
+ * mode is a stored preference instead; see below.
  *
  * `suppressHydrationWarning` on `<html>` is for this attribute: it is set
  * before React arrives, so React would otherwise report it as a mismatch.
  */
-const MODE_BEFORE_PAINT = `(function(){try{var p=location.pathname;if(p.indexOf("/study/")!==0)return;if(!new URLSearchParams(location.search).has("scheduled"))document.documentElement.setAttribute("data-mode","free")}catch(e){}})()`;
+/*
+ * On the index it does two more things, both from storage. It sets the mode
+ * from the stored preference, by the rule `loadPrefs` in `lib/prefs.ts` uses:
+ * only a `false` from version 4 on is free study. And it marks the page
+ * `data-index-pending`, which keeps the index's content out of sight until
+ * `DeckIndex` has read the preferences and the imported decks and taken the
+ * mark off, so the first thing drawn is the reader's own index rather than the
+ * server's defaults. Two seconds on, the mark comes off regardless, so a page
+ * whose scripts failed after this one ran is never left blank.
+ */
+const MODE_BEFORE_PAINT = `(function(){try{var d=document.documentElement,p=location.pathname;if(p==="/"){d.setAttribute("data-index-pending","");setTimeout(function(){d.removeAttribute("data-index-pending")},2000);var s=JSON.parse(localStorage.getItem("prefs:index")||"null");d.setAttribute("data-mode",s&&typeof s.version==="number"&&s.version>=4&&s.scheduled===false?"free":"schedule");return}if(p.indexOf("/study/")!==0)return;d.setAttribute("data-mode",new URLSearchParams(location.search).has("scheduled")?"schedule":"free")}catch(e){}})()`;
 
 export default function RootLayout({
   children,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import {
   FIRST_INTERVALS,
   DEFAULT_FIRST_INTERVAL,
@@ -180,7 +180,8 @@ function Mode({
 function FirstInterval({ disabled }: { disabled: boolean }) {
   const name = useId();
   const [hours, setHours] = useState(DEFAULT_FIRST_INTERVAL);
-  useEffect(() => {
+  // Before paint, so the bar does not show "1 day" first; see `usePrefs`.
+  useLayoutEffect(() => {
     setHours(loadReviewerPrefs().firstInterval);
   }, []);
 

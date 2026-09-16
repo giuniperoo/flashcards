@@ -401,6 +401,36 @@ html[data-mode="free"] .wordmark-schedule {
   display: none;
 }
 
+/* What a study page draws before it knows what to draw, kept out of sight.
+
+   The study routes are prerendered without the address, so the server's frame
+   is always the free study reviewer. On a schedule that was a card, "1/12",
+   Shuffle and the whole deck's strip, then "Dealing today's cards…", then the
+   real session: three screens on every reload. `data-mode` is set before paint
+   by the script in `app/layout.tsx`, and the reviewer marks what it draws
+   before a session exists `data-pending`, so on a schedule nothing shows until
+   the session does. An imported deck's "Loading deck…" is the same flash in
+   either mode.
+
+   Both are keyed off `data-mode`, which only a script sets, so with scripts off
+   the prerendered page stays visible. `visibility` rather than `display`, so
+   the page keeps its height and nothing below it jumps. */
+html[data-mode="schedule"] [data-pending],
+html[data-mode] [data-loading] {
+  visibility: hidden;
+}
+
+/* The index, the same way. The server renders it with the default preferences,
+   since it cannot see the reader's, so its first frame had no built-in decks,
+   "No decks yet", "Show built-in decks" and the default mode and interval, all
+   replaced a moment later by the reader's own. The script in `app/layout.tsx`
+   marks the page before it paints, and `DeckIndex` takes the mark off once the
+   preferences and imported decks are read, so the index appears once, as it
+   is. The header stays: the script sets its mark's mode from storage too. */
+html[data-index-pending] [data-index] {
+  visibility: hidden;
+}
+
 /* A study page in free study is the free study sun's ray color rather than
    the paper, so the page says which app it is in its ground as well as in the
    mark. On the index the rays are that color against the paper; here the whole

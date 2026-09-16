@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { StudyCard } from "@/lib/types";
 import type { CardProgress, ProgressStore } from "@/lib/progress";
@@ -54,7 +54,13 @@ const EXTRA_ROWS = 4;
 
 function columnsFor(count: number, width: number) {
   if (count < 1) return 1;
-  const fits = Math.floor((width + COL_GAP) / (MIN_DASH + COL_GAP));
+  /* Not measured yet, which is every server render and the first client one.
+     The widest row is the best guess: it is the right answer on a desktop, and
+     close on a phone. Measuring 0px used to give a capacity of one, so the first
+     frame was a column of dashes, one per row, a dozen rows tall for a small
+     deck, before it snapped into place. */
+  const fits =
+    width > 0 ? Math.floor((width + COL_GAP) / (MIN_DASH + COL_GAP)) : MAX_PER_ROW;
   const capacity = Math.max(1, Math.min(MAX_PER_ROW, fits));
   const fewest = Math.ceil(count / capacity);
 
@@ -304,8 +310,11 @@ export default function Reviewer({
      from state, because `scheduled` starts false until the effect below reads
      the parameter, and a scheduled session must not flash the sage mark. The
      layout sets the same attribute before paint on a full load; this keeps it
-     right on client navigation and through "Study anyway". */
-  useEffect(() => {
+     right on client navigation and through "Study anyway". A layout effect, so
+     it lands before paint there too: on a schedule the attribute is what keeps
+     the prerendered free study reviewer out of sight (see `data-pending`), and
+     a plain effect would let that frame through first. */
+  useLayoutEffect(() => {
     const html = document.documentElement;
     const onSchedule =
       schedulable && !left && (scheduled || wantsSchedule(window.location.search));
@@ -548,7 +557,11 @@ export default function Reviewer({
   /* Waiting on the queue. Only ever reached with the parameter in the URL, so
      the reviewer nobody asked to change never renders this. */
   if (scheduled && !session && !left) {
-    return <p className="label text-muted">Dealing today’s cards…</p>;
+    return (
+      <p data-pending className="label text-muted">
+        Dealing today’s cards…
+      </p>
+    );
   }
 
   if (session && session.cards.length === 0) {
@@ -583,7 +596,10 @@ export default function Reviewer({
   const counts = session ? breakdown(cards, session.cards, order, saved.cards, today) : null;
 
   return (
-    <div className="fit">
+    // `data-pending` while no session is dealt: on a schedule this is the
+    // prerendered free study reviewer, and it is kept out of sight until the
+    // session replaces it. In free study the attribute does nothing.
+    <div data-pending={session ? undefined : true} className="fit">
       {counts && !session?.allNew && <QueueBar counts={counts} />}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         {/* Flex-centered rather than `align-middle`, which centers on the
@@ -813,8 +829,8 @@ function Strip({
 }) {
   /* The strip needs its own width to choose a column count, and the width
      depends on the viewport. Measured rather than guessed, so the count is
-     right at any size; `columns` starts at 0 and the strip renders a single
-     row until the first measurement lands, one frame later. */
+     right at any size; `width` starts at 0, and `columnsFor` lays the strip
+     out at the widest row until the first measurement lands, one frame later. */
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
 
