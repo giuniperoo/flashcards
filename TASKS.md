@@ -769,13 +769,16 @@ Small fixes to the import path, now that it's the main way decks get created.
 
 - Either test `.rtf` against the editors you actually use, or drop `.rtf` from
   the accept list. Current handling is regex-based and only reliable on TextEdit
-  output. Silently mangling a file is worse than refusing it
-- Warn, without blocking, when a deck isn't a multiple of eight, explaining that
-  the last printed sheet will have blank cells
+  output. Silently mangling a file is worse than refusing it *(Dropped from the accept
+  list, the file hint and the README on September 17, 2026, along with the converter.)*
+- ~~Warn, without blocking, when a deck isn't a multiple of eight~~ *Dropped on
+  September 17, 2026: the print page already says how many cells the last sheet leaves
+  blank, which is where it matters, and the deck writer offers counts in eights*
 - Warn when an answer runs past roughly 300 characters — it will overflow a
   printed card
-- Add an "export all decks" button producing a zip, so local decks can be
-  promoted into `content/` by hand
+- ~~Add an "export all decks" button producing a zip~~ *Dropped on September 17, 2026:
+  every imported deck already has Export, and a zip wants a library or a hand-written
+  encoder to save a few presses*
 
 **Done when** the importer's warnings tell you about print problems before you
 print, and `pnpm run test:parser` still passes.

@@ -97,8 +97,8 @@ shifting the alignment.
 
 ## Adding your own decks
 
-`/new` takes a pasted deck or an uploaded `.txt`, `.md`, `.csv`, `.tsv` or
-`.rtf` file, parses it in the browser, shows you what it found, and saves it to
+`/new` takes a pasted deck or an uploaded `.txt`, `.md`, `.csv` or `.tsv`
+file, parses it in the browser, shows you what it found, and saves it to
 `localStorage`. Imported decks study and print exactly like the built-in ones.
 Any deck can be exported back out as markdown — an imported one from the
 browser, a built-in one through `/export/[deck]`.
