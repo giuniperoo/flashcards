@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { INTERVALS, intervalWords } from "@/lib/schedule";
 
@@ -100,13 +100,23 @@ export default function ColorKey({
 }) {
   const [hover, setHover] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
   const id = useId();
   const shown = open || hover;
+
+  /* Closing from inside the key, by Escape or its close button, hides what had
+     focus, so it goes back to the "?" that opened it rather than to the body. A
+     press elsewhere has put focus where it wanted already. */
+  const close = useCallback(() => {
+    setHover(false);
+    if (wrap.current?.contains(document.activeElement)) button.current?.focus();
+    onOpenChange(false);
+  }, [onOpenChange]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onOpenChange(false);
+      if (event.key === "Escape") close();
     };
     const onPointer = (event: PointerEvent) => {
       if (!wrap.current?.contains(event.target as Node)) onOpenChange(false);
@@ -117,7 +127,7 @@ export default function ColorKey({
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("pointerdown", onPointer);
     };
-  }, [open, onOpenChange]);
+  }, [open, onOpenChange, close]);
 
   const rows = scheduled ? SCHEDULED_ROWS : FREE_ROWS;
 
@@ -132,6 +142,7 @@ export default function ColorKey({
           area back to the layout, so the strip's row is no taller than its
           dashes and the ring's edge lines up with the card's. */}
       <button
+        ref={button}
         type="button"
         onClick={() => {
           // Closing drops the hover preview too, or a mouse still over the "?"
@@ -176,10 +187,7 @@ export default function ColorKey({
           {open && (
             <button
               type="button"
-              onClick={() => {
-                setHover(false);
-                onOpenChange(false);
-              }}
+              onClick={close}
               aria-label="Close"
               className="-mr-3 inline-flex h-11 w-11 items-center justify-center rounded-full text-muted hover:text-ink focus-visible:outline-1 focus-visible:-outline-offset-4 focus-visible:outline-focus"
             >

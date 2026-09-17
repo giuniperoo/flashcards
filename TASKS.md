@@ -819,7 +819,7 @@ reader, not only someone using a screen reader: the keyboard grading bug fixed i
 
 ### Task 14 — The whole app from the keyboard
 
-*Not started.*
+*Built. See "As built" below; Safari is still to walk.*
 
 **Why.** Tab used to cycle through everything you could press on a page, and it no
 longer does. Nothing has been checked since; it was noticed on September 15, 2026.
@@ -844,6 +844,36 @@ Everything this app does should be reachable and operable with the keyboard alon
 
 **Done when** a session can be started from the index, a deck studied to its done panel,
 and a deck imported, all without touching the mouse, in Chromium and in Safari.
+
+**As built.**
+
+- **Nothing broke Tab.** WebKit, and so Safari and DuckDuckGo, which wraps it on macOS,
+  moves Tab between form fields only unless told otherwise: the answer box, the paste
+  box, the mode and interval bars. Links and buttons, which is most of this app, need
+  Option+Tab, or Safari's "Press Tab to highlight each item on a webpage". Chrome needs
+  nothing. The note above that Tab "no longer" cycled was DuckDuckGo, not a commit
+- **Walked in Chromium**: the index with every deck showing, a scheduled session to its
+  done panel, stepping out into the whole deck, the color key, `/new` with a pasted deck,
+  and a print page. The order follows the page and nothing hidden takes focus
+- **Where focus went wrong**, and where it goes now. All of it only after a keyboard
+  press, since a tap that focused the answer box would open the keyboard on a phone
+  - Turning a card with Cmd+Enter left focus on the body, since the answer box it came
+    from turns away. It goes to the answer, whose dashed edge darkens, and Tab carries on
+    to "I had it"
+  - Grading, from 1 and 2 or from a focused button, left it on the body too. It goes to
+    the next question's answer box, and after the last card to the done panel
+  - "Study the whole deck" and "Study anyway" take their panel with them. Focus goes to
+    the first question
+  - Hide and Delete took their deck card off the page, and the next Tab started over from
+    the header. Focus goes to the card that took its place, or the one before, and to
+    "Add your own deck" once none are left. See `lib/focus.ts`
+  - Closing the color key by Escape or its close button, with focus inside it, returns
+    focus to the "?"
+  - The hidden file input on `/new` was a second, invisible stop after "Choose a file",
+    and is out of the tab order
+- **A keyboard press is `detail === 0`** on the click event, which is how a button tells
+  Enter or Space from a pointer
+- **Still to do**: the same walk in Safari with Tab set to reach everything
 
 ---
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect } from "react";
+import { focusNeighborCard } from "@/lib/focus";
 import DeckCard, { type DeckSummary } from "@/components/DeckCard";
 import { visibleDecks } from "@/lib/prefs";
 import { DECK_PARAM, deckParamFor } from "@/lib/deckFilter";
@@ -135,7 +136,10 @@ export default function DeckIndex({
                     </a>
                     <button
                       type="button"
-                      onClick={() => hide(deck.slug)}
+                      onClick={(event) => {
+                        focusNeighborCard(event);
+                        hide(deck.slug);
+                      }}
                       className="label text-muted hover:text-ink"
                     >
                       Hide

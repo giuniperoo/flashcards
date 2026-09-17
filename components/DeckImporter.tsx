@@ -115,6 +115,10 @@ export default function DeckImporter({
           ref={fileRef}
           type="file"
           accept={ACCEPT}
+          // "Choose a file" opens it. Left in the tab order, it was a second,
+          // invisible stop after the button, with no ring to say where focus was.
+          tabIndex={-1}
+          aria-hidden
           className="sr-only"
           onChange={(e) => {
             const file = e.target.files?.[0];

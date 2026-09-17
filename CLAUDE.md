@@ -96,6 +96,7 @@ lib/
   queue.ts              what a session deals — due cards, then the unseen ones
   shuffle.ts            Fisher-Yates, shared by the reviewer and the queue
   cardId.ts             uuid for new cards
+  focus.ts              where focus goes when Hide or Delete takes its deck card away
   apiKey.ts             the reader's own keys and chosen models, one per provider
   prefs.ts              index preferences: the built-in decks, and the mode
   studyMode.ts          the `?scheduled` parameter, and links that carry it

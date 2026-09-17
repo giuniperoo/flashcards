@@ -484,6 +484,14 @@ html[data-index-pending] [data-index] {
   border-color: var(--color-focus);
 }
 
+/* The same edge on the reviewer's own surfaces, which only a script focuses: the
+   answer after a keyboard turn, and the panel at the end of a session. A ring
+   outside the dashed edge would draw the card's outline twice. */
+.cut[tabindex="-1"]:focus-visible {
+  outline: none;
+  border-color: var(--color-focus);
+}
+
 /* The same edge while a finger or the mouse is down on it: a deck opens on a
    route change, and the card should say it was pressed before that arrives. */
 .cut:has(> .deck-open:active) {
