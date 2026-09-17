@@ -34,7 +34,7 @@ is due today, and it ends.
 | 8 — An empty box when a card comes back | merged |
 | 9 — Say what the colors mean, once | merged |
 | 10 — The queue bar | merged |
-| 11 — Docs | not started, and the last |
+| 11 — Docs | done |
 
 **Spaced repetition is the default.** The switch at the foot of the index starts on,
 and free study is what you turn to. The logo in the header shows which mode you are
@@ -732,7 +732,7 @@ morning's cards read as not due rather than done, because that is what they are.
 
 ### Task 11 — Docs
 
-*Not started.*
+*Done on September 17, 2026, after tasks 12 to 14. See "As built" below.*
 
 Four documents are partly out of date. The Storage section of `CLAUDE.md` was kept
 current as the tasks landed — `prefs:index` at version 4, `progress` at version 4,
@@ -754,6 +754,22 @@ there is small. Checked against `main` after #34.
   DuckDuckGo's Fire Button (its browser wraps WebKit on macOS and iOS, so it inherits
   the timer *and* adds the button), clear-on-exit settings, private windows and
   Chromium's quota eviction are all one class — `localStorage` is not durable storage
+
+**As built.** All of the above, and more of `README.md` than the list knew about:
+
+- `CLAUDE.md`: twelve decks and 264 cards, four of them printed; the four printed decks
+  as the ones whose tint and ink are fixed; `llm:key` as the fifth storage key; a box-4
+  example for `reviewed`, in `lib/progress.ts` too; `pnpm run test` running every suite;
+  and a convention for where focus goes after a keyboard press removes it, from task 14
+- `README.md`: a "Studying" section, since it never mentioned the schedule; the deck
+  writer with three providers; five storage keys; Tab in WebKit browsers; controls sized
+  by pointer and the print preview that zooms, where it said 44px, stacked grading
+  buttons and a preview that scrolls sideways
+- `ARCHITECTURE.md`: §2's shipped decks, §3's `progress` table with the schedule's
+  columns, §8 on the record and on rotation deferred, §9's step 4, and §10 as above
+- **Found while writing it:** `navigator.storage.persist()`, which task 1 planned and
+  "Not now" below still counts on, is called nowhere. §10 says so. It is a line of code
+  and wants a decision on where it runs, so it is not slipped in here
 
 ---
 

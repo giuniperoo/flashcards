@@ -4,9 +4,11 @@ Context for working in this repo. Read before making changes.
 
 ## What this is
 
-A flashcard app for interview preparation. Five built-in decks (Gigs, React 19,
-CAP theorem, ACID, SOLID; 80 cards) that can be studied in the browser or printed
-as physical cards. Single user, no backend.
+A flashcard app for interview preparation. Twelve built-in decks and 264 cards,
+four of which (React 19, CAP theorem, ACID, SOLID) mirror decks that exist as
+printed cards, plus any deck you import or have an AI write. Studied in the
+browser, on a schedule or freely, or printed as physical cards. Single user, no
+backend.
 
 The defining product rule: **you cannot turn a card over until you have written
 an answer.** Recognition feels like knowledge and isn't. Any change that makes
@@ -21,7 +23,7 @@ pnpm install          # pnpm, not npm — see below
 pnpm run dev          # local
 pnpm run build        # must pass before any commit
 pnpm run lint         # ESLint flat config, next/core-web-vitals
-pnpm run test         # both suites below
+pnpm run test         # every suite below
 pnpm run test:parser  # deck parser test cases
 pnpm run test:progress # storage migration test cases
 pnpm run test:schedule # box and due date test cases, under a fixed timezone
@@ -158,8 +160,9 @@ after a change to it should give identical pages.
 overflow a printed card and there is no scrollbar on paper.
 
 **Deck tints are pastels with a darker `ink` for text and progress bars.** The
-five built-in decks carry both in their front matter, from the original print
-spec, and must not change. A deck you add gets its color from `nextTint()` in
+four printed decks carry both in their front matter, from the original print
+spec, and must not change. The other eight carry a tint, and their ink comes
+from `shadeForTint()`. A deck you add gets its color from `nextTint()` in
 `lib/tint.ts`, which picks the hue *furthest from every hue already in use* —
 built-in and custom alike — and renders it at a fixed pastel saturation and
 lightness. There is deliberately no fixed palette: the previous list of six ran
@@ -174,7 +177,7 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 
 ## Storage
 
-`localStorage`, four keys, each wrapped in a version envelope:
+`localStorage`, five keys, each wrapped in a version envelope:
 
 - `decks:custom` — `{ version: 1, decks: Deck[] }`
 - `progress` — `{ version: 4, cards }`, keyed by `{deckSlug}:{cardId}`
@@ -186,6 +189,11 @@ the built-in tints reach it as the `reservedTints` prop, the same way
   because the reviewer reads both and `prefs:index` is what the index acts on,
   even though the interval is set at the foot of the index; see
   `lib/reviewerPrefs.ts`
+- `llm:key` — `{ version: 2, provider, keys, models, hidden }`: the deck
+  writer's chosen provider, and a key, a model and the models hidden as unusable
+  for each of Claude, OpenAI and Gemini. Version 1 held one Anthropic key and
+  migrates in. Never sent anywhere but the provider it belongs to; see
+  `lib/apiKey.ts`
 
 Version 1 of `prefs:index` held `showBuiltIns` alone and version 2 added
 `hiddenDecks`. Each reads as the version after it with the new field at its
@@ -283,8 +291,8 @@ apart.
 
 **`reviewed` is written and never read.** It is the one field that cannot be
 backfilled later: nothing else records *when* a review happened, and `due` is
-no substitute, since a box-5 card reviewed two weeks ago carries a later
-`due` than a box-1 card done this morning. It is empty on every record migrated
+no substitute, since a box-4 card reviewed yesterday carries a later `due`
+than a box-1 card done this morning. It is empty on every record migrated
 from an older store, because those stores never knew.
 
 **Progress is one store for the whole app, and the key carries no suffix.**
@@ -413,6 +421,11 @@ stops a second read from merging a stale grade back over a newer one.
   height of its 44px press area. A deck card's main link has no ring: its dashed
   edge turns the focus color instead. Never leave a focusable element with no
   visible ring
+- A keyboard press that takes away what had focus moves focus on, never to the
+  body: a card turned or graded, a deck card hidden or deleted, a panel's button
+  that removes its panel. Only for the keyboard, which a click event reports as
+  `detail === 0`: on a phone, focusing the answer box would open the keyboard.
+  See `focusNext` in `Reviewer.tsx` and `lib/focus.ts`
 - Errors are specific and actionable, and never blame the user
 
 ## Before committing

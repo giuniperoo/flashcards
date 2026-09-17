@@ -12,6 +12,23 @@ The one rule the app enforces: you cannot turn a card over until you have
 written something. Recognizing an answer feels like knowing it; producing one is
 the part that survives an interview.
 
+## Studying
+
+Spaced repetition is the default. A deck deals what is due, the cards you owe
+first and then the ones you have never seen, and the session ends when they are
+done. Every card sits in one of four boxes: a right answer moves it up one, a
+wrong one sends it back to the first. Box one comes back after one interval, box
+four after four. The interval is a day unless you set it shorter at the foot of
+the index — 1, 2, 4 or 8 hours, for the day before an interview. The strip under
+the card colors each card by its box, red, orange, yellow, green, and the "?" at
+its end says so. "Everything" deals what is due across every deck, interleaved,
+and the index shows how many cards each deck owes.
+
+Free study is the other side of the switch: the whole deck, shuffled if you
+like, green and red for your last answer. Nothing you do there moves the
+schedule, so a deck cannot be climbed to green in one sitting. The logo in the
+header says which mode you are in, cream on a schedule and sage in free study.
+
 ## Stack
 
 Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4. No database —
@@ -31,7 +48,7 @@ needs network access.
 ```bash
 pnpm run build
 pnpm run lint
-pnpm run test   # deck parser, progress migrations, deck filtering
+pnpm run test   # parser, progress, schedule, queue, filter, prefs, deck writer
 ```
 
 ## Layout
@@ -49,20 +66,22 @@ components/
   Reviewer.tsx           all study state
   DeckIndex.tsx          headline counts and the built-in deck grid
   DeckCard.tsx           one deck on the index; both lists render through it
-  DeckVisibility.tsx     the show/hide controls, at the foot of the index
+  DeckVisibility.tsx     the show/hide controls and the mode, at the foot of the index
   DeckImporter.tsx       parses a paste or a file, previews it, saves it
-  DeckGenerator.tsx      asks Claude for a deck, streams it into the importer
+  DeckGenerator.tsx      asks Claude, OpenAI or Gemini for a deck, into the importer
   ShuffledSet.tsx        narrows /study/all and /print/all in the browser
   PrintSheets.tsx        the sheets themselves, built-in and imported alike
 lib/
   loadDecks.ts           reads content/*.md at build time — server only
   parseDeck.ts           one parser for files, pastes and generated text
   print.ts               sheet pagination and column mirroring
-  progress.ts            one store of drafts and grades, keyed by card id
+  progress.ts            one store of answers and schedules, keyed by card id
+  schedule.ts            the four boxes, when a card comes back, and whether it is due
+  queue.ts               what a session deals: due cards, then the new ones
   customDecks.ts         imported decks in localStorage
-  prefs.ts               which built-in decks this reader wants to see
+  prefs.ts               which built-in decks this reader wants to see, and the mode
   tint.ts                a deck's color, picked furthest from those in use
-  generateDeck.ts        browser-direct call to Anthropic — client only
+  generateDeck.ts        browser-direct call to the chosen provider — client only
 ```
 
 The client components are the interactive parts and nothing else: the reviewer,
@@ -83,6 +102,9 @@ thirteen slugs each.
 | S                | Shuffle                            |
 
 Arrow and letter shortcuts stand down while you are typing in the answer box.
+Everything else is reachable with Tab. In Safari, and in DuckDuckGo and other
+WebKit browsers, Tab skips links and buttons unless you hold Option or turn on
+"Press Tab to highlight each item on a webpage" in Safari's settings.
 
 ## Printing
 
@@ -139,17 +161,18 @@ pnpm run test:parser
 
 covers all three shapes plus the malformed cases.
 
-### Writing one with Claude
+### Writing one with AI
 
-The import screen can also ask Claude for a deck. Give it a topic and a card
+The import screen can also ask Claude, OpenAI or Gemini for a deck. Give it a topic and a card
 count and it streams the same `Q:` / `A:` text into the textarea above, where you
 read and edit it like any other paste. Saving stays a separate, deliberate
 press: a generated card is a claim you are about to memorize, so reading it
 first is the feature rather than a step to remove.
 
-It runs in your browser against your own Anthropic key, which is held in
-`localStorage` and sent nowhere but Anthropic. There is no server in this path
-and no key of mine anywhere. Card counts are offered in multiples of eight,
+It runs in your browser against your own key for the provider you pick, held in
+`localStorage` and sent nowhere but that provider. Each keeps its own key and
+model, and the model list comes from the provider itself. There is no server in
+this path and no key of mine anywhere. Card counts are offered in multiples of eight,
 because eight cards fill one printed sheet.
 
 ## The built-in decks
@@ -171,10 +194,10 @@ counted, imported ones are.
 
 ## Storage
 
-Everything the app remembers lives in `localStorage`, under four keys:
-`decks:custom` for imported decks, `progress` for drafts and grades,
-`prefs:index` for what the index shows, and `llm:key` for your Anthropic key if
-you have set one. There is no account and nothing syncs, so a deck imported on
+Everything the app remembers lives in `localStorage`, under five keys:
+`decks:custom` for imported decks, `progress` for your answers and each card's
+schedule, `prefs:index` for what the index shows and the mode, `prefs:reviewer`
+for the interval, and `llm:key` for the deck writer's keys if you have set any. There is no account and nothing syncs, so a deck imported on
 your laptop is not on your phone, and a `/study/your-deck` link will not open
 for anyone else.
 
@@ -190,10 +213,11 @@ built-in decks are compiled in and unaffected.
 The deck grid goes one column, then two at 640px, and past 1300px the shell
 takes 75% of the viewport and adds a column at 1300, 1800 and 2400px. The extra
 width becomes more cards per row, never wider cards. Study and the import screen
-keep a reading measure of their own at any window size. Tap targets are at least
-44px, the grading buttons stack on narrow screens, the answer box uses 16px text
-on mobile to stop iOS zooming on focus, and the sheet preview scrolls
-horizontally rather than shrinking the cards. The card flip respects
+keep a reading measure of their own at any window size. Controls are 44px tall
+where the pointer is a finger and 36px with a mouse, the card being studied fits
+a phone's screen with its buttons, the answer box uses 16px text on mobile to stop
+iOS zooming on focus, and the print preview zooms its pages to fit the column,
+which printing ignores. The card flip respects
 `prefers-reduced-motion`.
 
 ## Card data

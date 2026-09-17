@@ -67,7 +67,7 @@ Unpublishing returns a deck to private; it does not return it to local.
 
 ### Where the built-in decks live
 
-The five shipped decks (Gigs, React 19, CAP, ACID, SOLID) stay in the repo as
+The twelve shipped decks, four of them printed as physical cards, stay in the repo as
 markdown under `content/`, parsed at build time. They are authored, reviewed and
 versioned like code because they *are* part of the product.
 
@@ -106,7 +106,8 @@ deck_topics      deck_id, topic          -- tags, many per deck
 
 rotation         user_id, deck_id, added_at   -- "in rotation"
 
-progress         user_id, deck_id, card_id, draft, grade, updated_at
+progress         user_id, deck_id, card_id, draft, grade,
+                 box, misses, due, due_at nullable, reviewed, seen, updated_at
 ```
 
 `cards` is a `jsonb` array rather than a table. Cards are never queried
@@ -315,6 +316,22 @@ them across devices. The reviewer does not care which — it reads through one
 interface with two implementations, which is the dependency-inversion point from
 the SOLID deck applied to something real.
 
+Since this was written, a record became a schedule rather than a verdict. Each
+card carries a Leitner box from 1 to 4, a due day, a due time when the interval
+is under a day, a run of misses, the day it was last reviewed, and whether it
+has been seen; free study's last answer sits beside them as `grade` and never
+moves the schedule. `CLAUDE.md` describes the record and `lib/progress.ts`
+holds it. The table above follows, and `reviewed` is the column a sync needs:
+it is the only record of *when* a review happened, so it is what settles the
+same card answered on two devices.
+
+**Rotation** is deferred, not dropped. The due queue at `/study/all` scopes a
+session to the cards owed today; rotation would scope it to the decks you are
+working on, and the set worth studying is the intersection. Whether the queue
+needs that filter is only answerable after living with one that has none, so it
+waits until a schedule starts dealing decks you do not currently care about.
+`TASKS.md` says when to revive it. As designed:
+
 **Rotation** is a plain join table. UI surface: an "In rotation" section at the
 top of the index, an add/remove control on every deck, and a shuffled study route
 across everything in rotation — the multi-deck interleaving that already exists
@@ -335,7 +352,8 @@ Sequenced so each step is independently useful and nothing needs undoing.
    generator script retires, `lib/parseDeck.ts` serves both file and paste paths
 3. **Accounts and sync** — local → private promotion, progress moves to the
    database, no publishing yet
-4. **Rotation** — small, immediately useful, independent of publishing
+4. **Rotation** — small, independent of publishing, and deferred until the due
+   queue shows it is needed (§8)
 5. **Publishing with review** — versions, the scan, the email, the admin queue.
    Ship the queue with the feature, never after
 6. **Public library** — browse, filter by topic, fork
@@ -354,8 +372,14 @@ Steps 1 and 2 are worth doing while the app is still single-user.
 - **Print at scale.** The client-side print route is fine for a personal deck.
   If public decks get printed often, server-side PDF generation gives more
   reliable output than browser print settings.
-- **Safari storage eviction.** Safari clears script-writable storage after seven
-  days without a visit. Local decks can vanish for an infrequent user, which is
-  an argument for prompting to sign in before that bites.
+- **`localStorage` is not durable storage.** WebKit clears script-writable
+  storage after seven days without a visit, and that is Safari and every browser
+  built on it on macOS and iOS — DuckDuckGo's included, which also clears it
+  whenever its Fire Button is pressed. Clear-on-exit settings, private windows
+  and Chromium's eviction under storage pressure do the same. Imported decks can
+  be exported first; progress cannot, and a schedule lost is weeks of spacing.
+  An argument for prompting to sign in before that bites, and until then for
+  asking the browser to keep the store with `navigator.storage.persist()`,
+  which task 1 planned and nothing yet calls.
 - **Abuse of the free tier.** Publishing costs moderation attention. Watch it
   before opening the door wide.
