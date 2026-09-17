@@ -4,6 +4,9 @@ import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseDeck, EXAMPLE_DECK } from "@/lib/parseDeck";
 import { saveCustomDeck } from "@/lib/customDecks";
+import { loadPrefs } from "@/lib/prefs";
+import { studyHref } from "@/lib/studyMode";
+import { useStoredMode } from "@/lib/useStoredMode";
 import DeckGenerator from "./DeckGenerator";
 
 const ACCEPT = ".txt,.md,.markdown,.text,.csv,.tsv,.rtf";
@@ -33,6 +36,8 @@ export default function DeckImporter({
   reservedTints: string[];
 }) {
   const router = useRouter();
+  // The logo and ground in the reader's mode; this screen has none of its own.
+  useStoredMode();
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -63,7 +68,10 @@ export default function DeckImporter({
         reservedSlugs,
         reservedTints,
       });
-      router.push(`/study/${deck.slug}`);
+      // In the mode the reader is in, like every other study link: the study
+      // page reads it from `?scheduled`, and a bare `/study/{slug}` opened a
+      // new deck in free study for someone on a schedule.
+      router.push(studyHref(deck.slug, loadPrefs().scheduled));
     } catch {
       setSaveError(
         "Could not save — browser storage is full or unavailable. Try a smaller deck, or a normal (non-private) window.",
@@ -86,7 +94,7 @@ export default function DeckImporter({
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="press min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 pointer-fine:min-h-9 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Choose a file
         </button>
@@ -96,7 +104,7 @@ export default function DeckImporter({
             setText(EXAMPLE_DECK);
             setFileName(null);
           }}
-          className="press min-h-11 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 pointer-fine:min-h-9 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Load the example
         </button>
@@ -199,7 +207,7 @@ export default function DeckImporter({
         type="button"
         onClick={save}
         disabled={!canSave}
-        className="press mt-4 min-h-11 w-full rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent sm:w-auto sm:px-6"
+        className="press mt-4 min-h-11 pointer-fine:min-h-9 w-full rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent sm:w-auto sm:px-6"
       >
         {canSave
           ? `Add ${parsed!.cards.length} ${parsed!.cards.length === 1 ? "card" : "cards"}`

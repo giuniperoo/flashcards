@@ -8,6 +8,7 @@ import { toSheets } from "@/lib/print";
 import Reviewer from "@/components/Reviewer";
 import PrintSheets from "@/components/PrintSheets";
 import PrintIntro from "@/components/PrintIntro";
+import { useStoredMode } from "@/lib/useStoredMode";
 
 type State = { status: "loading" } | { status: "missing" } | { status: "found"; deck: Deck };
 
@@ -19,6 +20,10 @@ export default function CustomDeckView({
   mode: "study" | "print";
 }) {
   const [state, setState] = useState<State>({ status: "loading" });
+  // An imported deck's print page, from its first frame: "Loading deck…" comes
+  // before `PrintIntro`, which sets the same mode once the deck is found. The
+  // study page leaves the mode to the reviewer, which reads `?scheduled`.
+  useStoredMode(mode === "print");
 
   useEffect(() => {
     const deck = getCustomDeck(slug);

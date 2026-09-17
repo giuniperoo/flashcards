@@ -28,6 +28,7 @@ pnpm run test:schedule # box and due date test cases, under a fixed timezone
 pnpm run test:queue    # what a session deals: a backlog, then the new cards
 pnpm run test:filter   # which decks the shuffled set draws from
 pnpm run test:prefs    # index preferences, and the switch's default
+pnpm run test:llm      # deck generation: keys, model lists, each provider's stream
 ```
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
@@ -77,7 +78,7 @@ components/
   DeckCard.tsx          one deck on the index; both lists render through it
   DeckVisibility.tsx    the show/hide controls, and `StudyMode`: the mode bar
                         and its interval, at the other end of the same row
-  DeckGenerator.tsx     asks Claude for a deck, streams it into the importer
+  DeckGenerator.tsx     asks Claude, OpenAI or Gemini for a deck, streams it into the importer
   QueueBar.tsx          a scheduled session's breakdown, in the title row if it fits
   ColorKey.tsx          what the strip's colors mean, behind a "?" at its end
   PrintSheets.tsx       shared by the built-in and custom print paths
@@ -95,14 +96,20 @@ lib/
   queue.ts              what a session deals — due cards, then the unseen ones
   shuffle.ts            Fisher-Yates, shared by the reviewer and the queue
   cardId.ts             uuid for new cards
-  apiKey.ts             the user's own Anthropic key, its own localStorage key
+  apiKey.ts             the reader's own keys and chosen models, one per provider
   prefs.ts              index preferences: the built-in decks, and the mode
   studyMode.ts          the `?scheduled` parameter, and links that carry it
   useCustomDecks.ts     the imported decks, kept in step with localStorage
   usePrefs.ts           index preferences, shared by the grid and the controls
   reviewerPrefs.ts      what the reviewer remembers: the color key has been shown
   useDueCounts.ts       cards each deck owes today, for the counts on the index
-  generateDeck.ts       browser-direct call to Anthropic — CLIENT ONLY
+  useStoredMode.ts      the saved mode on pages that have none: import and print
+  generateDeck.ts       writes a deck or lists models, loading one adapter — CLIENT ONLY
+  llm/providers.ts      the providers: names, where keys come from, what keys look like
+  llm/shared.ts         the prompt, the cleanup, the stream reader, `GenerateError`
+  llm/anthropic.ts      Claude through the SDK, shaped by the model's capabilities
+  llm/openai.ts         OpenAI Chat Completions over `fetch`, no SDK
+  llm/gemini.ts         Gemini `streamGenerateContent` over `fetch`, no SDK
 ```
 
 Both `[deck]` routes set `dynamicParams = true`: built-in slugs are prerendered,
@@ -197,7 +204,13 @@ the mark's cream, or the free study sage. Both modes on show is what lets the
 labels name the modes themselves; the button it replaced named the mode it moved
 *to*, with an arrow, since a bare "Free study" would have read as the mode you
 were in. The sun on the index says the same thing a third time, the mark's cream
-against a faint sage (`--color-sun-free`). It governs what the *index* draws and what it writes
+against a faint sage (`--color-sun-free`). Every other page says it in its
+ground: in free study the study pages, the import screen and the print pages
+are `--color-sun-free` rather than the paper, and the logo is the sage one on
+every page. The index keeps the paper, because its rays are that color and
+would disappear on it. Pages with no mode of their own take the saved one,
+before paint from the script in `app/layout.tsx` and on a client navigation
+from `useStoredMode`. It governs what the *index* draws and what it writes
 into its own study links; what the reviewer reads is `?scheduled` in the URL,
 never the preference. The two are separate on purpose: a link then says which
 reviewer it opens and a bookmark cannot change under the reader, and scrapping
@@ -373,8 +386,14 @@ stops a second read from merging a stale grade back over a newer one.
   "behavior", "a fraction of a cent", "two weeks" rather than "a fortnight", and
   dates as "September 13, 2026"
 - Copy names what happens: "Turn card over", not "Submit"
-- Tap targets at least 44px; the answer box uses 16px on mobile so iOS doesn't
-  zoom on focus
+- Tap targets at least 44px where the pointer is a finger, and 36px where it is
+  a mouse or trackpad, which does not need the room: `min-h-11
+  pointer-fine:min-h-9`. `pointer-fine` reads the primary pointer, so a
+  touchscreen laptop gets the mouse size. A control with vertical padding trims
+  it with a mouse too (`pointer-fine:py-1.5`), or its line and border hold it at
+  38px. Press areas nobody sees — the color key's "?" and close, a segment bar's
+  stretched label — stay 44px, since shrinking them changes nothing on screen.
+  The answer box uses 16px text on mobile so iOS doesn't zoom on focus
 - Colors come from the Tailwind theme in `globals.css`, never hardcoded hex in
   components, except deck tints which are data
 - The shell is `max-w-3xl` up to 1300px and 75% of the viewport past it. The

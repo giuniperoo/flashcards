@@ -6,6 +6,7 @@ import PrintButton from "@/components/PrintButton";
 import { DECK_PARAM } from "@/lib/deckFilter";
 import { studyHref } from "@/lib/studyMode";
 import { usePrefs } from "@/lib/usePrefs";
+import { useStoredMode } from "@/lib/useStoredMode";
 
 /*
  * The top of a print page: the same title row a study page has, and what to set
@@ -38,6 +39,8 @@ export default function PrintIntro({
   sheetCount: number;
 }) {
   const [prefs] = usePrefs();
+  // The logo and ground in the reader's mode; a print page has none of its own.
+  useStoredMode();
   const [search, setSearch] = useState("");
   useLayoutEffect(() => {
     const decks = new URLSearchParams(window.location.search).get(DECK_PARAM);

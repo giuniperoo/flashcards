@@ -431,16 +431,15 @@ html[data-index-pending] [data-index] {
   visibility: hidden;
 }
 
-/* A study page in free study is the free study sun's ray color rather than
-   the paper, so the page says which app it is in its ground as well as in the
-   mark. On the index the rays are that color against the paper; here the whole
-   page is. Study pages only, marked `data-study` in `app/study/[deck]/page.tsx`:
-   the index carries `data-mode="free"` too, and a ground the color of its rays
-   would erase the sun. Both `html` and `body`, because the body paints its own
-   `bg-paper`. Screen only, so a printout stays white. */
+/* In free study a page is the free study sun's ray color rather than the
+   paper, so it says which app it is in its ground as well as in the mark:
+   study pages, the import screen and the print pages alike. Every page but the
+   index, which keeps the paper: its rays are this color, and on a ground the
+   same color they would disappear. Both `html` and `body`, because the body
+   paints its own `bg-paper`. Screen only, so a printout stays white. */
 @media screen {
-  html[data-mode="free"]:has([data-study]),
-  html[data-mode="free"]:has([data-study]) body {
+  html[data-mode="free"]:not(:has([data-index])),
+  html[data-mode="free"]:not(:has([data-index])) body {
     background: var(--color-sun-free);
   }
 }

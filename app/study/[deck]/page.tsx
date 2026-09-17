@@ -19,7 +19,7 @@ export default async function StudyPage({
 
   if (slug !== "all" && !getDeck(slug)) {
     return (
-      <div data-study className="fit mx-auto w-full max-w-3xl">
+      <div className="fit mx-auto w-full max-w-3xl">
         <CustomDeckView slug={slug} mode="study" />
       </div>
     );
@@ -29,9 +29,7 @@ export default async function StudyPage({
   const title = slug === "all" ? "Everything" : getDeck(slug)!.name;
 
   return (
-    // `data-study` is what the free study background keys off; see the
-    // wordmark rules in `app/globals.css`.
-    <div data-study className="fit mx-auto w-full max-w-3xl">
+    <div className="fit mx-auto w-full max-w-3xl">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <h1 className="text-2xl font-medium tracking-tight">{title}</h1>
         {/* Where a scheduled session puts its queue bar, if the bar fits. See

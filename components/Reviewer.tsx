@@ -729,14 +729,14 @@ export default function Reviewer({
               <button
                 type="button"
                 onClick={() => grade("held")}
-                className="press min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                className="press min-h-11 pointer-fine:min-h-9 flex-1 rounded-sm border border-rule px-3 py-2 pointer-fine:py-1.5 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 I had it
               </button>
               <button
                 type="button"
                 onClick={() => grade("review")}
-                className="press min-h-11 flex-1 rounded-sm border border-rule px-3 py-2 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                className="press min-h-11 pointer-fine:min-h-9 flex-1 rounded-sm border border-rule px-3 py-2 pointer-fine:py-1.5 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 Needs review
               </button>
@@ -750,14 +750,14 @@ export default function Reviewer({
           type="button"
           onClick={() => move(-1)}
           aria-label="Previous card"
-          className="press min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 pointer-fine:min-h-9 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           ←
         </button>
         <button
           type="button"
           onClick={flip}
-          className="press min-h-11 flex-1 rounded-sm border border-ink px-3 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 pointer-fine:min-h-9 flex-1 rounded-sm border border-ink px-3 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           {flipped ? "Turn back" : "Turn card over"}
         </button>
@@ -765,7 +765,7 @@ export default function Reviewer({
           type="button"
           onClick={() => move(1)}
           aria-label="Next card"
-          className="press min-h-11 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 pointer-fine:min-h-9 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           →
         </button>
@@ -896,7 +896,7 @@ function AllDecks() {
   return (
     <Link
       href="/"
-      className="press label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      className="press label inline-flex min-h-11 pointer-fine:min-h-9 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
       All decks
     </Link>
@@ -961,7 +961,7 @@ function SessionDone({
         <button
           type="button"
           onClick={onStudyDeck}
-          className="press label inline-flex min-h-11 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press label inline-flex min-h-11 pointer-fine:min-h-9 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           {deck ? "Study the whole deck" : "Study every card"}
         </button>
@@ -1003,7 +1003,7 @@ function NothingDue({
         <button
           type="button"
           onClick={onStudyAnyway}
-          className="press min-h-11 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="press min-h-11 pointer-fine:min-h-9 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Study anyway
         </button>
