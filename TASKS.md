@@ -788,9 +788,13 @@ print, and `pnpm run test:parser` still passes.
   address", in the card panel the missing-deck message uses, with "All decks" and "Add a
   deck". A deck slug never reaches it. A page with no mode of its own, this one included,
   takes the saved mode before paint.)*
-- Add `metadata` per route (deck name in the title, so browser tabs are useful)
-- Consider `next/dynamic` for `PrintSheets` — it's only needed on print routes
-  and currently sits in the shared bundle
+- Add `metadata` per route (deck name in the title, so browser tabs are useful) *(Done:
+  "ACID · Flashcards", "Print Kafka · Flashcards", "Everything", "Print all decks", "Add
+  a deck", and the index as plain "Flashcards". An imported deck is named in the browser,
+  by `useTabTitle` in `CustomDeckView`, which has to keep the title rather than set it
+  once: Next writes the layout's title into the head after the page renders.)*
+- ~~Consider `next/dynamic` for `PrintSheets`~~ *Dropped on September 17, 2026: the App
+  Router already splits code per route, so there is nothing measured to save*
 - Check the reviewer with a screen reader once; the live regions were written
   correctly but never tested with one
 - The action buttons on a deck card are 41px tall at every pointer. Since #34

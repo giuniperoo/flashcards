@@ -16,8 +16,10 @@ const label = IBM_Plex_Mono({
   display: "swap",
 });
 
+/* A page names itself first, so a row of tabs reads "ACID", "Kafka", "Add a
+   deck" rather than "Flashcards" several times over. */
 export const metadata: Metadata = {
-  title: "Flashcards",
+  title: { default: "Flashcards", template: "%s · Flashcards" },
   description: "Interview flashcard decks, drilled by recall.",
 };
 

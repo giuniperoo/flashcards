@@ -30,6 +30,16 @@ export default function CustomDeckView({
     setState(deck ? { status: "found", deck } : { status: "missing" });
   }, [slug]);
 
+  const title =
+    state.status === "missing"
+      ? "No such deck"
+      : state.status === "found"
+        ? mode === "print"
+          ? `Print ${state.deck.name}`
+          : state.deck.name
+        : null;
+  useTabTitle(title && `${title} · Flashcards`);
+
   if (state.status === "loading") {
     return (
       <p data-loading className="label text-muted">
@@ -100,4 +110,26 @@ export default function CustomDeckView({
       <Reviewer cards={cards} schedulable />
     </div>
   );
+}
+
+/**
+ * The server cannot name a deck it has never seen, so an imported deck's tab is
+ * named here, the way the built-in routes' `generateMetadata` names theirs.
+ *
+ * Kept, not just set: Next writes the layout's title into the head after this
+ * page has rendered, and that overwrote a title set once from an effect. A
+ * `<title>` rendered here lost the same way, since the browser reads the first
+ * one in the head and Next's comes first.
+ */
+function useTabTitle(title: string | null) {
+  useEffect(() => {
+    if (!title) return;
+    const apply = () => {
+      if (document.title !== title) document.title = title;
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.head, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, [title]);
 }
