@@ -2,7 +2,7 @@ import Link from "next/link";
 import DeckImporter from "@/components/DeckImporter";
 import { decks } from "@/lib/loadDecks";
 
-export const metadata = { title: "New deck" };
+export const metadata = { title: "Add a deck" };
 
 export default function NewDeckPage() {
   return (

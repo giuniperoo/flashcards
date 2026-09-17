@@ -38,8 +38,8 @@ import {
  *
  * `reviewed` is not read anywhere yet. It goes in now because it is the one
  * field here that cannot be backfilled later: nothing else records *when* a
- * review happened, and `due` is no substitute, since a box-5 card reviewed two
- * weeks ago carries a later `due` than a box-1 card done this morning. It
+ * review happened, and `due` is no substitute, since a box-4 card reviewed
+ * yesterday carries a later `due` than a box-1 card done this morning. It
  * is what a future sync would need to resolve a conflict, and it is empty on
  * every record migrated from an older store, because those stores never knew.
  *

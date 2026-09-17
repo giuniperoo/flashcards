@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Reviewer from "@/components/Reviewer";
 import ShuffledSet from "@/components/ShuffledSet";
@@ -8,6 +9,19 @@ export const dynamicParams = true;
 
 export function generateStaticParams() {
   return [{ deck: "all" }, ...decks.map((d) => ({ deck: d.slug }))];
+}
+
+// An imported deck's name is only in the browser; `CustomDeckView` sets its
+// title there, and the server's frame has the app's name.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ deck: string }>;
+}): Promise<Metadata> {
+  const { deck: slug } = await params;
+  if (slug === "all") return { title: "Everything" };
+  const deck = getDeck(slug);
+  return deck ? { title: deck.name } : {};
 }
 
 export default async function StudyPage({

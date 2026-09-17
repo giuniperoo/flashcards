@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import CustomDeckView from "@/components/CustomDeckView";
 import ShuffledSet from "@/components/ShuffledSet";
 import PrintIntro from "@/components/PrintIntro";
@@ -9,6 +10,17 @@ export const dynamicParams = true;
 
 export function generateStaticParams() {
   return [{ deck: "all" }, ...decks.map((d) => ({ deck: d.slug }))];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ deck: string }>;
+}): Promise<Metadata> {
+  const { deck: slug } = await params;
+  if (slug === "all") return { title: "Print all decks" };
+  const deck = getDeck(slug);
+  return deck ? { title: `Print ${deck.name}` } : {};
 }
 
 export default async function PrintPage({

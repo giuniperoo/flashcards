@@ -3,6 +3,7 @@
 import type { Deck } from "@/lib/types";
 import DeckCard from "@/components/DeckCard";
 import { deleteCustomDeck, toDeckText } from "@/lib/customDecks";
+import { focusNeighborCard } from "@/lib/focus";
 import { useCustomDecks } from "@/lib/useCustomDecks";
 import { useDueCounts } from "@/lib/useDueCounts";
 import { usePrefs } from "@/lib/usePrefs";
@@ -29,11 +30,13 @@ export default function CustomDeckList() {
     URL.revokeObjectURL(url);
   };
 
-  const remove = (deck: Deck) => {
+  const remove = (deck: Deck, event: React.MouseEvent<HTMLElement>) => {
     const ok = window.confirm(
       `Delete "${deck.name}" and its progress? This cannot be undone.`,
     );
-    if (ok) deleteCustomDeck(deck.slug);
+    if (!ok) return;
+    focusNeighborCard(event);
+    deleteCustomDeck(deck.slug);
   };
 
   if (decks === null || decks.length === 0) return null;
@@ -66,7 +69,7 @@ export default function CustomDeckList() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => remove(deck)}
+                    onClick={(event) => remove(deck, event)}
                     className="label text-muted hover:text-error"
                   >
                     Delete

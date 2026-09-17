@@ -27,7 +27,10 @@
   --color-paper: #f6f4ef;
   --color-card: #fcfbf8;
   --color-ink: #2c2c2a;
-  --color-muted: #78776f;
+  /* Small capitals, mostly, so 4.5:1 against every ground it sits on: 4.8 on
+     the paper, 5.1 on a card, and exactly 4.5 on the free study ground, the
+     lightest of the three. It was #78776f, 3.8:1 there. */
+  --color-muted: #6d6c65;
   --color-rule: #ccc6b8;
   /* Every focus ring, 1px, in one color: a softer black than `--color-ink`.
      There were two for a while, a blue for links from the Gigs deck's palette
@@ -450,8 +453,19 @@ html[data-index-pending] [data-index] {
   border-top: 1px solid var(--color-rule);
 }
 
+/* The app's tap target rule, like every other control: 44px where the pointer
+   is a finger, 36px with a mouse. Padding alone held them at 41px on both. */
 .deck-actions > * {
-  padding: 0.75rem 0.625rem;
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.625rem;
+}
+
+@media (pointer: fine) {
+  .deck-actions > * {
+    min-height: 2.25rem;
+  }
 }
 
 /* Study takes the slack, and its left edge lines up with the card body. */
@@ -481,6 +495,14 @@ html[data-index-pending] [data-index] {
 /* The card's main link, its name and blurb, has no ring: its dashed edge turns
    the softer black instead, which says the whole card is what Enter opens. */
 .cut:has(> .deck-open:focus-visible) {
+  border-color: var(--color-focus);
+}
+
+/* The same edge on the reviewer's own surfaces, which only a script focuses: the
+   answer after a keyboard turn, and the panel at the end of a session. A ring
+   outside the dashed edge would draw the card's outline twice. */
+.cut[tabindex="-1"]:focus-visible {
+  outline: none;
   border-color: var(--color-focus);
 }
 

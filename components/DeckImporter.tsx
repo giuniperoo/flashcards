@@ -9,21 +9,10 @@ import { studyHref } from "@/lib/studyMode";
 import { useStoredMode } from "@/lib/useStoredMode";
 import DeckGenerator from "./DeckGenerator";
 
-const ACCEPT = ".txt,.md,.markdown,.text,.csv,.tsv,.rtf";
-
-/** Strip RTF control words well enough to recover plain text from TextEdit. */
-function fromRtf(source: string) {
-  return source
-    .replace(/\\'([0-9a-f]{2})/gi, (_, hex) =>
-      String.fromCharCode(parseInt(hex, 16)),
-    )
-    .replace(/\{\\\*[^{}]*\}/g, "")
-    .replace(/\\par[d]?\b/g, "\n")
-    .replace(/\\line\b/g, "\n")
-    .replace(/\\[a-z]+-?\d*\s?/gi, "")
-    .replace(/[{}]/g, "")
-    .trim();
-}
+/* No `.rtf`. It was read by a handful of regexes that only held up on TextEdit's
+   output and mangled anything richer without a word, which is worse than the
+   picker not offering the file at all. Plain text from any editor still works. */
+const ACCEPT = ".txt,.md,.markdown,.text,.csv,.tsv";
 
 export default function DeckImporter({
   reservedSlugs,
@@ -50,9 +39,7 @@ export default function DeckImporter({
   const canSave = !!parsed && parsed.cards.length > 0;
 
   const readFile = async (file: File) => {
-    const raw = await file.text();
-    const isRtf = file.name.toLowerCase().endsWith(".rtf");
-    setText(isRtf ? fromRtf(raw) : raw);
+    setText(await file.text());
     setFileName(file.name);
     setSaveError(null);
   };
@@ -109,12 +96,16 @@ export default function DeckImporter({
           Load the example
         </button>
         <span className="label text-muted">
-          {fileName ?? ".txt, .md, .csv, .tsv or .rtf"}
+          {fileName ?? ".txt, .md, .csv or .tsv"}
         </span>
         <input
           ref={fileRef}
           type="file"
           accept={ACCEPT}
+          // "Choose a file" opens it. Left in the tab order, it was a second,
+          // invisible stop after the button, with no ring to say where focus was.
+          tabIndex={-1}
+          aria-hidden
           className="sr-only"
           onChange={(e) => {
             const file = e.target.files?.[0];

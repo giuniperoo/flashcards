@@ -390,6 +390,20 @@ export default function Reviewer({
      blank over it. */
   const typedRef = useRef(new Set<string>());
 
+  /* Where focus goes once the card on screen has changed under it. Turning a
+     card or grading one from the keyboard hides whatever had focus, since the
+     face it was on goes inert, and focus fell back to the body: Tab then
+     started over from the header, and a screen reader said nothing about the
+     answer that had just appeared. So a keyboard turn moves focus onto the
+     answer, and a keyboard grade or turn back onto the next question's box.
+
+     Keyboard only. A tap that focused the answer box would open the keyboard
+     on a phone over the card the reader is about to look at. `backRef` is the
+     answer face; the end of a session focuses its own panel. */
+  const focusNext = useRef<"question" | "answer" | null>(null);
+  const backRef = useRef<HTMLDivElement>(null);
+  const [focusEnd, setFocusEnd] = useState(false);
+
   useEffect(() => {
     const stored = recordsRef.current[key]?.draft ?? "";
     setDraft(scheduled && !typedRef.current.has(key) ? "" : stored);
@@ -427,15 +441,16 @@ export default function Reviewer({
     [commitDraft, draft, order.length],
   );
 
+  /** Turns the card, and says whether it did: an empty answer box refuses. */
   const flip = useCallback(() => {
     if (flipped) {
       setFlipped(false);
-      return;
+      return true;
     }
     if (!draft.trim()) {
       setError(true);
       inputRef.current?.focus();
-      return;
+      return false;
     }
     commitDraft(draft);
     /* Let go of the answer box before the card turns. Cmd+Enter flips from
@@ -446,13 +461,29 @@ export default function Reviewer({
     inputRef.current?.blur();
     setKeyOpen(false);
     setFlipped(true);
+    return true;
   }, [flipped, draft, commitDraft]);
+
+  useEffect(() => {
+    const target = focusNext.current;
+    if (target === "answer" && flipped) backRef.current?.focus();
+    // A grade renders the next card still turned for a moment, until the
+    // effect above turns it back, so this waits for the question to show.
+    else if (target === "question" && !flipped) inputRef.current?.focus();
+    else return;
+    focusNext.current = null;
+    // `scheduled` for stepping out of a session into the whole deck, which can
+    // open on the card the session ended on.
+  }, [flipped, key, scheduled]);
 
   /** Leave the queue for free study of the whole deck. Nothing graded from here
       moves the schedule, which is the point: finishing the day's cards and
       carrying on must not change what tomorrow deals. The address loses its
       parameter too, so it says which reviewer this now is. */
-  const studyEverything = useCallback(() => {
+  const studyEverything = useCallback((fromKeyboard: boolean) => {
+    // The panel's button goes with the panel; the whole deck's first question
+    // takes focus instead.
+    if (fromKeyboard) focusNext.current = "question";
     window.history.replaceState(
       window.history.state,
       "",
@@ -466,8 +497,12 @@ export default function Reviewer({
   }, []);
 
   const grade = useCallback(
-    (value: Grade) => {
+    (value: Grade, fromKeyboard: boolean) => {
       if (!card) return;
+      if (fromKeyboard) {
+        if (session && order.length === 1) setFocusEnd(true);
+        else focusNext.current = "question";
+      }
       // Free study records the answer only; see `applyGrade`.
       setSaved((prev) => ({
         ...prev,
@@ -520,7 +555,8 @@ export default function Reviewer({
     const onKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
         event.preventDefault();
-        flip();
+        const to = flipped ? "question" : "answer";
+        if (flip()) focusNext.current = to;
         return;
       }
       if (isTyping(event.target) || event.metaKey || event.ctrlKey) return;
@@ -533,10 +569,10 @@ export default function Reviewer({
         move(-1);
       } else if (flipped && (event.key === "1" || event.key.toLowerCase() === "k")) {
         event.preventDefault();
-        grade("held");
+        grade("held", true);
       } else if (flipped && (event.key === "2" || event.key.toLowerCase() === "r")) {
         event.preventDefault();
-        grade("review");
+        grade("review", true);
       } else if (!session && event.key.toLowerCase() === "s") {
         event.preventDefault();
         shuffle();
@@ -585,6 +621,7 @@ export default function Reviewer({
         returns={nextReturn(cards, saved.cards)}
         today={today}
         onStudyDeck={studyEverything}
+        focus={focusEnd}
       />
     );
   }
@@ -701,6 +738,7 @@ export default function Reviewer({
           </Face>
 
           <Face
+            ref={backRef}
             tint={card.deck.tint}
             className="face-back flex flex-col"
             hidden={!flipped}
@@ -728,14 +766,14 @@ export default function Reviewer({
             <div className="mt-auto flex gap-2 pt-5">
               <button
                 type="button"
-                onClick={() => grade("held")}
+                onClick={(event) => grade("held", event.detail === 0)}
                 className="press min-h-11 pointer-fine:min-h-9 flex-1 rounded-sm border border-rule px-3 py-2 pointer-fine:py-1.5 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 I had it
               </button>
               <button
                 type="button"
-                onClick={() => grade("review")}
+                onClick={(event) => grade("review", event.detail === 0)}
                 className="press min-h-11 pointer-fine:min-h-9 flex-1 rounded-sm border border-rule px-3 py-2 pointer-fine:py-1.5 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 Needs review
@@ -879,13 +917,26 @@ function Strip({
 /** The panel both session endings are built from. */
 function Panel({
   title,
+  focus = false,
   children,
 }: {
   title: string;
+  /** Take focus when it appears: the last card was graded from the keyboard,
+      and the button that graded it has gone. */
+  focus?: boolean;
   children: React.ReactNode;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (focus) ref.current?.focus();
+  }, [focus]);
   return (
-    <div className="cut rounded-sm bg-card px-5 py-6 sm:px-8" aria-live="polite">
+    <div
+      ref={ref}
+      tabIndex={-1}
+      className="cut rounded-sm bg-card px-5 py-6 sm:px-8"
+      aria-live="polite"
+    >
       <h2 className="text-lg font-medium">{title}</h2>
       {children}
     </div>
@@ -917,6 +968,7 @@ function SessionDone({
   returns,
   today,
   onStudyDeck,
+  focus,
 }: {
   session: Session;
   /** The deck's name, or null for a set of decks. */
@@ -925,7 +977,8 @@ function SessionDone({
   records: Record<string, CardProgress>;
   returns: Return | null;
   today: string;
-  onStudyDeck: () => void;
+  onStudyDeck: (fromKeyboard: boolean) => void;
+  focus: boolean;
 }) {
   const total = session.cards.length;
   /* Only the halves that happened: "0 need review" takes the same room as a
@@ -937,7 +990,10 @@ function SessionDone({
   ].filter(Boolean);
   return (
     // "For today" is wrong when a card is back this afternoon.
-    <Panel title={laterToday(returns, today) ? "Done for now" : "Done for today"}>
+    <Panel
+      title={laterToday(returns, today) ? "Done for now" : "Done for today"}
+      focus={focus}
+    >
       <p className="mt-2 max-w-[46ch] text-sm text-muted">
         {total} card{total === 1 ? "" : "s"}.{moves.length > 0 && ` ${moves.join(", ")}.`}
         {returns &&
@@ -960,7 +1016,7 @@ function SessionDone({
             about the same button. */}
         <button
           type="button"
-          onClick={onStudyDeck}
+          onClick={(event) => onStudyDeck(event.detail === 0)}
           className="press label inline-flex min-h-11 pointer-fine:min-h-9 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           {deck ? "Study the whole deck" : "Study every card"}
@@ -981,7 +1037,7 @@ function NothingDue({
   deck: string | null;
   returns: Return | null;
   today: string;
-  onStudyAnyway: () => void;
+  onStudyAnyway: (fromKeyboard: boolean) => void;
 }) {
   /* Across decks, "nothing scheduled" needs one more sentence than in a deck:
      this queue never deals new cards, so the way in is a deck of its own, and
@@ -1002,7 +1058,7 @@ function NothingDue({
       <div className="mt-5 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={onStudyAnyway}
+          onClick={(event) => onStudyAnyway(event.detail === 0)}
           className="press min-h-11 pointer-fine:min-h-9 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Study anyway
@@ -1014,11 +1070,13 @@ function NothingDue({
 }
 
 function Face({
+  ref,
   tint,
   className = "",
   hidden,
   children,
 }: {
+  ref?: React.Ref<HTMLDivElement>;
   tint: string;
   className?: string;
   hidden: boolean;
@@ -1030,6 +1088,9 @@ function Face({
      answer box on the front kept taking keystrokes once it had turned away. */
   return (
     <div
+      ref={ref}
+      // Focusable from script only, so a keyboard turn can land on the answer.
+      tabIndex={ref ? -1 : undefined}
       aria-hidden={hidden}
       inert={hidden}
       className={`face cut relative overflow-hidden rounded-sm bg-card px-4 py-5 sm:px-8 sm:py-6 ${className}`}

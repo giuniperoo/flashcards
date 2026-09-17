@@ -30,29 +30,34 @@ is due today, and it ends.
 | 4 — The reviewer studies the queue | merged |
 | 5 — Due counts on the index | merged |
 | 6 — The cross-deck due queue | merged |
-| 7 — A first interval shorter than a day | built, in review |
+| 7 — A first interval shorter than a day | merged |
 | 8 — An empty box when a card comes back | merged |
 | 9 — Say what the colors mean, once | merged |
 | 10 — The queue bar | merged |
-| 11 — Docs | not started |
+| 11 — Docs | done |
 
 **Spaced repetition is the default.** The switch at the foot of the index starts on,
 and free study is what you turn to. The logo in the header shows which mode you are
 in, on every page: a cream ground on a schedule, a muted sage in free study
 (`public/logo-free.svg`, from `tools/wordmark.py`). On the index the sun's rays follow
 it, cream or a sage of the same family, but kept nearly as faint as the cream, so the
-logo is what carries the mode.
+logo is what carries the mode. Every other page says it in its ground as well: in free
+study the study pages, the import screen and the print pages are that faint sage rather
+than the paper. The index keeps the paper, because its rays would disappear on it.
 
 **The ladder as built.** Four boxes. A right answer moves a card up one box, a wrong
 answer sends it to box 1. On a schedule the strip colors each card by its box:
 
-| Box | Color | Means | Comes back in |
-|---|---|---|---|
-| — | gray | not answered yet | — |
-| 1 | red | wrong last time | 1 day |
-| 2 | orange | one right in a row | 2 days |
-| 3 | yellow | two right in a row | 3 days |
-| 4 | green | three or more right in a row | 4 days |
+| Box | Color | Means | Comes back in, at a day | At 8 hours |
+|---|---|---|---|---|
+| — | gray | not answered yet | — | — |
+| 1 | red | wrong last time | 1 day | 8 hours |
+| 2 | orange | one right in a row | 2 days | 16 hours |
+| 3 | yellow | two right in a row | 3 days | 24 hours |
+| 4 | green | three or more right in a row | 4 days | 32 hours |
+
+The wait is counted in an interval set at the foot of the index — 1, 2, 4 or 8 hours,
+or a day, the default — and box *n* waits *n* of it (task 7).
 
 With the switch off, the strip is two colors: green for a card last answered right,
 red for one last answered wrong. **Studying with the switch off never moves the
@@ -389,7 +394,8 @@ change here.
 
 ### Task 7 — A first interval shorter than a day
 
-*Built, in review. See "As built" below.*
+*Merged, in #31. Every rung moved with the interval in #32; see "Changed after review"
+below.*
 
 **Why.** Box 1 is a day, and the day before an interview a day is too long. A card
 you have just got wrong is the one you most want back this afternoon, and the ladder
@@ -624,7 +630,9 @@ described task 7, which is not built.
 
 **When task 7 lands**, this panel gains one line about the setting, saying plainly that
 it only changes how soon a red card comes back. *(Landed as the key's note following
-the setting instead: "Red comes back in 4 hours, orange in two days, …".)*
+the setting instead, and since #32 it names all four waits — "Red comes back in 8 hours,
+orange in 16 hours, …" — and ends with a "Change the interval" link to `/#interval`,
+saying that cards already scheduled are not moved.)*
 
 **Done when** turning the switch on shows it once and never again unasked, the link
 beside the switch brings it back, and the dashes in it are the same three pixels tall
@@ -724,23 +732,44 @@ morning's cards read as not due rather than done, because that is what they are.
 
 ### Task 11 — Docs
 
-*Not started.*
+*Done on September 17, 2026, after tasks 12 to 14. See "As built" below.*
 
-Three documents are partly out of date. The Storage section of `CLAUDE.md` was kept
-current as tasks 1 to 4 and 8 landed — `prefs:index` at version 3, `progress` at
-version 4, the `misses` field — so what is left there is small.
+Four documents are partly out of date. The Storage section of `CLAUDE.md` was kept
+current as the tasks landed — `prefs:index` at version 4, `progress` at version 4,
+`prefs:reviewer` with the interval, `misses`, `grade` and `dueAt` — so what is left
+there is small. Checked against `main` after #34.
 
 - `CLAUDE.md` — "What this is" still says five built-in decks and 80 cards; there are
-  twelve and 264. The Storage section says three keys: the API key has its own too,
-  and `prefs:schedule` makes another once task 7 lands. The `reviewed` paragraph's
-  example is "a box-5 card reviewed two weeks ago", from before the ladder became
-  four boxes of up to four days, and `lib/progress.ts` has the same example
+  twelve and 264. The Storage section lists four keys and leaves out the fifth,
+  `llm:key` (version 2 since #34, a key and a model per provider; see
+  `lib/apiKey.ts`). The `reviewed` paragraph's example is "a box-5 card reviewed two
+  weeks ago", from before the ladder became four boxes, and `lib/progress.ts` has the
+  same example
+- `README.md` — "Writing one with Claude" says the import screen asks Claude, with
+  your own Anthropic key. Since #34 it is Claude, OpenAI or Gemini, each with its own
+  key, all from the browser
 - `ARCHITECTURE.md` §8 — progress now carries a schedule; rotation is deferred, and
   the build order in §9 lists it as step 4, so both say so
 - `ARCHITECTURE.md` §10 — retitled. It is not a Safari quirk: WebKit's seven-day timer,
   DuckDuckGo's Fire Button (its browser wraps WebKit on macOS and iOS, so it inherits
   the timer *and* adds the button), clear-on-exit settings, private windows and
   Chromium's quota eviction are all one class — `localStorage` is not durable storage
+
+**As built.** All of the above, and more of `README.md` than the list knew about:
+
+- `CLAUDE.md`: twelve decks and 264 cards, four of them printed; the four printed decks
+  as the ones whose tint and ink are fixed; `llm:key` as the fifth storage key; a box-4
+  example for `reviewed`, in `lib/progress.ts` too; `pnpm run test` running every suite;
+  and a convention for where focus goes after a keyboard press removes it, from task 14
+- `README.md`: a "Studying" section, since it never mentioned the schedule; the deck
+  writer with three providers; five storage keys; Tab in WebKit browsers; controls sized
+  by pointer and the print preview that zooms, where it said 44px, stacked grading
+  buttons and a preview that scrolls sideways
+- `ARCHITECTURE.md`: §2's shipped decks, §3's `progress` table with the schedule's
+  columns, §8 on the record and on rotation deferred, §9's step 4, and §10 as above
+- **Found while writing it:** `navigator.storage.persist()`, which task 1 planned and
+  "Not now" below still counts on, is called nowhere. §10 says so. It is a line of code
+  and wants a decision on where it runs, so it is not slipped in here
 
 ---
 
@@ -750,19 +779,26 @@ Independent of the above and of each other.
 
 ### Task 12 — Import hardening
 
+*Done, cut down to the two items that protect a printed card or a file.*
+
 Small fixes to the import path, now that it's the main way decks get created.
 
 **Do**
 
 - Either test `.rtf` against the editors you actually use, or drop `.rtf` from
   the accept list. Current handling is regex-based and only reliable on TextEdit
-  output. Silently mangling a file is worse than refusing it
-- Warn, without blocking, when a deck isn't a multiple of eight, explaining that
-  the last printed sheet will have blank cells
+  output. Silently mangling a file is worse than refusing it *(Dropped from the accept
+  list, the file hint and the README on September 17, 2026, along with the converter.)*
+- ~~Warn, without blocking, when a deck isn't a multiple of eight~~ *Dropped on
+  September 17, 2026: the print page already says how many cells the last sheet leaves
+  blank, which is where it matters, and the deck writer offers counts in eights*
 - Warn when an answer runs past roughly 300 characters — it will overflow a
-  printed card
-- Add an "export all decks" button producing a zip, so local decks can be
-  promoted into `content/` by hand
+  printed card *(Done: the importer names the line, the length and the question,
+  for pasted, uploaded and generated decks alike. The longest built-in answer is 265
+  characters and fits. `pnpm run test:parser` covers it.)*
+- ~~Add an "export all decks" button producing a zip~~ *Dropped on September 17, 2026:
+  every imported deck already has Export, and a zip wants a library or a hand-written
+  encoder to save a few presses*
 
 **Done when** the importer's warnings tell you about print problems before you
 print, and `pnpm run test:parser` still passes.
@@ -771,16 +807,29 @@ print, and `pnpm run test:parser` still passes.
 
 ### Task 13 — Housekeeping
 
-- Add a `not-found.tsx` matching the app's visual language
-- Add `metadata` per route (deck name in the title, so browser tabs are useful)
-- Consider `next/dynamic` for `PrintSheets` — it's only needed on print routes
-  and currently sits in the shared bundle
+- Add a `not-found.tsx` matching the app's visual language *(Done: "Nothing at this
+  address", in the card panel the missing-deck message uses, with "All decks" and "Add a
+  deck". A deck slug never reaches it. A page with no mode of its own, this one included,
+  takes the saved mode before paint.)*
+- Add `metadata` per route (deck name in the title, so browser tabs are useful) *(Done:
+  "ACID · Flashcards", "Print Kafka · Flashcards", "Everything", "Print all decks", "Add
+  a deck", and the index as plain "Flashcards". An imported deck is named in the browser,
+  by `useTabTitle` in `CustomDeckView`, which has to keep the title rather than set it
+  once: Next writes the layout's title into the head after the page renders.)*
+- ~~Consider `next/dynamic` for `PrintSheets`~~ *Dropped on September 17, 2026: the App
+  Router already splits code per route, so there is nothing measured to save*
 - Check the reviewer with a screen reader once; the live regions were written
   correctly but never tested with one
-- The action buttons on a deck card are 41px tall, and `CLAUDE.md` asks for 44px tap
-  targets. Raising them makes every deck card slightly taller, so it wants a decision
+- The action buttons on a deck card are 41px tall at every pointer. Since #34
+  `CLAUDE.md` asks for 44px on touch and 36px with a mouse, so they are short on a phone
+  and tall on a desktop. #34 sized the other controls and left these alone: raising
+  them makes every deck card slightly taller on a phone, so it still wants a decision
+  *(Decided and done: the same rule as every other control, 44px on touch and 36px with a
+  mouse, measured at both.)*
 - Check the phone fit from task 4 on a real phone, with Safari's address bar both
   showing and hidden. It was only measured in a desktop browser at phone sizes
+- Check the press feedback from #32 on a real iPhone: the `:active` states, no gray tap
+  flash and no double-tap delay. Chromium's device emulation reproduces none of them
 
 **Accessibility, in this order.** Not a project, three fixes. Most of this helps any
 reader, not only someone using a screen reader: the keyboard grading bug fixed in task
@@ -791,18 +840,27 @@ reader, not only someone using a screen reader: the keyboard grading bug fixed i
   men cannot easily separate. They are also too close in brightness to fall back on,
   1.5:1 against each other. Give a red dash a second cue, such as a different height
   or a hollow shape, and check both strips with a color-blindness simulator. This
-  matters more than the other two put together
+  matters more than the other two put together *(Dropped on September 17, 2026. Mockups of
+  three cues — a taller red dash, a broken one, a hollow one — were drawn against a
+  simulated deuteranopia, and then set aside: the app has a handful of readers who
+  know one another, so either one of them has trouble with the colors or none does,
+  and the "?" key already names every color in words. Bring it back if someone does.)*
 - **Darken the muted text a touch.** `--color-muted` is 4.1:1 on the paper and 4.35:1
   on the card, under the 4.5:1 small text wants, and the labels it colors are small
-  capitals. Nudge it until it clears 4.5:1 on both
+  capitals. Nudge it until it clears 4.5:1 on both *(Done: `#6d6c65`, the same gray
+  darker, 4.8:1 on the paper, 5.1:1 on a card, and 4.5:1 on the free study ground,
+  which the plan missed and where the old value was 3.8:1.)*
 - **Run an automated check once.** Lighthouse or axe on the index, a scheduled
-  session and free study, and fix what it flags
+  session and free study, and fix what it flags *(Done with axe 4.10 on September 17,
+  2026, after the contrast fix: the index with every deck, a scheduled session on its
+  question, its answer and with the color key open, free study, and `/new`. No
+  violations.)*
 
 ---
 
 ### Task 14 — The whole app from the keyboard
 
-*Not started.*
+*Built. See "As built" below; Safari is still to walk.*
 
 **Why.** Tab used to cycle through everything you could press on a page, and it no
 longer does. Nothing has been checked since; it was noticed on September 15, 2026.
@@ -827,6 +885,61 @@ Everything this app does should be reachable and operable with the keyboard alon
 
 **Done when** a session can be started from the index, a deck studied to its done panel,
 and a deck imported, all without touching the mouse, in Chromium and in Safari.
+
+**As built.**
+
+- **Nothing broke Tab.** WebKit, and so Safari and DuckDuckGo, which wraps it on macOS,
+  moves Tab between form fields only unless told otherwise: the answer box, the paste
+  box, the mode and interval bars. Links and buttons, which is most of this app, need
+  Option+Tab, or Safari's "Press Tab to highlight each item on a webpage". Chrome needs
+  nothing. The note above that Tab "no longer" cycled was DuckDuckGo, not a commit
+- **Walked in Chromium**: the index with every deck showing, a scheduled session to its
+  done panel, stepping out into the whole deck, the color key, `/new` with a pasted deck,
+  and a print page. The order follows the page and nothing hidden takes focus
+- **Where focus went wrong**, and where it goes now. All of it only after a keyboard
+  press, since a tap that focused the answer box would open the keyboard on a phone
+  - Turning a card with Cmd+Enter left focus on the body, since the answer box it came
+    from turns away. It goes to the answer, whose dashed edge darkens, and Tab carries on
+    to "I had it"
+  - Grading, from 1 and 2 or from a focused button, left it on the body too. It goes to
+    the next question's answer box, and after the last card to the done panel
+  - "Study the whole deck" and "Study anyway" take their panel with them. Focus goes to
+    the first question
+  - Hide and Delete took their deck card off the page, and the next Tab started over from
+    the header. Focus goes to the card that took its place, or the one before, and to
+    "Add your own deck" once none are left. See `lib/focus.ts`
+  - Closing the color key by Escape or its close button, with focus inside it, returns
+    focus to the "?"
+  - The hidden file input on `/new` was a second, invisible stop after "Choose a file",
+    and is out of the tab order
+- **A keyboard press is `detail === 0`** on the click event, which is how a button tells
+  Enter or Space from a pointer
+- **Still to do**: the same walk in Safari with Tab set to reach everything
+
+---
+
+## Landed outside the task list
+
+Work that came out of using the app rather than out of a task. Recorded so the plan
+above is not mistaken for everything that changed.
+
+- **#32 — pressing things on a phone, and no flashes on reload.** Every button answers a
+  press on a phone, not only a hover with a mouse. The strip puts answered cards first,
+  so every gray dash is one the arrows reach. A single deck's card label drops the deck
+  name the title already shows. Nothing that depends on storage is painted before
+  storage is read: the index, and a scheduled study page, stay blank until the client
+  has what it needs, rather than showing the defaults and replacing them. The same PR
+  carried task 7's every-rung change
+- **#33 — the print preview.** The pages zoom to fit the column on screen, front and back
+  side by side where there is room, each one labeled. All of it is in `@media screen`;
+  the CAP theorem deck printed to PDF is identical before and after. The print page's
+  title row matches the study page's, its "Study" link keeps the mode and the `?deck=`
+  set, and what to set in the print dialog is a short list in the dialog's own words
+- **#34 — more providers, mouse-sized controls, and the mode everywhere.** The generator
+  on `/new` writes decks with Claude, OpenAI or Gemini, each with its own key and model,
+  still from the browser with no server; `pnpm run test:llm` covers it. Controls are
+  44px on touch and 36px with a mouse. A deck added on `/new` opens in the reader's mode,
+  and the import screen and print pages show the saved mode in the logo and the ground
 
 ---
 
