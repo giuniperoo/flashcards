@@ -32,6 +32,24 @@ A: Stable IP in front of pods.`,
    r => r.cards.length === 2 && r.title === "Kubernetes basics" && r.tint === "#D6E8F7"
         && r.cards[0].a.includes("namespace") && r.errors.length === 0],
 
+  ["an answer past 300 characters warns on its question's line, and still parses",
+`Q: Short?
+A: Fine.
+
+Q: Long?
+A: ${"word ".repeat(61).trim()}`,
+   r => r.cards.length === 2 && r.errors.length === 0 && r.warnings.length === 1
+        && r.warnings[0].line === 4 && r.warnings[0].message.includes("304 characters")],
+
+  ["an answer of exactly 300 characters does not warn",
+`Q: Edge?
+A: ${"x".repeat(300)}`,
+   r => r.cards.length === 1 && r.warnings.length === 0],
+
+  ["a long answer in a tab-separated line warns too",
+`Long?\t${"y".repeat(320)}`,
+   r => r.cards.length === 1 && r.warnings.length === 1 && r.warnings[0].line === 1],
+
   ["multi-line question",
 `Q: What is the difference
 between a Deployment and a StatefulSet?

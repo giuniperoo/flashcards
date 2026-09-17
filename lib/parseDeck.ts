@@ -23,6 +23,12 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HEADING = /^##+\s+(.*)$/;
 const TABLE_RULE = /^\|?[\s:|-]+\|[\s:|-]*$/;
 
+/* Roughly what fits on a printed card below its question. The longest answer in
+   `content/` is 265 characters and fits; `CLAUDE.md` asks for one or two
+   sentences because a longer one runs off the card, and paper has no scrollbar.
+   A warning, not an error: the deck still studies fine on screen. */
+const LONG_ANSWER = 300;
+
 function tidy(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
@@ -62,6 +68,17 @@ export function parseDeck(input: string): ParseResult {
   let pendingId: string | null = null;
   let field: "q" | "a" | null = null;
 
+  const addCard = (q: string, a: string, line: number) => {
+    result.cards.push({ id: pendingId ?? newCardId(), q, a });
+    pendingId = null;
+    if (a.length > LONG_ANSWER) {
+      result.warnings.push({
+        line,
+        message: `This answer is ${a.length} characters, and a printed card fits about ${LONG_ANSWER}, so it will run off the card: "${q.slice(0, 40)}"`,
+      });
+    }
+  };
+
   const flush = () => {
     if (!pendingQ) return;
     const answer = tidy(pendingA.join(" "));
@@ -71,11 +88,7 @@ export function parseDeck(input: string): ParseResult {
         message: `Question has no answer: "${pendingQ.text.slice(0, 48)}"`,
       });
     } else {
-      result.cards.push({
-        id: pendingId ?? newCardId(),
-        q: tidy(pendingQ.text),
-        a: answer,
-      });
+      addCard(tidy(pendingQ.text), answer, pendingQ.line);
     }
     pendingId = null;
     pendingQ = null;
@@ -208,12 +221,7 @@ export function parseDeck(input: string): ParseResult {
       if (/^(question|q)$/i.test(q) && /^(answer|a)$/i.test(rest[0] ?? "")) {
         return;
       }
-      result.cards.push({
-        id: pendingId ?? newCardId(),
-        q: tidy(q),
-        a: tidy(rest.join(" ")),
-      });
-      pendingId = null;
+      addCard(tidy(q), tidy(rest.join(" ")), lineNo);
     } else {
       result.warnings.push({
         line: lineNo,

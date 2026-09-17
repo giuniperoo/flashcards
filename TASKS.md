@@ -763,6 +763,8 @@ Independent of the above and of each other.
 
 ### Task 12 — Import hardening
 
+*Done, cut down to the two items that protect a printed card or a file.*
+
 Small fixes to the import path, now that it's the main way decks get created.
 
 **Do**
@@ -775,7 +777,9 @@ Small fixes to the import path, now that it's the main way decks get created.
   September 17, 2026: the print page already says how many cells the last sheet leaves
   blank, which is where it matters, and the deck writer offers counts in eights*
 - Warn when an answer runs past roughly 300 characters — it will overflow a
-  printed card
+  printed card *(Done: the importer names the line, the length and the question,
+  for pasted, uploaded and generated decks alike. The longest built-in answer is 265
+  characters and fits. `pnpm run test:parser` covers it.)*
 - ~~Add an "export all decks" button producing a zip~~ *Dropped on September 17, 2026:
   every imported deck already has Export, and a zip wants a library or a hand-written
   encoder to save a few presses*
