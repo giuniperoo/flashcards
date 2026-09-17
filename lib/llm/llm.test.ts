@@ -112,13 +112,15 @@ const cases: Array<[string, () => boolean | Promise<boolean>]> = [
     () =>
       keyProblem("anthropic", ANTHROPIC_KEY) === null &&
       keyProblem("openai", OPENAI_KEY) === null &&
-      keyProblem("gemini", ` ${GEMINI_KEY} `) === null,
+      keyProblem("gemini", ` ${GEMINI_KEY} `) === null &&
+      keyProblem("gemini", "AQ." + "Ab8RN6" + "d".repeat(40)) === null,
   ],
   [
     "a key pasted under the wrong provider names the right one",
     () =>
       /Anthropic key\. Choose Claude/.test(keyProblem("openai", ANTHROPIC_KEY) ?? "") &&
       /Google key\. Choose Gemini/.test(keyProblem("anthropic", GEMINI_KEY) ?? "") &&
+      /Google key\. Choose Gemini/.test(keyProblem("openai", "AQ." + "e".repeat(40)) ?? "") &&
       /OpenAI key\. Choose OpenAI/.test(keyProblem("gemini", OPENAI_KEY) ?? ""),
   ],
   [
@@ -127,7 +129,7 @@ const cases: Array<[string, () => boolean | Promise<boolean>]> = [
   ],
   [
     "a key that is nobody's says what the provider's keys look like",
-    () => /start with AIza/.test(keyProblem("gemini", "hello") ?? ""),
+    () => /start with AQ\. or AIza/.test(keyProblem("gemini", "hello") ?? ""),
   ],
 
   // The store.

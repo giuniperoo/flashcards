@@ -44,7 +44,7 @@ export const PROVIDER_INFO: Record<Provider, ProviderInfo> = {
   gemini: {
     name: "Gemini",
     company: "Google",
-    placeholder: "AIza...",
+    placeholder: "AQ... or AIza...",
     keysUrl: "https://aistudio.google.com/apikey",
     keysLinkText: "Get a key from Google AI Studio",
   },
@@ -60,7 +60,11 @@ export function isProvider(value: unknown): value is Provider {
    use it too; it only has to rule out the two this app knows are someone else's. */
 const ANTHROPIC = /^sk-ant-[A-Za-z0-9_-]{20,}$/;
 const OPENAI = /^sk-[A-Za-z0-9_-]{20,}$/;
-const GEMINI = /^AIza[A-Za-z0-9_-]{30,}$/;
+/* Google has two: the long-standing `AIza…`, and `AQ.…`, which Google AI Studio
+   hands out now. The newer one's alphabet is not documented here, so past its
+   prefix it only has to be long and unbroken; a key that is wrong after that is
+   the API's to reject, with a message that says so. */
+const GEMINI = /^(?:AIza[A-Za-z0-9_-]{30,}|AQ\.\S{20,})$/;
 
 const AN_OWNER: Record<Provider, string> = {
   anthropic: "an Anthropic",
@@ -70,7 +74,7 @@ const AN_OWNER: Record<Provider, string> = {
 
 function looksLike(key: string): Provider | null {
   if (key.startsWith("sk-ant-")) return "anthropic";
-  if (key.startsWith("AIza")) return "gemini";
+  if (key.startsWith("AIza") || key.startsWith("AQ.")) return "gemini";
   if (key.startsWith("sk-")) return "openai";
   return null;
 }
@@ -99,6 +103,6 @@ export function keyProblem(provider: Provider, raw: string): string | null {
     case "openai":
       return "That doesn't look like an OpenAI key — they start with sk- . Copy the whole thing from the API keys page.";
     case "gemini":
-      return "That doesn't look like a Gemini API key — they start with AIza . Copy the whole thing from Google AI Studio.";
+      return "That doesn't look like a Gemini API key — they start with AQ. or AIza . Copy the whole thing from Google AI Studio.";
   }
 }
