@@ -4,6 +4,8 @@ import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseDeck, EXAMPLE_DECK } from "@/lib/parseDeck";
 import { saveCustomDeck } from "@/lib/customDecks";
+import { loadPrefs } from "@/lib/prefs";
+import { studyHref } from "@/lib/studyMode";
 import DeckGenerator from "./DeckGenerator";
 
 const ACCEPT = ".txt,.md,.markdown,.text,.csv,.tsv,.rtf";
@@ -63,7 +65,10 @@ export default function DeckImporter({
         reservedSlugs,
         reservedTints,
       });
-      router.push(`/study/${deck.slug}`);
+      // In the mode the reader is in, like every other study link: the study
+      // page reads it from `?scheduled`, and a bare `/study/{slug}` opened a
+      // new deck in free study for someone on a schedule.
+      router.push(studyHref(deck.slug, loadPrefs().scheduled));
     } catch {
       setSaveError(
         "Could not save — browser storage is full or unavailable. Try a smaller deck, or a normal (non-private) window.",
