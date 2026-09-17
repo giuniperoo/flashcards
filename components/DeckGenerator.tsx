@@ -237,9 +237,10 @@ export default function DeckGenerator({
       {!apiKey || editingKey ? (
         <>
           <p className="mt-2 max-w-lg text-sm text-muted">
-            Needs your own {info.company} API key. It stays in this browser and
-            calls {info.company}&rsquo;s API directly — nothing goes through a
-            server, and a deck is billed to your own account.
+            Needs an API key from {info.company}. Best to make a new one just for
+            this, set to expire soon, or delete it when you&rsquo;re done. The
+            key stays in this browser and goes only to {info.company}. Decks are
+            billed to your account.
           </p>
           <div className="mt-3 flex flex-wrap items-start gap-2">
             <div className="min-w-0 flex-1 basis-64">
