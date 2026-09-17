@@ -784,7 +784,10 @@ print, and `pnpm run test:parser` still passes.
 
 ### Task 13 — Housekeeping
 
-- Add a `not-found.tsx` matching the app's visual language
+- Add a `not-found.tsx` matching the app's visual language *(Done: "Nothing at this
+  address", in the card panel the missing-deck message uses, with "All decks" and "Add a
+  deck". A deck slug never reaches it. A page with no mode of its own, this one included,
+  takes the saved mode before paint.)*
 - Add `metadata` per route (deck name in the title, so browser tabs are useful)
 - Consider `next/dynamic` for `PrintSheets` — it's only needed on print routes
   and currently sits in the shared bundle

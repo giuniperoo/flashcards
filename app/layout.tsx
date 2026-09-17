@@ -54,8 +54,9 @@ export const viewport: Viewport = {
 /*
  * On the index it does two more things, both from storage. It sets the mode
  * from the stored preference, by the rule `loadPrefs` in `lib/prefs.ts` uses:
- * only a `false` from version 4 on is free study. The import screen and the
- * print pages get the same stored mode, since they have none of their own and
+ * only a `false` from version 4 on is free study. The import screen, the print
+ * pages and any other page, a missing one included, get the same stored mode,
+ * since they have none of their own and
  * should still look like the app the reader is in; `useStoredMode` keeps it
  * there on a client navigation. And on the index it marks the page
  * `data-index-pending`, which keeps the index's content out of sight until
@@ -64,7 +65,7 @@ export const viewport: Viewport = {
  * server's defaults. Two seconds on, the mark comes off regardless, so a page
  * whose scripts failed after this one ran is never left blank.
  */
-const MODE_BEFORE_PAINT = `(function(){try{var d=document.documentElement,p=location.pathname;function stored(){var s=JSON.parse(localStorage.getItem("prefs:index")||"null");return s&&typeof s.version==="number"&&s.version>=4&&s.scheduled===false?"free":"schedule"}if(p==="/"){d.setAttribute("data-index-pending","");setTimeout(function(){d.removeAttribute("data-index-pending")},2000);d.setAttribute("data-mode",stored());return}if(p==="/new"||p.indexOf("/print/")===0){d.setAttribute("data-mode",stored());return}if(p.indexOf("/study/")!==0)return;d.setAttribute("data-mode",new URLSearchParams(location.search).has("scheduled")?"schedule":"free")}catch(e){}})()`;
+const MODE_BEFORE_PAINT = `(function(){try{var d=document.documentElement,p=location.pathname;function stored(){var s=JSON.parse(localStorage.getItem("prefs:index")||"null");return s&&typeof s.version==="number"&&s.version>=4&&s.scheduled===false?"free":"schedule"}if(p==="/"){d.setAttribute("data-index-pending","");setTimeout(function(){d.removeAttribute("data-index-pending")},2000);d.setAttribute("data-mode",stored());return}if(p==="/new"||p.indexOf("/print/")===0){d.setAttribute("data-mode",stored());return}if(p.indexOf("/study/")!==0){d.setAttribute("data-mode",stored());return}d.setAttribute("data-mode",new URLSearchParams(location.search).has("scheduled")?"schedule":"free")}catch(e){}})()`;
 
 export default function RootLayout({
   children,
