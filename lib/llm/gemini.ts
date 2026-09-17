@@ -29,8 +29,18 @@ type GeminiModel = {
 
 /* Gemini's list does say what each model does, in `supportedGenerationMethods`,
    so the first test is exact. The names are a second pass for models that
-   generate content but not text a deck can be made of. */
-const NOT_TEXT = /(embedding|image|tts|live|audio|robotics|computer-use|aqa|veo|imagen)/;
+   generate content but not text a deck can be made of. `omni` and `transcribe`
+   came off after a real list offered them: Gemini Omni 1.1 Flash answered
+   "This model only supports Interactions API", and a transcription model wants
+   audio. A model the names miss still fails into `NOT_HERE` below and is hidden
+   then. */
+const NOT_TEXT =
+  /(embedding|image|tts|live|audio|transcribe|omni|robotics|computer-use|aqa|veo|imagen)/;
+
+/* What Gemini says when a model on the list cannot be called this way: "This
+   model only supports Interactions API", or that `generateContent` is not
+   supported for it. */
+const NOT_HERE = /only supports .*api|not supported for generatecontent/i;
 const TIERS = ["pro", "flash", "flash-lite"];
 
 function version(id: string) {
@@ -89,6 +99,11 @@ export function explainGemini(status: number, body: unknown): string {
   if (reason === "API_KEY_INVALID" || status === 401) {
     return "That key was rejected. Check it hasn't been deleted, or paste a new one.";
   }
+  // Before the 400 below, which is the status this arrives with: shown raw it
+  // read as a problem with the request, when it is the model that cannot be used.
+  if (NOT_HERE.test(message)) {
+    return "That model can't write a deck from here. Pick another model.";
+  }
   if (code === "FAILED_PRECONDITION" || /location is not supported/i.test(message)) {
     return "The Gemini API isn't available where you are on the free tier. Turn on billing for the key's project in Google AI Studio, or use another provider.";
   }
@@ -106,6 +121,14 @@ export function explainGemini(status: number, body: unknown): string {
   }
   if (status === 400 && message) return `The request was rejected: ${message}`;
   return `Gemini returned an error${message ? `: ${message}` : ` (${status})`}.`;
+}
+
+/** Whether the failure is the model's own: one the key cannot reach, or one
+    that cannot be called through `generateContent`. Trying it again fails the
+    same way. */
+export function unusableGemini(status: number, body: unknown): boolean {
+  const { message, status: code } = errorFields(body);
+  return status === 404 || code === "NOT_FOUND" || NOT_HERE.test(message);
 }
 
 const UNREACHABLE = "Could not reach Gemini. Check your connection and try again.";
@@ -176,10 +199,7 @@ export async function generateWithGemini(options: GenerateOptions): Promise<stri
       const body = await jsonBody(response);
       // A 404 is the model: the key cannot reach it, however many times it is
       // asked.
-      throw new GenerateError(
-        explainGemini(response.status, body),
-        response.status === 404 || errorFields(body).status === "NOT_FOUND",
-      );
+      throw new GenerateError(explainGemini(response.status, body), unusableGemini(response.status, body));
     }
 
     for await (const data of readEvents(response.body)) {

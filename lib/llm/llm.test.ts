@@ -18,7 +18,13 @@ import {
 } from "../apiKey";
 import { preferredModel } from "../generateDeck";
 import { anthropicOption, generateWithClaude } from "./anthropic";
-import { explainGemini, geminiOptions, generateWithGemini, listGeminiModels } from "./gemini";
+import {
+  explainGemini,
+  geminiOptions,
+  generateWithGemini,
+  listGeminiModels,
+  unusableGemini,
+} from "./gemini";
 import { explainOpenAI, generateWithOpenAI, openAIOptions, unusableOpenAI } from "./openai";
 import { keyProblem } from "./providers";
 import {
@@ -221,6 +227,8 @@ const cases: Array<[string, () => boolean | Promise<boolean>]> = [
         { name: "models/gemini-2.5-flash-preview-tts", displayName: "TTS", supportedGenerationMethods: generate },
         { name: "models/gemini-embedding-001", displayName: "Embedding", supportedGenerationMethods: ["embedContent"] },
         { name: "models/imagen-4.0-generate-001", displayName: "Imagen", supportedGenerationMethods: ["predict"] },
+        { name: "models/gemini-omni-1.1-flash", displayName: "Gemini Omni 1.1 Flash", supportedGenerationMethods: generate },
+        { name: "models/gemini-3.5-transcribe", displayName: "Gemini 3.5 Transcribe", supportedGenerationMethods: generate },
       ]);
       return (
         models.map((m) => m.id).join() ===
@@ -539,6 +547,29 @@ const cases: Array<[string, () => boolean | Promise<boolean>]> = [
       answer(() => json(404, { type: "error", error: { type: "not_found_error", message: "model: claude-gone" } }));
       const claude404 = await unusableFrom(() => generateWithClaude(options("anthropic", { id: "claude-gone", label: "" })));
       return gemini404 === true && gemini429 === false && claude404 === true;
+    },
+  ],
+  [
+    "a Gemini model that only supports the Interactions API says so, and is marked unusable",
+    async () => {
+      const interactions = {
+        error: { code: 400, message: "This model only supports Interactions API.", status: "INVALID_ARGUMENT" },
+      };
+      answer(() => json(400, interactions));
+      let unusable = false;
+      let message = "";
+      try {
+        await generateWithGemini(options("gemini", { id: "gemini-omni-flash-preview", label: "" }));
+      } catch (error) {
+        unusable = error instanceof GenerateError && error.unusableModel;
+        message = error instanceof Error ? error.message : "";
+      }
+      return (
+        unusable &&
+        message === "That model can't write a deck from here. Pick another model." &&
+        explainGemini(400, interactions) === message &&
+        !unusableGemini(400, { error: { status: "INVALID_ARGUMENT", message: "Request contains an invalid argument." } })
+      );
     },
   ],
   [
