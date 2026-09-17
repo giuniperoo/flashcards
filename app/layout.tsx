@@ -54,14 +54,17 @@ export const viewport: Viewport = {
 /*
  * On the index it does two more things, both from storage. It sets the mode
  * from the stored preference, by the rule `loadPrefs` in `lib/prefs.ts` uses:
- * only a `false` from version 4 on is free study. And it marks the page
+ * only a `false` from version 4 on is free study. The import screen and the
+ * print pages get the same stored mode, since they have none of their own and
+ * should still look like the app the reader is in; `useStoredMode` keeps it
+ * there on a client navigation. And on the index it marks the page
  * `data-index-pending`, which keeps the index's content out of sight until
  * `DeckIndex` has read the preferences and the imported decks and taken the
  * mark off, so the first thing drawn is the reader's own index rather than the
  * server's defaults. Two seconds on, the mark comes off regardless, so a page
  * whose scripts failed after this one ran is never left blank.
  */
-const MODE_BEFORE_PAINT = `(function(){try{var d=document.documentElement,p=location.pathname;if(p==="/"){d.setAttribute("data-index-pending","");setTimeout(function(){d.removeAttribute("data-index-pending")},2000);var s=JSON.parse(localStorage.getItem("prefs:index")||"null");d.setAttribute("data-mode",s&&typeof s.version==="number"&&s.version>=4&&s.scheduled===false?"free":"schedule");return}if(p.indexOf("/study/")!==0)return;d.setAttribute("data-mode",new URLSearchParams(location.search).has("scheduled")?"schedule":"free")}catch(e){}})()`;
+const MODE_BEFORE_PAINT = `(function(){try{var d=document.documentElement,p=location.pathname;function stored(){var s=JSON.parse(localStorage.getItem("prefs:index")||"null");return s&&typeof s.version==="number"&&s.version>=4&&s.scheduled===false?"free":"schedule"}if(p==="/"){d.setAttribute("data-index-pending","");setTimeout(function(){d.removeAttribute("data-index-pending")},2000);d.setAttribute("data-mode",stored());return}if(p==="/new"||p.indexOf("/print/")===0){d.setAttribute("data-mode",stored());return}if(p.indexOf("/study/")!==0)return;d.setAttribute("data-mode",new URLSearchParams(location.search).has("scheduled")?"schedule":"free")}catch(e){}})()`;
 
 export default function RootLayout({
   children,
@@ -99,9 +102,10 @@ export default function RootLayout({
                 inside a link: no text caret over it, no drag ghost, and the
                 pointer does not depend on a browser's default for a link.
 
-                Two marks, and CSS shows one: cream on a schedule and anywhere
-                else, sage while the page is in free study, keyed off
-                `data-mode` on <html>. Both come out of `tools/wordmark.py`.
+                Two marks, and CSS shows one: sage while the page is in free
+                study, cream otherwise, keyed off `data-mode` on <html>. Every
+                page sets it: a study page from its address, the index, the
+                import screen and the print pages from the saved mode. Both come out of `tools/wordmark.py`.
                 `data-wordmark` sits on the wrapper because `LogoSun` measures
                 it, and a hidden image measures as nothing.
               */}

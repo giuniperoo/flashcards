@@ -103,6 +103,7 @@ lib/
   usePrefs.ts           index preferences, shared by the grid and the controls
   reviewerPrefs.ts      what the reviewer remembers: the color key has been shown
   useDueCounts.ts       cards each deck owes today, for the counts on the index
+  useStoredMode.ts      the saved mode on pages that have none: import and print
   generateDeck.ts       writes a deck or lists models, loading one adapter — CLIENT ONLY
   llm/providers.ts      the providers: names, where keys come from, what keys look like
   llm/shared.ts         the prompt, the cleanup, the stream reader, `GenerateError`
@@ -203,7 +204,13 @@ the mark's cream, or the free study sage. Both modes on show is what lets the
 labels name the modes themselves; the button it replaced named the mode it moved
 *to*, with an arrow, since a bare "Free study" would have read as the mode you
 were in. The sun on the index says the same thing a third time, the mark's cream
-against a faint sage (`--color-sun-free`). It governs what the *index* draws and what it writes
+against a faint sage (`--color-sun-free`). Every other page says it in its
+ground: in free study the study pages, the import screen and the print pages
+are `--color-sun-free` rather than the paper, and the logo is the sage one on
+every page. The index keeps the paper, because its rays are that color and
+would disappear on it. Pages with no mode of their own take the saved one,
+before paint from the script in `app/layout.tsx` and on a client navigation
+from `useStoredMode`. It governs what the *index* draws and what it writes
 into its own study links; what the reviewer reads is `?scheduled` in the URL,
 never the preference. The two are separate on purpose: a link then says which
 reviewer it opens and a bookmark cannot change under the reader, and scrapping

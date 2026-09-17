@@ -6,6 +6,7 @@ import { parseDeck, EXAMPLE_DECK } from "@/lib/parseDeck";
 import { saveCustomDeck } from "@/lib/customDecks";
 import { loadPrefs } from "@/lib/prefs";
 import { studyHref } from "@/lib/studyMode";
+import { useStoredMode } from "@/lib/useStoredMode";
 import DeckGenerator from "./DeckGenerator";
 
 const ACCEPT = ".txt,.md,.markdown,.text,.csv,.tsv,.rtf";
@@ -35,6 +36,8 @@ export default function DeckImporter({
   reservedTints: string[];
 }) {
   const router = useRouter();
+  // The logo and ground in the reader's mode; this screen has none of its own.
+  useStoredMode();
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
