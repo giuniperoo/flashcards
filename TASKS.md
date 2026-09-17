@@ -840,7 +840,11 @@ reader, not only someone using a screen reader: the keyboard grading bug fixed i
   men cannot easily separate. They are also too close in brightness to fall back on,
   1.5:1 against each other. Give a red dash a second cue, such as a different height
   or a hollow shape, and check both strips with a color-blindness simulator. This
-  matters more than the other two put together
+  matters more than the other two put together *(Dropped on September 17, 2026. Mockups of
+  three cues — a taller red dash, a broken one, a hollow one — were drawn against a
+  simulated deuteranopia, and then set aside: the app has a handful of readers who
+  know one another, so either one of them has trouble with the colors or none does,
+  and the "?" key already names every color in words. Bring it back if someone does.)*
 - **Darken the muted text a touch.** `--color-muted` is 4.1:1 on the paper and 4.35:1
   on the card, under the 4.5:1 small text wants, and the labels it colors are small
   capitals. Nudge it until it clears 4.5:1 on both *(Done: `#6d6c65`, the same gray
