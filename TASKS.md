@@ -811,9 +811,14 @@ reader, not only someone using a screen reader: the keyboard grading bug fixed i
   matters more than the other two put together
 - **Darken the muted text a touch.** `--color-muted` is 4.1:1 on the paper and 4.35:1
   on the card, under the 4.5:1 small text wants, and the labels it colors are small
-  capitals. Nudge it until it clears 4.5:1 on both
+  capitals. Nudge it until it clears 4.5:1 on both *(Done: `#6d6c65`, the same gray
+  darker, 4.8:1 on the paper, 5.1:1 on a card, and 4.5:1 on the free study ground,
+  which the plan missed and where the old value was 3.8:1.)*
 - **Run an automated check once.** Lighthouse or axe on the index, a scheduled
-  session and free study, and fix what it flags
+  session and free study, and fix what it flags *(Done with axe 4.10 on September 17,
+  2026, after the contrast fix: the index with every deck, a scheduled session on its
+  question, its answer and with the color key open, free study, and `/new`. No
+  violations.)*
 
 ---
 

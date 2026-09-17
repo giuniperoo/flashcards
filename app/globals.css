@@ -27,7 +27,10 @@
   --color-paper: #f6f4ef;
   --color-card: #fcfbf8;
   --color-ink: #2c2c2a;
-  --color-muted: #78776f;
+  /* Small capitals, mostly, so 4.5:1 against every ground it sits on: 4.8 on
+     the paper, 5.1 on a card, and exactly 4.5 on the free study ground, the
+     lightest of the three. It was #78776f, 3.8:1 there. */
+  --color-muted: #6d6c65;
   --color-rule: #ccc6b8;
   /* Every focus ring, 1px, in one color: a softer black than `--color-ink`.
      There were two for a while, a blue for links from the Gigs deck's palette
