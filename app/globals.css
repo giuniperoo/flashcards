@@ -453,8 +453,19 @@ html[data-index-pending] [data-index] {
   border-top: 1px solid var(--color-rule);
 }
 
+/* The app's tap target rule, like every other control: 44px where the pointer
+   is a finger, 36px with a mouse. Padding alone held them at 41px on both. */
 .deck-actions > * {
-  padding: 0.75rem 0.625rem;
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.625rem;
+}
+
+@media (pointer: fine) {
+  .deck-actions > * {
+    min-height: 2.25rem;
+  }
 }
 
 /* Study takes the slack, and its left edge lines up with the card body. */

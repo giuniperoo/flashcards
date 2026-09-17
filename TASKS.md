@@ -794,6 +794,8 @@ print, and `pnpm run test:parser` still passes.
   `CLAUDE.md` asks for 44px on touch and 36px with a mouse, so they are short on a phone
   and tall on a desktop. #34 sized the other controls and left these alone: raising
   them makes every deck card slightly taller on a phone, so it still wants a decision
+  *(Decided and done: the same rule as every other control, 44px on touch and 36px with a
+  mouse, measured at both.)*
 - Check the phone fit from task 4 on a real phone, with Safari's address bar both
   showing and hidden. It was only measured in a desktop browser at phone sizes
 - Check the press feedback from #32 on a real iPhone: the `:active` states, no gray tap
