@@ -33,6 +33,7 @@ header says which mode you are in, cream on a schedule and sage in free study.
 
 Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4. No database —
 decks are markdown files read at build time, progress lives in `localStorage`.
+The one thing the server keeps is sync's encrypted copy, in Redis; see below.
 
 ## Run it
 
@@ -48,7 +49,7 @@ needs network access.
 ```bash
 pnpm run build
 pnpm run lint
-pnpm run test   # parser, progress, schedule, queue, filter, prefs, deck writer
+pnpm run test   # parser, progress, schedule, queue, filter, prefs, deck writer, sync
 ```
 
 ## Layout
@@ -61,6 +62,7 @@ app/
   study/[deck]/page.tsx  reviewer, one route per deck plus /study/all
   print/[deck]/page.tsx  printable A4 sheets, same routes
   export/[deck]/route.ts a built-in deck as re-importable markdown
+  api/sync/[id]/route.ts reads, writes and deletes one sync key's encrypted copy
   globals.css            Tailwind v4 theme, palette lifted from the print spec
 components/
   Reviewer.tsx           all study state
@@ -70,6 +72,8 @@ components/
   DeckImporter.tsx       parses a paste or a file, previews it, saves it
   DeckGenerator.tsx      asks Claude, OpenAI or Gemini for a deck, into the importer
   ShuffledSet.tsx        narrows /study/all and /print/all in the browser
+  SyncPanel.tsx          the sync control, and the dialog that starts, joins and stops it
+  SyncAgent.tsx          when to sync, on every page; draws nothing
   PrintSheets.tsx        the sheets themselves, built-in and imported alike
 lib/
   loadDecks.ts           reads content/*.md at build time — server only
@@ -82,6 +86,11 @@ lib/
   prefs.ts               which built-in decks this reader wants to see, and the mode
   tint.ts                a deck's color, picked furthest from those in use
   generateDeck.ts        browser-direct call to the chosen provider — client only
+  sync.ts                read, merge, write: keeping this device in step — client only
+  syncMerge.ts           how two devices' progress and decks settle on one
+  syncCrypto.ts          a sync key into an id and an encryption key
+  syncWords.ts           the words a suggested key is made of
+  syncStore.ts           the server's side: Redis, or memory in development
 ```
 
 The client components are the interactive parts and nothing else: the reviewer,
@@ -194,18 +203,46 @@ counted, imported ones are.
 
 ## Storage
 
-Everything the app remembers lives in `localStorage`, under five keys:
+Everything the app remembers lives in `localStorage`, under six keys:
 `decks:custom` for imported decks, `progress` for your answers and each card's
 schedule, `prefs:index` for what the index shows and the mode, `prefs:reviewer`
-for the interval, and `llm:key` for the deck writer's keys if you have set any. There is no account and nothing syncs, so a deck imported on
-your laptop is not on your phone, and a `/study/your-deck` link will not open
-for anyone else.
+for the interval, `llm:key` for the deck writer's keys if you have set any, and
+`sync` for your sync key if you have turned sync on. There is no account, and a
+`/study/your-deck` link will not open for anyone else.
+
+## Sync
+
+"Sync across devices", at the foot of the index, keeps progress and imported
+decks in step between your devices with a key instead of an account. The first
+device chooses a key, or keeps the one suggested — three words, like "pink pony
+charging" — and the app checks nobody else
+holds it; every other device joins with the same key, typed in or scanned from
+the first device's QR code. The preferences and the interval stay per device.
+
+The key never leaves the browser. It is stretched with PBKDF2 into two halves:
+one is the id the server files your data under, the other an AES-GCM key that
+encrypts it first. The server holds ciphertext it cannot read. That trades some
+security for ease of use, and the panel says so: a short key can be guessed,
+anyone with the key or a photo of its QR code has your progress, and a key lost
+on every device cannot be recovered. Misses are rate limited per network to
+slow guessing.
+
+`localStorage` stays the working copy, and a sync is read, merge, write. Two
+answers to one card settle by time: the words and grade from whichever device
+changed them last, the schedule from whichever answered on a schedule last. A
+deleted deck is deleted everywhere.
+
+In production it needs Upstash Redis — add it to the Vercel project from the
+Marketplace, which sets `KV_REST_API_URL` and `KV_REST_API_TOKEN`. Without them,
+`pnpm run dev` keeps synced copies in memory, and a production build answers
+that sync isn't set up.
 
 Browsers do clear this. WebKit deletes script-writable storage after seven days
 without a visit — which covers Safari and, on macOS and iOS, every browser built
 on it, DuckDuckGo included. Privacy browsers clear it on demand, and any browser
 may under storage pressure. Imported decks can be exported back out before that
-happens; progress cannot, and is the one thing here you can genuinely lose. The
+happens; progress cannot, and is the one thing here you can genuinely lose
+unless sync is on, which keeps a copy for the next device that joins. The
 built-in decks are compiled in and unaffected.
 
 ## Responsive

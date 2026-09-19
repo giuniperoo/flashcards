@@ -32,6 +32,8 @@
      lightest of the three. It was #78776f, 3.8:1 there. */
   --color-muted: #6d6c65;
   --color-rule: #ccc6b8;
+  /* What a dialog dims the page with: the ink, thinned. */
+  --color-overlay: rgb(44 44 42 / 0.4);
   /* Every focus ring, 1px, in one color: a softer black than `--color-ink`.
      There were two for a while, a blue for links from the Gigs deck's palette
      and this for controls, and the split meant nothing — it followed which
@@ -788,6 +790,25 @@ html[data-index-pending] [data-index] {
    with 3px of room, rather than the browser's thicker default ring drawn tight
    against the text. Quieter than the usual 2px advice on purpose. */
 @layer base {
+  /* The app has one scheme, the paper one, on every device — the same reason
+     `themeColor` in `app/layout.tsx` is a single value. Saying so keeps the
+     parts the browser draws rather than the stylesheet in step with it: the
+     scrollbar inside the sync dialog, a field's autofill, a focus ring the
+     platform draws, none of which should arrive dark on a dark-mode system
+     while the page around them is cream. Dark mode would be every color in
+     this file, the deck tints and the printed sheets, not a media query here. */
+  :root {
+    color-scheme: light;
+  }
+
+  /* Tailwind v4's preflight gives buttons the default arrow, where v3 gave them
+     the hand. Anything pressable shows the hand, as links do; a disabled button
+     keeps the `cursor-not-allowed` its classes give it. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
   :focus-visible {
     outline: 1px solid var(--color-focus);
     outline-offset: 3px;
@@ -830,4 +851,14 @@ html[data-index-pending] [data-index] {
     border-radius: 2px;
     pointer-events: none;
   }
+}
+
+/* The sync dialog, opened with `showModal`: the page behind dims, and stays
+   put rather than scrolling under the overlay. */
+.sync-dialog::backdrop {
+  background: var(--color-overlay);
+}
+
+html:has(dialog[open]) {
+  overflow: hidden;
 }

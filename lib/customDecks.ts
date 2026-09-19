@@ -6,8 +6,17 @@ import { nextTint, shadeForTint } from "./tint";
 export const CUSTOM_KEY = "decks:custom";
 export const CUSTOM_VERSION = 1;
 
-/** Version 1 wraps what used to be a bare `Deck[]`, and guarantees card ids. */
-type CustomDeckStore = { version: 1; decks: Deck[] };
+/**
+ * Version 1 wraps what used to be a bare `Deck[]`, and guarantees card ids.
+ *
+ * `deleted` is when each deleted deck went, by slug, so that sync can carry a
+ * deletion to the other devices rather than having them hand the deck straight
+ * back. It arrived inside version 1 and reads as nothing deleted when absent.
+ */
+type CustomDeckStore = { version: 1; decks: Deck[]; deleted?: Record<string, string> };
+
+/** Fired on the window when the imported decks change in this tab. */
+export const CUSTOM_EVENT = "custom-decks-changed";
 
 export function slugify(value: string) {
   const base = value
@@ -58,14 +67,38 @@ export function loadCustomDecks(): Deck[] {
   }
 }
 
-function write(decks: Deck[]) {
+/** When each deleted deck went, by slug. */
+export function loadDeletedDecks(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(CUSTOM_KEY) ?? "null");
+    const deleted = (parsed as CustomDeckStore | null)?.deleted;
+    if (!deleted || typeof deleted !== "object") return {};
+    return Object.fromEntries(
+      Object.entries(deleted).filter(
+        (entry): entry is [string, string] =>
+          typeof entry[1] === "string" && Number.isFinite(Date.parse(entry[1])),
+      ),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function write(decks: Deck[], deleted: Record<string, string> = loadDeletedDecks()) {
   const store: CustomDeckStore = { version: CUSTOM_VERSION, decks };
+  if (Object.keys(deleted).length > 0) store.deleted = deleted;
   window.localStorage.setItem(CUSTOM_KEY, JSON.stringify(store));
 }
 
-function persist(decks: Deck[]) {
-  write(decks);
-  window.dispatchEvent(new Event("custom-decks-changed"));
+function persist(decks: Deck[], deleted?: Record<string, string>) {
+  write(decks, deleted);
+  window.dispatchEvent(new Event(CUSTOM_EVENT));
+}
+
+/** What sync writes back after a merge: the whole store at once. */
+export function replaceCustomDecks(decks: Deck[], deleted: Record<string, string>) {
+  persist(decks, deleted);
 }
 
 /**
@@ -112,6 +145,7 @@ export function saveCustomDeck(input: {
     tint: input.tint ?? picked.tint,
     ink: input.tint ? shadeForTint(input.tint) : picked.ink,
     cards: input.cards,
+    added: new Date().toISOString(),
   };
 
   persist([...existing, deck]);
@@ -119,7 +153,10 @@ export function saveCustomDeck(input: {
 }
 
 export function deleteCustomDeck(slug: string) {
-  persist(loadCustomDecks().filter((d) => d.slug !== slug));
+  persist(
+    loadCustomDecks().filter((d) => d.slug !== slug),
+    { ...loadDeletedDecks(), [slug]: new Date().toISOString() },
+  );
   // Progress lives in one store for the whole app, so this deck's share of it
   // is a key prefix rather than a key. `lib/progress.ts` owns that layout.
   forgetDeck(slug);

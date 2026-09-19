@@ -237,10 +237,9 @@ export default function DeckGenerator({
       {!apiKey || editingKey ? (
         <>
           <p className="mt-2 max-w-lg text-sm text-muted">
-            Needs an API key from {info.company}. Best to make a new one just for
-            this, set to expire soon, or delete it when you&rsquo;re done. The
-            key stays in this browser and goes only to {info.company}. Decks are
-            billed to your account.
+            Needs an API key from {info.company}. Best to make one just for
+            this. The key stays in this browser and goes only to {info.company}.
+            Decks are billed to your account.
           </p>
           <div className="mt-3 flex flex-wrap items-start gap-2">
             <div className="min-w-0 flex-1 basis-64">
@@ -283,7 +282,7 @@ export default function DeckGenerator({
             <a href={info.keysUrl} target="_blank" rel="noreferrer" className={TEXT_BUTTON}>
               {info.keysLinkText}
             </a>
-            <KeyAdvice provider={provider} />
+            . <KeyAdvice provider={provider} />
           </p>
         </>
       ) : (
@@ -455,27 +454,35 @@ export default function DeckGenerator({
   );
 }
 
-/** What is worth knowing about a key before making one, per provider. */
+/**
+ * How to make a key worth keeping in a browser, in each provider's own terms.
+ *
+ * The line above the field says to make a key just for this and nothing about
+ * how, because how differs: Claude and OpenAI can both expire a key, and Google
+ * AI Studio cannot, so a generic "set it to expire" would offer a Gemini reader
+ * something their console does not have. This sits beside the link that opens
+ * that console, which is where somebody is about to do it.
+ */
 function KeyAdvice({ provider }: { provider: Provider }) {
   switch (provider) {
     case "anthropic":
       return (
         <>
-          {" "}
-          — in that dialog, set <strong className="font-medium text-ink">Scope</strong> to a{" "}
-          <em>specific</em> workspace such as &ldquo;Default&rdquo;.
+          In that dialog, set{" "}
+          <strong className="font-medium text-ink">Scope</strong> to a{" "}
+          <em>specific</em> workspace such as &ldquo;Default&rdquo;, and an
+          expiry of a day or two.
         </>
       );
     case "openai":
       return (
         <>
-          {" "}
-          — a project key with a monthly budget set is the safest kind to keep in a
-          browser.
+          A project key with a monthly budget and an expiry date is the safest
+          kind to keep in a browser.
         </>
       );
     case "gemini":
-      return null;
+      return <>AI Studio keys don&rsquo;t expire, so delete it when you&rsquo;re done.</>;
   }
 }
 

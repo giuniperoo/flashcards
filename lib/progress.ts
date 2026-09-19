@@ -39,9 +39,10 @@ import {
  * `reviewed` is not read anywhere yet. It goes in now because it is the one
  * field here that cannot be backfilled later: nothing else records *when* a
  * review happened, and `due` is no substitute, since a box-4 card reviewed
- * yesterday carries a later `due` than a box-1 card done this morning. It
- * is what a future sync would need to resolve a conflict, and it is empty on
- * every record migrated from an older store, because those stores never knew.
+ * yesterday carries a later `due` than a box-1 card done this morning. It is
+ * empty on every record migrated from an older store, because those stores
+ * never knew. Sync settles conflicts by `scheduledAt` below rather than by this,
+ * since a day cannot order two answers given on the same one.
  *
  * `dueAt` is a time: when the interval is shorter than a day, a scheduled answer
  * brings a card back hours later rather than on a morning, in any box. `due`
@@ -50,6 +51,16 @@ import {
  * exactly as it did. Until September 16, 2026 only box 1 carried one; a card
  * graded before then keeps the day it was given until it is answered again. See
  * `comesBack` in `lib/schedule.ts`.
+ *
+ * `updatedAt` and `scheduledAt` are times, and are what sync settles a card
+ * answered on two devices by. `updatedAt` moves whenever the draft or the grade
+ * changes, in either mode; `scheduledAt` moves only with the schedule fields, on
+ * a scheduled answer. Two because free study must not touch the schedule: a
+ * free study answer on one device is newer than a scheduled answer on another,
+ * but its box is older, and one time for both would carry the old box across.
+ * `reviewed` could not do this: it is a day, and a free study answer does not
+ * write it. Both arrived inside version 4 like `dueAt`, and are absent on every
+ * record written before September 19, 2026. See `lib/syncMerge.ts`.
  */
 export type CardProgress = {
   draft: string;
@@ -60,6 +71,8 @@ export type CardProgress = {
   dueAt?: string;
   reviewed: string;
   seen: boolean;
+  updatedAt?: string;
+  scheduledAt?: string;
 };
 
 /**
@@ -290,7 +303,12 @@ function mergeRecord(a: CardProgress | undefined, b: CardProgress): CardProgress
  * it, and in practice that is the reviewer opening, since it saves what it
  * loaded — which is harmless, because what it writes is what a read derives.
  */
-function readRecords(value: unknown): Record<string, CardProgress> {
+function isTime(value: unknown): value is string {
+  return typeof value === "string" && Number.isFinite(Date.parse(value));
+}
+
+/** For `lib/syncMerge.ts`, which reads records that arrived from another device. */
+export function readRecords(value: unknown): Record<string, CardProgress> {
   const out: Record<string, CardProgress> = {};
   if (!isRecord(value)) return out;
   for (const [key, entry] of Object.entries(value)) {
@@ -325,6 +343,8 @@ function readRecords(value: unknown): Record<string, CardProgress> {
       ...(typeof entry.dueAt === "string" && Number.isFinite(Date.parse(entry.dueAt))
         ? { dueAt: entry.dueAt }
         : {}),
+      ...(isTime(entry.updatedAt) ? { updatedAt: entry.updatedAt } : {}),
+      ...(isTime(entry.scheduledAt) ? { scheduledAt: entry.scheduledAt } : {}),
     };
   }
   return out;
@@ -483,11 +503,14 @@ export function applyGrade(
   firstInterval: number = DEFAULT_FIRST_INTERVAL,
   now: number = Date.now(),
 ): CardProgress {
-  if (!scheduled) return { ...record, grade };
+  const at = new Date(now).toISOString();
+  if (!scheduled) return { ...record, grade, updatedAt: at };
   const box = nextBox(record.box, grade);
   const next: CardProgress = {
     ...record,
     grade,
+    updatedAt: at,
+    scheduledAt: at,
     box,
     misses: nextMisses(record.misses, grade),
     ...comesBack(box, today, now, firstInterval),
@@ -501,8 +524,22 @@ export function applyGrade(
   return next;
 }
 
+/**
+ * A record with a new draft, stamped for sync. The same record back when the
+ * draft has not changed: the reviewer commits the draft on every move, and a
+ * card merely passed over must not read as edited just now on every device.
+ */
+export function withDraft(record: CardProgress, draft: string, now: number = Date.now()) {
+  if (record.draft === draft) return record;
+  return { ...record, draft, updatedAt: new Date(now).toISOString() };
+}
+
+/** Fired on the window after every save, so sync can follow. */
+export const PROGRESS_EVENT = "progress-changed";
+
 export function saveProgress(store: ProgressStore) {
   write(PROGRESS_KEY, store);
+  window.dispatchEvent?.(new Event(PROGRESS_EVENT));
 }
 
 /**

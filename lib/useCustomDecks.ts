@@ -2,7 +2,7 @@
 
 import { useCallback, useLayoutEffect, useState } from "react";
 import type { Deck } from "./types";
-import { loadCustomDecks } from "./customDecks";
+import { CUSTOM_EVENT, loadCustomDecks } from "./customDecks";
 
 /**
  * The imported decks, kept in step with `localStorage`.
@@ -21,10 +21,10 @@ export function useCustomDecks(): Deck[] | null {
   useLayoutEffect(() => {
     refresh();
     // `custom-decks-changed` is this tab; `storage` is another one.
-    window.addEventListener("custom-decks-changed", refresh);
+    window.addEventListener(CUSTOM_EVENT, refresh);
     window.addEventListener("storage", refresh);
     return () => {
-      window.removeEventListener("custom-decks-changed", refresh);
+      window.removeEventListener(CUSTOM_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
   }, [refresh]);

@@ -59,7 +59,7 @@ function returnsSentence(hours: number) {
   return `Red comes back in ${intervalWords(red)}, orange in ${orange}, yellow in ${yellow}, green in ${green}.`;
 }
 
-function CloseIcon({ className }: { className?: string }) {
+export function CloseIcon({ className }: { className?: string }) {
   return (
     <svg aria-hidden viewBox="0 0 24 24" className={className}>
       <path
@@ -71,7 +71,7 @@ function CloseIcon({ className }: { className?: string }) {
   );
 }
 
-function QuestionIcon({ className }: { className?: string }) {
+export function QuestionIcon({ className }: { className?: string }) {
   return (
     <svg aria-hidden viewBox="0 0 24 24" className={className}>
       <path

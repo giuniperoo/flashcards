@@ -11,6 +11,7 @@ import {
   loadProgress,
   saveProgress,
   unseenCard,
+  withDraft,
 } from "@/lib/progress";
 import {
   DEFAULT_FIRST_INTERVAL,
@@ -425,7 +426,7 @@ export default function Reviewer({
         ...prev,
         cards: {
           ...prev.cards,
-          [key]: { ...(prev.cards[key] ?? unseenCard), draft: value },
+          [key]: withDraft(prev.cards[key] ?? unseenCard, value),
         },
       }));
     },
