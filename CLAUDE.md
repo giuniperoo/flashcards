@@ -7,8 +7,8 @@ Context for working in this repo. Read before making changes.
 A flashcard app for interview preparation. Twelve built-in decks and 264 cards,
 four of which (React 19, CAP theorem, ACID, SOLID) mirror decks that exist as
 printed cards, plus any deck you import or have an AI write. Studied in the
-browser, on a schedule or freely, or printed as physical cards. Single user, no
-backend.
+browser, on a schedule or freely, or printed as physical cards. Single user. The
+only backend is sync's: one route that keeps an encrypted copy per sync key.
 
 The defining product rule: **you cannot turn a card over until you have written
 an answer.** Recognition feels like knowledge and isn't. Any change that makes
@@ -31,6 +31,7 @@ pnpm run test:queue    # what a session deals: a backlog, then the new cards
 pnpm run test:filter   # which decks the shuffled set draws from
 pnpm run test:prefs    # index preferences, and the switch's default
 pnpm run test:llm      # deck generation: keys, model lists, each provider's stream
+pnpm run test:sync     # what two devices' progress and decks merge to, and the crypto
 ```
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
@@ -45,20 +46,28 @@ that error is outstanding, so it presents as every command failing at once.
 
 ## Out of scope — do not build
 
-Accounts, authentication, databases, deck publishing, public library, forking,
-moderation, copyright terms, billing, Stripe. These are designed in
-`ARCHITECTURE.md` and deliberately deferred to a later session. If a task seems
-to need one of them, stop and ask rather than introducing it.
+Accounts, authentication, deck publishing, public library, forking, moderation,
+copyright terms, billing, Stripe. These are designed in `ARCHITECTURE.md` and
+deliberately deferred to a later session. If a task seems to need one of them,
+stop and ask rather than introducing it.
+
+Sync is the one exception to "no server state", decided on September 19, 2026:
+a key-value store holding one encrypted copy per sync key, and nothing else. It
+is not a database of users. There is no account, no table of anything, and the
+server cannot read what it holds. Anything that would need the server to know
+who someone is, or to read their data, is still out of scope.
 
 ## Architecture
 
 Server components by default. Only `Reviewer.tsx`, `PrintButton.tsx`,
 `DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx`, `DeckIndex.tsx`,
-`CustomDeckView.tsx`, `PrintPreview.tsx` and `PrintIntro.tsx` are client
-components, and that list should not grow without a reason. The last two have
-theirs: the preview has to measure its column to zoom the pages to fit, and the
-print page's "Study" link has to carry the reader's mode and `?deck=` set. The point is that
-the JavaScript shipped is the interactive parts and nothing else.
+`CustomDeckView.tsx`, `PrintPreview.tsx`, `PrintIntro.tsx`, `SyncPanel.tsx` and
+`SyncAgent.tsx` are client components, and that list should not grow without a
+reason. The preview has to measure its column to zoom the pages to fit, and the
+print page's "Study" link has to carry the reader's mode and `?deck=` set.
+`SyncAgent` sits in the layout and draws nothing: grades are given on study
+pages and sync has to follow them there. The point is that the JavaScript
+shipped is the interactive parts and nothing else.
 
 `DeckIndex.tsx` earns its place by counting: the headline totals span the
 built-in decks and the imported ones, and neither which decks are hidden nor
@@ -74,6 +83,7 @@ app/
   new/page.tsx          import screen + format guide
   study/[deck]/page.tsx reviewer; unknown slugs fall through to localStorage
   print/[deck]/page.tsx A4 sheets
+  api/sync/[id]/route.ts one sync key's encrypted copy: GET, PUT, DELETE
 components/
   Reviewer.tsx          all study state
   DeckIndex.tsx         headline counts, and hiding the built-in decks
@@ -83,6 +93,8 @@ components/
   DeckGenerator.tsx     asks Claude, OpenAI or Gemini for a deck, streams it into the importer
   QueueBar.tsx          a scheduled session's breakdown, in the title row if it fits
   ColorKey.tsx          what the strip's colors mean, behind a "?" at its end
+  SyncPanel.tsx         the sync control, and the dialog it opens: start, join, stop, QR code
+  SyncAgent.tsx         when to sync: on arrival, after changes, on leaving and returning
   PrintSheets.tsx       shared by the built-in and custom print paths
   PrintPreview.tsx      zooms the pages to fit the column on screen, never in print
   PrintIntro.tsx        a print page's title row, and what to set in the dialog
@@ -113,6 +125,11 @@ lib/
   llm/anthropic.ts      Claude through the SDK, shaped by the model's capabilities
   llm/openai.ts         OpenAI Chat Completions over `fetch`, no SDK
   llm/gemini.ts         Gemini `streamGenerateContent` over `fetch`, no SDK
+  sync.ts               read, merge, write against the server — CLIENT ONLY
+  syncMerge.ts          what two devices settle on: records, decks, deletions
+  syncCrypto.ts         the key into an id and an AES key; the suggested key
+  syncWords.ts          what a suggested key is made of: adjective, noun, verb + ing
+  syncStore.ts          Redis over REST, or memory in development — SERVER ONLY
 ```
 
 Both `[deck]` routes set `dynamicParams = true`: built-in slugs are prerendered,
@@ -177,9 +194,12 @@ the built-in tints reach it as the `reservedTints` prop, the same way
 
 ## Storage
 
-`localStorage`, five keys, each wrapped in a version envelope:
+`localStorage`, six keys, each wrapped in a version envelope:
 
-- `decks:custom` — `{ version: 1, decks: Deck[] }`
+- `decks:custom` — `{ version: 1, decks: Deck[], deleted? }`. `deleted` is when
+  each deleted deck went, by slug, so sync can carry a deletion to the other
+  devices; each imported deck carries `added` for the same reason. Both arrived
+  inside version 1
 - `progress` — `{ version: 4, cards }`, keyed by `{deckSlug}:{cardId}`
 - `prefs:index` — `{ version: 4, showBuiltIns, hiddenDecks, scheduled }`
 - `prefs:reviewer` — `{ version: 1, colorKeyShown, firstInterval }`: whether the
@@ -194,6 +214,10 @@ the built-in tints reach it as the `reservedTints` prop, the same way
   for each of Claude, OpenAI and Gemini. Version 1 held one Anthropic key and
   migrates in. Never sent anywhere but the provider it belongs to; see
   `lib/apiKey.ts`
+- `sync` — `{ version: 1, key, id, secret, v, syncedAt }`, present only while
+  this device syncs: the key itself, so the panel can show it and its QR code,
+  and what it stretches into, so a page load skips the stretching. See
+  `lib/sync.ts`
 
 Version 1 of `prefs:index` held `showBuiltIns` alone and version 2 added
 `hiddenDecks`. Each reads as the version after it with the new field at its
@@ -233,7 +257,8 @@ interleaved. New cards are met in a deck of their own. That is also why the
 index's due counts leave new cards out, so the "Everything" card's count is what
 the session deals.
 
-A card's record is `{ draft, grade, box, misses, due, dueAt?, reviewed, seen }`.
+A card's record is `{ draft, grade, box, misses, due, dueAt?, reviewed, seen,
+updatedAt?, scheduledAt? }`.
 `box`, `misses`, `due` and `reviewed` mean nothing while `seen` is false — a card
 written on but never graded has no place in the schedule — and `seen` is the
 authority on that rather than a sentinel box or an empty date.
@@ -294,6 +319,17 @@ backfilled later: nothing else records *when* a review happened, and `due` is
 no substitute, since a box-4 card reviewed yesterday carries a later `due`
 than a box-1 card done this morning. It is empty on every record migrated
 from an older store, because those stores never knew.
+
+**`updatedAt` and `scheduledAt` are what sync settles a card by.** Both are ISO
+times. `updatedAt` moves when the draft or the grade changes, in either mode;
+`scheduledAt` only on a scheduled answer. A merge takes the draft and grade from
+the later `updatedAt` and the schedule fields from the later `scheduledAt`, so a
+free study answer on one device cannot carry an older box over a scheduled
+answer on another — the same line free study never crosses locally. A draft
+committed unchanged is not stamped (`withDraft`), or every card passed over
+would read as edited just now. Both arrived inside version 4, like `dueAt`, and
+a record without them ties at "never" and falls back on the migration rules:
+the longer draft, review over held. See `lib/syncMerge.ts` and its tests.
 
 **Progress is one store for the whole app, and the key carries no suffix.**
 Versions 1 and 2 held a store per route — `progress:all` from the shuffle,

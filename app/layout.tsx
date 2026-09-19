@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Inter, IBM_Plex_Mono } from "next/font/google";
+import SyncAgent from "@/components/SyncAgent";
+import { decks } from "@/lib/loadDecks";
 import "./globals.css";
 
 const body = Inter({
@@ -136,6 +138,7 @@ export default function RootLayout({
             <span className="label text-muted">Recall, then flip</span>
           </header>
           <main className="flex-1">{children}</main>
+          <SyncAgent slugs={decks.map((deck) => deck.slug)} />
         </div>
       </body>
     </html>

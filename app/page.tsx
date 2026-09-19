@@ -3,6 +3,7 @@ import CustomDeckList from "@/components/CustomDeckList";
 import DeckIndex from "@/components/DeckIndex";
 import DeckVisibility, { StudyMode } from "@/components/DeckVisibility";
 import LogoSun from "@/components/LogoSun";
+import SyncPanel from "@/components/SyncPanel";
 import { decks, totalCards } from "@/lib/loadDecks";
 export default function Home() {
   return (
@@ -37,31 +38,25 @@ export default function Home() {
 
       <CustomDeckList />
 
-      {/* Two sides that stay two sides: what the page holds on the left —
-          adding a deck, and which of the built-in ones it shows — and what the
-          app is on the right. Neither ever wraps under the other. When the row
-          runs out of room each side stacks within itself instead, the right
-          first (mode above its interval), then the left (the button above
-          "Show built-in decks"); see the shrink weights on each.
-
-          From 768px up — where the column is wide enough to hold both sides
-          with the right one stacked — the left side neither shrinks nor wraps,
-          so the right gives up both its lines before the button gives up any.
-          Flex shares a shortfall between both sides however lopsided the
-          weights, and even a fraction of a pixel off the left is enough to
-          break "Show built-in decks" onto a line of its own when its two
-          controls exactly fill the line. Below 640px there are no two sides to keep: the groups
-          sit one above the other. */}
-      <div className="mt-10 flex flex-col gap-y-2 sm:mt-25 sm:flex-row sm:items-start sm:justify-between sm:gap-x-6">
-        <span className="flex min-w-0 shrink flex-wrap items-center gap-x-6 gap-y-2 md:shrink-0 md:flex-nowrap">
+      {/* Two columns from 768px up: what the page holds on the left —
+          adding a deck, which built-in decks it shows, and whether this device
+          syncs — and what the app is on the right, the mode above its
+          interval. A grid rather than a row of flex items, so the left column
+          is whatever the right one leaves and its controls wrap inside it:
+          they can wrap, but they can never run into the mode. Below 768px it
+          is one column, the controls and then the mode. "Sync across devices"
+          opens a dialog over the page, so nothing in the row moves. */}
+      <div className="mt-10 grid grid-cols-1 gap-y-4 sm:mt-25 md:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             href="/new"
-            className="press label inline-flex min-h-11 pointer-fine:min-h-9 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink"
+            className="press label mr-2 inline-flex min-h-11 pointer-fine:min-h-9 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink"
           >
             Add your own deck
           </Link>
           <DeckVisibility slugs={decks.map((deck) => deck.slug)} />
-        </span>
+          <SyncPanel />
+        </div>
         <StudyMode />
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useLayoutEffect, useState } from "react";
 import { PROGRESS_KEY, peekProgress } from "./progress";
 import { dueByDeck } from "./queue";
 import { dayKey } from "./schedule";
+import { SYNCED_EVENT } from "./sync";
 
 /**
  * How many cards each deck owes today, by slug, for the deck cards on the index.
@@ -27,7 +28,12 @@ export function useDueCounts(): Record<string, number> {
       if (event.key === null || event.key === PROGRESS_KEY) read();
     };
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    // A sync in this tab that brought in another device's answers.
+    window.addEventListener(SYNCED_EVENT, read);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(SYNCED_EVENT, read);
+    };
   }, []);
 
   return due;
