@@ -801,6 +801,14 @@ html[data-index-pending] [data-index] {
     color-scheme: light;
   }
 
+  /* Tailwind v4's preflight gives buttons the default arrow, where v3 gave them
+     the hand. Anything pressable shows the hand, as links do; a disabled button
+     keeps the `cursor-not-allowed` its classes give it. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
   :focus-visible {
     outline: 1px solid var(--color-focus);
     outline-offset: 3px;
