@@ -80,12 +80,13 @@ export function StudyMode() {
     /* First while the row is one column: what the app is reads better above a
        list of things to press than under it. In two columns it is the right
        one, where reading order and source order agree again.
-       A dashed rule between the two, under this group while they are stacked
-       and beside it once they are columns: what the app is and what the page
-       holds are different things, and the rule says so rather than leaving two
-       ragged left edges to be read as one column that failed to line up. Dashed
-       like the deck cards' edge and the cut lines on a printed sheet. */
-    <span className="order-first flex flex-col items-start gap-y-2 border-b border-dashed border-rule pb-4 md:order-none md:items-end md:border-b-0 md:border-l md:pb-0 md:pl-10">
+       A dashed rule under this group while they are stacked, since one column
+       of controls running into another with nothing between them reads as one
+       list. Dashed like the deck cards' edge and the cut lines on a printed
+       sheet. Once they are columns the gap says it on its own, and a vertical
+       rule between two short groups drew a line down the middle of the page
+       for nothing. */
+    <span className="order-first flex flex-col items-start gap-y-2 border-b border-dashed border-rule pb-4 md:order-none md:items-end md:border-b-0 md:pb-0 md:pl-10">
       <Mode
         scheduled={prefs.scheduled}
         onChange={(scheduled) => update({ ...prefs, scheduled })}
