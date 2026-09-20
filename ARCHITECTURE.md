@@ -5,6 +5,14 @@
 > to `content/`. Everything below — accounts, databases, publishing, forking,
 > moderation, copyright terms — is designed but explicitly out of scope until a
 > later session with its own branch. Kept here so the thinking isn't lost.
+>
+> **One exception, September 19, 2026: sync shipped.** Progress and imported
+> decks follow a reader between their own devices, keyed by a sync key — three
+> words the reader holds — rather than by an account. The server holds one encrypted blob per key, under an id it
+> cannot turn back into the key, and can read none of it — so it is server
+> state without being a database of users. That answers the second-device
+> problem this document answers with accounts in §2, §8 and §9, and those
+> sections say what is left for accounts to do. Nothing else here has moved.
 
 How the flashcard service is meant to work once other people use it. Written
 before the multi-user version exists, so it is a specification rather than a
@@ -50,16 +58,30 @@ the first two produces a signup wall that costs more users than it gains.
 
 | State | Lives in | Account | Syncs | Visible to |
 | --- | --- | --- | --- | --- |
-| **Local** | Browser `localStorage` | No | No | Only that browser |
+| **Local** | Browser `localStorage` | No | With a sync key | Only that browser, or the devices holding the key |
 | **Private** | Database, owned row | Yes | Yes | Owner |
 | **Public** | Same row, `visibility = 'public'` | Yes | Yes | Everyone |
 
 **Local is the default and stays supported.** A new visitor can write a deck,
-study it, print it and never create an account. Nothing is transmitted, so
-"private" is not a promise about our data handling — it is a statement of fact.
-Ask for an account at the two moments it buys something concrete: syncing to a
-second device, or publishing. That is a far better conversion point than a wall
-on the front page.
+study it, print it and never create an account. Nothing is transmitted unless
+they turn sync on, so "private" is not a promise about our data handling — it is
+a statement of fact.
+
+**Sync moved the conversion point, and that is a good thing.** This section
+originally proposed asking for an account at the two moments it buys something
+concrete: syncing to a second device, or publishing. Sync now buys the first
+one without an account, because the second device is a use the reader has
+already earned and an account is a lot to ask for it. That leaves publishing as
+the only thing an account is *for*, which is a cleaner line to hold: an account
+is what you get when other people need to know who wrote something. Somebody
+who never publishes never needs one, and their data never becomes a row we can
+read.
+
+Local decks are still local in the sense that matters. The synced copy is
+ciphertext under an id the server cannot turn back into the key, so the local
+row and the synced one are the same secret in two places rather than a private
+thing that became ours. Promotion to **private** would be the first time this
+service could read a deck, and the sign-in screen should say so.
 
 Promotion is one-directional and explicit: **local → private** on first sign-in
 (offer to upload what is already there), **private → public** on publish.
@@ -107,8 +129,22 @@ deck_topics      deck_id, topic          -- tags, many per deck
 rotation         user_id, deck_id, added_at   -- "in rotation"
 
 progress         user_id, deck_id, card_id, draft, grade,
-                 box, misses, due, due_at nullable, reviewed, seen, updated_at
+                 box, misses, due, due_at nullable, reviewed, seen,
+                 updated_at, scheduled_at nullable
 ```
+
+**What sync already keeps is not this table.** `app/api/sync/[id]/route.ts` and
+`lib/syncStore.ts` are a key-value store: one encrypted blob per sync key, GET,
+PUT and DELETE, and no schema at all, because the server cannot read the bytes.
+Nothing above is implemented, and sync does not become it later — an account
+that holds readable rows is a different thing with different consequences, and
+it arrives, if it arrives, beside the blob rather than out of it.
+
+`updated_at` and `scheduled_at` are the two columns that carry over, because
+they are how two copies of one card settle: the draft and grade from the later
+`updated_at`, the schedule fields from the later `scheduled_at`, so an answer
+given outside the schedule cannot move a box. `lib/syncMerge.ts` holds the rule
+today and a server implementation has to make the same split.
 
 `cards` is a `jsonb` array rather than a table. Cards are never queried
 individually, always loaded as a whole deck, and a version needs to be an
@@ -244,12 +280,23 @@ proportionate here.
 
 ## 6. Card identity
 
-**This is the change to make first, before any of the above.**
+**Done — this was the change to make first, and it was made.** Every card in
+`content/*.md` and every imported card carries a uuid `id`, and progress is
+keyed by it. The rest of this section is the reasoning as it was written, kept
+because the rule it argues for still binds: `CLAUDE.md` says never to remove or
+rewrite an `id:` line, and that is this section being enforced.
 
-Progress is currently keyed by array index (`deck.cards[3]`). The moment a deck
-can be edited after someone has studied it, inserting a card at position 3
-silently reassigns everyone's history. Publishing, forking and versioning all
-make editing routine, so index-keyed progress becomes wrong the day this ships.
+Two details below have moved on. The store is at version 4, not 2, and holds
+one record per card rather than parallel `drafts` and `grades` maps; and the
+per-route `progress:{slug}` keys it migrates from are gone as well, folded into
+a single `progress` key. `lib/progress.ts` holds the shapes and every migration
+between them, and `CLAUDE.md`'s Storage section explains why each one reads the
+way it does.
+
+Progress was keyed by array index (`deck.cards[3]`). The moment a deck can be
+edited after someone has studied it, inserting a card at position 3 silently
+reassigns everyone's history. Publishing, forking and versioning all make
+editing routine, so index-keyed progress becomes wrong the day this ships.
 
 Every card gets a stable `id`, generated once at creation or import:
 
@@ -321,9 +368,24 @@ card carries a Leitner box from 1 to 4, a due day, a due time when the interval
 is under a day, a run of misses, the day it was last reviewed, and whether it
 has been seen; free study's last answer sits beside them as `grade` and never
 moves the schedule. `CLAUDE.md` describes the record and `lib/progress.ts`
-holds it. The table above follows, and `reviewed` is the column a sync needs:
-it is the only record of *when* a review happened, so it is what settles the
-same card answered on two devices.
+holds it.
+
+**And it already follows the reader across devices, without the table.** Sync
+reads the server's copy, merges it with `localStorage` and writes back, so
+`localStorage` stays the one implementation the reviewer talks to and the merge
+sits beside it rather than under it. That is a smaller change than the two
+implementations above and it settles the harder question first: what two
+answers to one card mean.
+
+The answer is that a record splits, because it is two kinds of field wearing
+one shape. `updatedAt` moves whenever the draft or the grade changes, in either
+mode; `scheduledAt` moves only on a scheduled answer. A merge takes the draft
+and grade from the later `updatedAt` and the box, due date and miss count from
+the later `scheduledAt`, which is the same line free study never crosses
+locally, held across two devices. `reviewed` was kept against this day —
+nothing else records *when* a review happened — and in the end the two explicit
+stamps do the work, which is what an unread field is for: it was there when the
+question arrived, and the answer was free to be a better one.
 
 **Rotation** is deferred, not dropped. The due queue at `/study/all` scopes a
 session to the cards owed today; rotation would scope it to the decks you are
@@ -347,11 +409,18 @@ rotation study route should be the prominent one.
 Sequenced so each step is independently useful and nothing needs undoing.
 
 1. **Card ids and versioned stores** (§6) — small, unblocks everything, wrong to
-   defer past the first external user
+   defer past the first external user. *Done.*
 2. **`content/` decks and one parser** — built-in decks become markdown, the
-   generator script retires, `lib/parseDeck.ts` serves both file and paste paths
-3. **Accounts and sync** — local → private promotion, progress moves to the
-   database, no publishing yet
+   generator script retires, `lib/parseDeck.ts` serves both file and paste paths.
+   *Done. `lib/parseDeck.ts` now serves a third path the plan did not know
+   about: what an AI writes on the import screen is read by the same parser as
+   a paste, which is why a generated deck is previewed and not trusted.*
+3. **Accounts** — local → private promotion, progress moves to the database, no
+   publishing yet. *The sync half of this step shipped on September 19, 2026
+   without the account half, and the two came apart cleanly: a second device is a
+   key the reader types, and an account is only needed once other people have to
+   know who wrote a deck. What is left here is the promotion path and the readable
+   row, both of which belong with publishing rather than ahead of it.*
 4. **Rotation** — small, independent of publishing, and deferred until the due
    queue shows it is needed (§8)
 5. **Publishing with review** — versions, the scan, the email, the admin queue.
@@ -359,7 +428,8 @@ Sequenced so each step is independently useful and nothing needs undoing.
 6. **Public library** — browse, filter by topic, fork
 7. **Forking** — trivial once versions exist
 
-Steps 1 and 2 are worth doing while the app is still single-user.
+Steps 1 and 2 were worth doing while the app was still single-user, and were
+done there. Step 3 has since split in half, with sync shipped and accounts not.
 
 ---
 
@@ -378,8 +448,19 @@ Steps 1 and 2 are worth doing while the app is still single-user.
   whenever its Fire Button is pressed. Clear-on-exit settings, private windows
   and Chromium's eviction under storage pressure do the same. Imported decks can
   be exported first; progress cannot, and a schedule lost is weeks of spacing.
-  An argument for prompting to sign in before that bites, and until then for
-  asking the browser to keep the store with `navigator.storage.persist()`,
-  which task 1 planned and nothing yet calls.
+  Sync answers this for a reader who has turned it on: the server holds a copy,
+  and the next device to join restores it. It does not answer it for anyone
+  else, and the default is off, so the browser should still be asked to keep the
+  store with `navigator.storage.persist()` — which task 1 planned and nothing
+  yet calls. Whether a wiped device should be *told* it was wiped is a separate
+  question, and `TASKS.md` argues for reporting it afterward rather than warning
+  about it beforehand.
+- **What accounts do once sync exists.** If a key already carries progress
+  between devices, an account buys authorship, moderation and a name on
+  a public deck — and nothing else. Worth resisting the urge to move synced data
+  into a readable row just because a `users` table now exists to hang it on.
+- **A sync is the whole store.** Right at 264 cards and a handful of decks,
+  wrong at some size that has not been reached. The blob also has no expiry:
+  a key nobody uses is paid for until somebody deletes it.
 - **Abuse of the free tier.** Publishing costs moderation attention. Watch it
   before opening the door wide.
