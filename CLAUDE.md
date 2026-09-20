@@ -36,6 +36,17 @@ pnpm run test:sync     # what two devices' progress and decks merge to, and the 
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
 
+**Sync needs two environment variables in production** and none in development.
+`KV_REST_API_URL` and `KV_REST_API_TOKEN` come from Upstash Redis, added to the
+Vercel project from the Marketplace, and `UPSTASH_REDIS_REST_URL` and
+`UPSTASH_REDIS_REST_TOKEN` are read as well, since that is what the same
+integration calls them elsewhere; `lib/syncStore.ts` falls back to a
+process-local map when they are absent, so `pnpm run dev` runs the whole flow
+on one machine. It runs on *one* machine only: `crypto.subtle` is unavailable
+outside a secure context, so a second device has to reach the deployed site
+rather than a laptop's dev server. A production build with no Redis answers
+that sync isn't set up rather than failing.
+
 **The package manager is pnpm**, pinned by `packageManager` in `package.json`.
 pnpm blocks dependency install scripts by default, so the three packages that
 need to link native binaries — `esbuild` (backs `tsx`), `sharp`, and
@@ -83,6 +94,8 @@ app/
   new/page.tsx          import screen + format guide
   study/[deck]/page.tsx reviewer; unknown slugs fall through to localStorage
   print/[deck]/page.tsx A4 sheets
+  export/[deck]/route.ts a built-in deck as re-importable markdown
+  not-found.tsx         "Nothing at this address", in the app's own panel
   api/sync/[id]/route.ts one sync key's encrypted copy: GET, PUT, DELETE
 components/
   Reviewer.tsx          all study state
@@ -109,6 +122,7 @@ lib/
   schedule.ts           Leitner boxes: next box, due date, and whether it is due
   queue.ts              what a session deals — due cards, then the unseen ones
   shuffle.ts            Fisher-Yates, shared by the reviewer and the queue
+  deckFilter.ts         which decks /study/all and /print/all draw from
   cardId.ts             uuid for new cards
   focus.ts              where focus goes when Hide or Delete takes its deck card away
   apiKey.ts             the reader's own keys and chosen models, one per provider
@@ -191,6 +205,30 @@ color is the author's choice.
 Because `lib/customDecks.ts` runs in the browser and cannot read `content/`,
 the built-in tints reach it as the `reservedTints` prop, the same way
 `reservedSlugs` does.
+
+**The sync key never leaves the browser, and the server never learns it.**
+`lib/syncCrypto.ts` stretches it with PBKDF2 into two halves that cannot be
+derived from each other: the id the server files the copy under, and the
+AES-GCM key that seals the copy before it goes. Anything that would send the
+key itself, weaken the stretching, or let the server see plaintext undoes the
+one property that makes three words an acceptable substitute for an account —
+and the panel promises it in as many words. It is also why `joinLink` puts the
+key in the URL *fragment*, `#sync=`: a fragment is the one part of an address a
+browser never sends to the server, so a link that carries the key past a QR
+code still does not hand it over. Moving it to a query string would.
+
+**The merge has to stay commutative, associative and idempotent.** That is what
+lets two devices converge instead of handing each other their own copy forever:
+a sync is read, merge, write, and the next sync on the other device has to
+settle rather than reopen it. `lib/sync.test.ts` asserts all three. A rule that
+prefers "this device" over "the other one", or that writes a timestamp during
+the merge, breaks convergence while looking correct in a single test.
+
+**A write names the version it read.** `syncStore.ts` compares and sets in one
+Redis script, so two devices writing at once cannot both win; the loser reads,
+merges again and retries. Version 0 means nothing is stored, which is also how
+a new key is checked for a holder. Replacing that with a plain `SET` loses a
+device's session silently.
 
 ## Storage
 

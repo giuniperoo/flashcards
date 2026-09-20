@@ -63,6 +63,7 @@ app/
   print/[deck]/page.tsx  printable A4 sheets, same routes
   export/[deck]/route.ts a built-in deck as re-importable markdown
   api/sync/[id]/route.ts reads, writes and deletes one sync key's encrypted copy
+  not-found.tsx          an unknown address, in the app's own panel
   globals.css            Tailwind v4 theme, palette lifted from the print spec
 components/
   Reviewer.tsx           all study state
@@ -108,7 +109,10 @@ thirteen slugs each.
 | Left / Right     | Previous / next card               |
 | 1 or K           | Mark held (once turned over)       |
 | 2 or R           | Mark for review (once turned over) |
-| S                | Shuffle                            |
+| S                | Shuffle (free study only)          |
+
+Shuffle is free study's, because a scheduled session's order is the queue: what
+you owe, then what you have never seen.
 
 Arrow and letter shortcuts stand down while you are typing in the answer box.
 Everything else is reachable with Tab. In Safari, and in DuckDuckGo and other
@@ -122,9 +126,12 @@ grid, with dashed cut lines and the deck's corner tint. Answer columns are
 mirrored left to right so each answer prints on the back of its own question.
 
 Print double-sided, flip on the **long edge**, at 100% scale with browser
-margins set to none — the sheet carries its own 12.7mm margin. Decks that are
-not a multiple of eight leave blank cells on the final sheet rather than
-shifting the alignment.
+margins set to none — the sheet carries its own 12.7mm margin. The page says
+the same thing in the print dialog's own words, and shows you the sheets
+first: front and back side by side where the window has room, each one
+labeled, zoomed to fit the column. All of that is on screen only, so what
+prints is unaffected by it. Decks that are not a multiple of eight leave blank
+cells on the final sheet rather than shifting the alignment.
 
 ## Adding your own decks
 

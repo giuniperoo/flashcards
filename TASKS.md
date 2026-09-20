@@ -12,6 +12,11 @@ Scope for this round is a personal deployment: local decks plus committed
 markdown decks. Accounts, publishing and moderation are out — see
 `ARCHITECTURE.md` for why they're deferred.
 
+Sync, task 15, is the one thing added to that scope after the round was
+planned, on September 19, 2026. It is server state and deliberately not an
+account: a key-value store holding one encrypted copy per sync key, which the
+server cannot read. Everything else in the deferred list stays deferred.
+
 ---
 
 ## Spaced repetition
@@ -732,7 +737,11 @@ morning's cards read as not due rather than done, because that is what they are.
 
 ### Task 11 — Docs
 
-*Done on September 17, 2026, after tasks 12 to 14. See "As built" below.*
+*Done on September 17, 2026, after tasks 12 to 14. See "As built" below. Done
+again on September 20, 2026, after sync: `CLAUDE.md` and `README.md` were kept
+current in #38 itself, and the second pass brought `TASKS.md` and
+`ARCHITECTURE.md` with them — task 15 below, and the sections of
+`ARCHITECTURE.md` that assumed syncing had to mean an account.*
 
 Four documents are partly out of date. The Storage section of `CLAUDE.md` was kept
 current as the tasks landed — `prefs:index` at version 4, `progress` at version 4,
@@ -770,6 +779,93 @@ there is small. Checked against `main` after #34.
 - **Found while writing it:** `navigator.storage.persist()`, which task 1 planned and
   "Not now" below still counts on, is called nowhere. §10 says so. It is a line of code
   and wants a decision on where it runs, so it is not slipped in here
+
+---
+
+## Sync
+
+### Task 15 — Two devices, one key
+
+*Merged in #38 on September 19, 2026, after the round above was finished. See
+"As built".*
+
+**Why.** A laptop and a phone were two unrelated apps. A schedule built up on
+one was invisible on the other, `/study/all` dealt a different session on each,
+and a deck imported on the laptop had to be exported and re-imported to reach
+the phone. WebKit's seven-day eviction could take either copy with nothing to
+restore from, which is the failure "Not now" below had no answer for.
+
+The obvious fix is accounts, and accounts are deferred for good reasons that
+have not changed. A key is the whole identity instead: the reader picks one, the
+server files an encrypted blob under what that key stretches to, and nobody has
+to be identified for any of it to work.
+
+**Do**
+
+- A key stretches, with PBKDF2, into two halves that cannot be derived from each
+  other: an id, which is all the server is ever told, and an AES-GCM key, which
+  seals the payload before it leaves the browser. The server holds ciphertext
+  under an opaque id
+- One route, `app/api/sync/[id]/route.ts`: GET, PUT and DELETE on one key's copy.
+  Upstash Redis over REST in production, memory in development. Not a database of
+  users — there is no table of anything
+- A sync is read, merge, write, and a failed one costs nothing but the sync.
+  `localStorage` stays the working copy throughout
+- The merge splits a record the way `applyGrade` writes it: the draft and grade
+  from whichever device changed them last, the schedule fields from whichever
+  answered *on a schedule* last. Free study on a phone therefore cannot carry an
+  old box over a scheduled answer on a laptop — the line free study never crosses
+  locally, held across devices
+- Imported decks ride along, with a tombstone and a time for a deletion, so a
+  deck deleted on one device is not handed back by another
+- Preferences and the interval stay per device: which decks a phone shows is not
+  a fact about the reader
+
+**Done when** two browsers with the same key deal the same session, a deck
+imported on one appears on the other, and `pnpm run test:sync` covers the merge.
+
+**As built.**
+
+- **The key is three words**, suggested — "pink pony charging" — and the app
+  refuses one somebody already holds before the first device commits to it.
+  Every other device joins by typing it or scanning the first device's QR code
+- **The panel says what the key trades away** before the reader types anything:
+  a short key can be guessed, anyone with the key or a photo of its QR code has
+  the progress, and a key lost on every device cannot be recovered. Advice you
+  can act on beats a promise you cannot check. Misses are rate limited per
+  network to slow guessing
+- **`updatedAt` and `scheduledAt`** are new for this and arrive inside version 4
+  like `dueAt`, rather than as a version 5 — a record written before this
+  landed ties at "never" and falls back on the migration rules the store already
+  had. A draft committed unchanged is not stamped, or every card passed over
+  would read as edited just now
+- **The merge is commutative, associative and idempotent**, which is what lets
+  two devices settle rather than hand each other their own copy forever.
+  `lib/sync.test.ts` covers that, the free-study-versus-schedule case, deletions
+  and the crypto
+- **`SyncAgent` sits in the layout** and draws nothing: grades are given on study
+  pages, so sync has to follow them there. It syncs on arrival, after changes,
+  and on leaving and returning
+- **The index's footer became a grid** on the way. The old row held its two sides
+  apart with shrink weights and `flex-nowrap`, which overlapped the mode bar at
+  some widths and stacked oddly at others; the left column's controls now wrap
+  inside their own column and cannot reach the right one
+- **Production needs Upstash Redis** from the Vercel Marketplace, which sets
+  `KV_REST_API_URL` and `KV_REST_API_TOKEN`. `pnpm run dev` keeps copies in
+  memory so the whole flow runs locally — but the browser only allows this
+  crypto in a secure context, so a second device has to reach the deployed site
+  rather than a laptop's dev server
+- **Followed by two small ones**: every enabled button got the pointer cursor,
+  and the deck writer's key advice moved to where the key is made, since the
+  generic half of it could not be true for all three providers
+
+**Still open.** Nothing blocks it, but two things are worth watching. A sync is
+whole-store, which is right at 264 cards and a handful of decks and will not be
+forever. And the server keeps a copy for as long as it is paid for: there is no
+expiry, and "Stop syncing on this device" deliberately leaves it there, so a
+device that stops does not take the other devices' copy with it. Clearing it is
+the separate "Delete the synced copy", which says what it does before it does
+it.
 
 ---
 
@@ -940,6 +1036,15 @@ above is not mistaken for everything that changed.
   still from the browser with no server; `pnpm run test:llm` covers it. Controls are
   44px on touch and 36px with a mouse. A deck added on `/new` opens in the reader's mode,
   and the import screen and print pages show the saved mode in the logo and the ground
+- **#37 — a throwaway key.** The deck writer suggests making a key for this and nothing
+  else. The line moved again afterwards, into `KeyAdvice` beside each provider's console
+  link, because "set it to expire soon" is advice Google AI Studio cannot take
+- **#38 — sync.** Task 15 above, written up there rather than here because it is the
+  size of a task and was planned like one
+- **After #38**, two small things: every enabled button carries the pointer cursor, and
+  the index's footer dropped the vertical dashed rule between its two groups on desktop.
+  The rule stays under the controls while the footer is one column, where two stacked
+  groups would otherwise read as one list
 
 ---
 
@@ -949,12 +1054,18 @@ above is not mistaken for everything that changed.
 rejected: it only parses if you already know progress lives somewhere that can
 vanish, so the control is the thing that teaches the reader the app forgets. The
 footer row is placed deliberately and there is no settings screen to hide it in.
-The honest fix is the `progress` table in `ARCHITECTURE.md` §3. Until then,
-durability gets `navigator.storage.persist()` and nothing else. If the silent-loss
-case needs answering sooner, report a wipe *after* it happens — a marker cookie
-outliving script-writable storage tells you a store was cleared rather than never
-written — and not a warning beforehand, which can only fire while the reader is
-present, which is exactly when the timer has just reset.
+
+Sync, task 15, is most of the honest fix, and arrived without the `progress`
+table in `ARCHITECTURE.md` §3 that this paragraph was waiting for: a reader with
+sync on has a copy on the server and a second device that can restore it. What
+it does not cover is the reader who never turns it on, which is the default and
+probably always will be. For them, durability still gets
+`navigator.storage.persist()` and nothing else — and that call, which task 1
+planned, is still written nowhere. If the silent-loss case needs answering
+sooner, report a wipe *after* it happens — a marker cookie outliving
+script-writable storage tells you a store was cleared rather than never written
+— and not a warning beforehand, which can only fire while the reader is present,
+which is exactly when the timer has just reset.
 
 **In rotation.** Deferred as premature — not dropped on the merits, and *not*
 because the due queue replaces it. The two scope on different axes: rotation says
