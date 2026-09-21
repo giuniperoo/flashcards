@@ -53,8 +53,9 @@ export default function CustomDeckView({
       <div className="cut rounded-sm bg-card px-5 py-6">
         <h1 className="text-lg font-medium">No deck called “{slug}” here</h1>
         <p className="mt-2 text-sm text-muted">
-          Imported decks live in the browser that created them, so this link will
-          not open on another device or in a private window.
+          Imported decks are saved in the browser that added them, and on the
+          devices that sync with it. This link won&rsquo;t open anywhere else,
+          including a private window.
         </p>
         <div className="mt-4 flex gap-4">
           <Link href="/new" className="label text-muted hover:text-ink">

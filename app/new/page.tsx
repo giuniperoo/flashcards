@@ -16,7 +16,8 @@ export default function NewDeckPage() {
 
       <p className="mb-6 max-w-lg text-muted">
         Write one with AI, paste one, or upload a file. Added decks study
-        and print exactly like the built-in ones, and stay in this browser.
+        and print like the built-in ones. They&rsquo;re saved in this browser,
+        and on your other devices if you sync.
       </p>
 
       <DeckImporter
