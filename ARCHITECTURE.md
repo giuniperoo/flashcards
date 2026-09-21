@@ -64,24 +64,22 @@ the first two produces a signup wall that costs more users than it gains.
 
 **Local is the default and stays supported.** A new visitor can write a deck,
 study it, print it and never create an account. Nothing is transmitted unless
-they turn sync on, so "private" is not a promise about our data handling — it is
-a statement of fact.
+they turn sync on, so a local deck is private because it never leaves the
+browser.
 
-**Sync moved the conversion point, and that is a good thing.** This section
-originally proposed asking for an account at the two moments it buys something
-concrete: syncing to a second device, or publishing. Sync now buys the first
-one without an account, because the second device is a use the reader has
-already earned and an account is a lot to ask for it. That leaves publishing as
-the only thing an account is *for*, which is a cleaner line to hold: an account
-is what you get when other people need to know who wrote something. Somebody
-who never publishes never needs one, and their data never becomes a row we can
-read.
+**Sync moved the conversion point.** This section originally proposed asking
+for an account at the two moments it buys something concrete: syncing to a
+second device, or publishing. Sync now covers the second device without an
+account, since asking for one there is a lot for a reader who only wants their
+own progress on their phone. That leaves publishing as the only reason to have
+an account, which happens when other people need to know who wrote a deck.
+Someone who never publishes never needs one, and we never hold a copy of their
+data that we can read.
 
-Local decks are still local in the sense that matters. The synced copy is
-ciphertext under an id the server cannot turn back into the key, so the local
-row and the synced one are the same secret in two places rather than a private
-thing that became ours. Promotion to **private** would be the first time this
-service could read a deck, and the sign-in screen should say so.
+A synced local deck is still unreadable to the server. The copy it holds is
+ciphertext, filed under an id the server cannot turn back into the key.
+Promotion to **private** would be the first time this service could read a
+deck, and the sign-in screen should say so.
 
 Promotion is one-directional and explicit: **local → private** on first sign-in
 (offer to upload what is already there), **private → public** on publish.
@@ -100,8 +98,8 @@ content that survives deletion in git history forever — which is not an
 acceptable answer to "please remove my data". Git is for artifacts you author;
 user submissions are data, and data goes in a database.
 
-The distinction is a product feature, not a compromise: a curated shelf you
-control, plus a community library.
+The result is two shelves: a curated one you control, and a community
+library.
 
 ---
 
@@ -136,9 +134,9 @@ progress         user_id, deck_id, card_id, draft, grade,
 **What sync already keeps is not this table.** `app/api/sync/[id]/route.ts` and
 `lib/syncStore.ts` are a key-value store: one encrypted blob per sync key, GET,
 PUT and DELETE, and no schema at all, because the server cannot read the bytes.
-Nothing above is implemented, and sync does not become it later — an account
-that holds readable rows is a different thing with different consequences, and
-it arrives, if it arrives, beside the blob rather than out of it.
+Nothing above is implemented, and sync won't turn into it. If accounts with
+readable rows ever arrive, they'll sit alongside the encrypted blob, and the
+blob stays as it is.
 
 `updated_at` and `scheduled_at` are the two columns that carry over, because
 they are how two copies of one card settle: the draft and grade from the later
@@ -181,11 +179,10 @@ everything public.
 
 ### The automated scan
 
-Be honest about what this can do. **The wordlist catches the least harmful thing
-you are screening for.** Defamation, harassment naming a real person, spam and
+**A wordlist catches the least harmful thing you are screening for.** Defamation, harassment naming a real person, spam and
 lifted question banks contain no profanity at all — "Q: Who embezzled from Acme?
 A: [real name]" passes every wordlist ever written. Layer 1 is cheap and worth
-having, but it is not the thing doing the work.
+having, but layer 2 does most of the work.
 
 False positives are a smaller problem than usually claimed, provided matching is
 on word boundaries rather than substrings — substring matching is what produces
@@ -219,11 +216,11 @@ The owner may edit or delete their public deck at any time. Editing creates a
 **new version**, which re-enters review — it does not silently change what is
 already live. Deleting removes it from the library immediately.
 
-**This is the one place where two of your requirements pull against each other.**
+**Two of the requirements conflict here.**
 "The owner can modify a public deck" and "a fork is a snapshot" cannot both hold
 if edits mutate what learners already have. Versioning resolves it: a learner
 studies the version they started, keeps their progress against it, and is offered
-the update rather than given it. The alternatives, for the record, are freezing
+the update rather than given it. The alternatives are freezing
 public decks entirely (simpler, worse for authors) or letting edits propagate
 live (simplest, breaks progress and forks). Versioning costs one table and is
 worth it.
@@ -280,11 +277,10 @@ proportionate here.
 
 ## 6. Card identity
 
-**Done — this was the change to make first, and it was made.** Every card in
-`content/*.md` and every imported card carries a uuid `id`, and progress is
-keyed by it. The rest of this section is the reasoning as it was written, kept
-because the rule it argues for still binds: `CLAUDE.md` says never to remove or
-rewrite an `id:` line, and that is this section being enforced.
+**Done.** Every card in `content/*.md` and every imported card carries a uuid
+`id`, and progress is keyed by it. The rest of this section is the original
+reasoning. It still explains the rule in `CLAUDE.md` never to remove or rewrite
+an `id:` line.
 
 Two details below have moved on. The store is at version 4, not 2, and holds
 one record per card rather than parallel `drafts` and `grades` maps; and the
@@ -370,22 +366,20 @@ has been seen; free study's last answer sits beside them as `grade` and never
 moves the schedule. `CLAUDE.md` describes the record and `lib/progress.ts`
 holds it.
 
-**And it already follows the reader across devices, without the table.** Sync
-reads the server's copy, merges it with `localStorage` and writes back, so
-`localStorage` stays the one implementation the reviewer talks to and the merge
-sits beside it rather than under it. That is a smaller change than the two
-implementations above and it settles the harder question first: what two
-answers to one card mean.
+**Progress already follows the reader across devices, without the table.**
+Sync reads the server's copy, merges it with `localStorage` and writes back, so
+the reviewer still reads and writes `localStorage` only. That was a smaller
+change than the two implementations above, and it had to settle the harder
+question first: what two answers to one card mean.
 
-The answer is that a record splits, because it is two kinds of field wearing
-one shape. `updatedAt` moves whenever the draft or the grade changes, in either
-mode; `scheduledAt` moves only on a scheduled answer. A merge takes the draft
-and grade from the later `updatedAt` and the box, due date and miss count from
-the later `scheduledAt`, which is the same line free study never crosses
-locally, held across two devices. `reviewed` was kept against this day —
-nothing else records *when* a review happened — and in the end the two explicit
-stamps do the work, which is what an unread field is for: it was there when the
-question arrived, and the answer was free to be a better one.
+A record holds two kinds of field, so a merge treats it as two halves.
+`updatedAt` moves whenever the draft or the grade changes, in either mode;
+`scheduledAt` moves only on a scheduled answer. A merge takes the draft and
+grade from the later `updatedAt` and the box, due date and miss count from the
+later `scheduledAt`, so free study on one device can't move the schedule on
+another, just as it can't locally. `reviewed` was kept in case sync needed it,
+since nothing else records *when* a review happened. In the end the two
+timestamps were enough, and `reviewed` is still written and not read.
 
 **Rotation** is deferred, not dropped. The due queue at `/study/all` scopes a
 session to the cards owed today; rotation would scope it to the decks you are
@@ -457,8 +451,8 @@ done there. Step 3 has since split in half, with sync shipped and accounts not.
   about it beforehand.
 - **What accounts do once sync exists.** If a key already carries progress
   between devices, an account buys authorship, moderation and a name on
-  a public deck — and nothing else. Worth resisting the urge to move synced data
-  into a readable row just because a `users` table now exists to hang it on.
+  a public deck, and nothing else. Synced data should stay out of readable rows
+  even once a `users` table exists to attach it to.
 - **A sync is the whole store.** Right at 264 cards and a handful of decks,
   wrong at some size that has not been reached. The blob also has no expiry:
   a key nobody uses is paid for until somebody deletes it.

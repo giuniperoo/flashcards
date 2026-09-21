@@ -10,9 +10,10 @@ printed cards, plus any deck you import or have an AI write. Studied in the
 browser, on a schedule or freely, or printed as physical cards. Single user. The
 only backend is sync's: one route that keeps an encrypted copy per sync key.
 
-The defining product rule: **you cannot turn a card over until you have written
-an answer.** Recognition feels like knowledge and isn't. Any change that makes
-revealing the answer easier is working against the point of the app.
+The app's central rule: **you cannot turn a card over until you have written
+an answer.** Recognizing an answer is easy to mistake for knowing it, and
+writing first shows the difference. Any change that makes revealing the answer
+easier works against the app.
 
 ## Stack and commands
 
@@ -77,12 +78,12 @@ Server components by default. Only `Reviewer.tsx`, `PrintButton.tsx`,
 reason. The preview has to measure its column to zoom the pages to fit, and the
 print page's "Study" link has to carry the reader's mode and `?deck=` set.
 `SyncAgent` sits in the layout and draws nothing: grades are given on study
-pages and sync has to follow them there. The point is that the JavaScript
-shipped is the interactive parts and nothing else.
+pages and sync has to follow them there. The goal is to ship JavaScript only
+for the interactive parts.
 
-`DeckIndex.tsx` earns its place by counting: the headline totals span the
-built-in decks and the imported ones, and neither which decks are hidden nor
-the imported decks themselves are visible to the server. It takes
+`DeckIndex.tsx` is a client component because it counts: the headline totals
+span the built-in decks and the imported ones, and neither which decks are
+hidden nor the imported decks themselves are visible to the server. It takes
 `DeckSummary[]` rather than `Deck[]` — a dozen names and counts instead of 264
 cards — so what reaches the browser stays small. Exporting a built-in deck goes
 through `/export/[deck]` for the same reason: a download button built in the
@@ -212,7 +213,7 @@ derived from each other: the id the server files the copy under, and the
 AES-GCM key that seals the copy before it goes. Anything that would send the
 key itself, weaken the stretching, or let the server see plaintext undoes the
 one property that makes three words an acceptable substitute for an account —
-and the panel promises it in as many words. It is also why `joinLink` puts the
+and the sync panel tells the reader so. It is also why `joinLink` puts the
 key in the URL *fragment*, `#sync=`: a fragment is the one part of an address a
 browser never sends to the server, so a link that carries the key past a QR
 code still does not hand it over. Moving it to a query string would.
@@ -267,25 +268,25 @@ been a choice. It reads as the new default. From version 4 a stored `false` is
 kept. `lib/prefs.test.ts` covers it.
 
 `scheduled` is the mode, at the foot of the index and **on by default**: spaced
-repetition is the app, and free study is what you switch to. It started off,
-while the scheduled reviewer was new; it flipped on September 13, 2026, once it
-had been lived with. It is a bar of two segments, free study then spaced
-repetition, with the current one filled in the color of the mark in the header —
-the mark's cream, or the free study sage. Both modes on show is what lets the
-labels name the modes themselves; the button it replaced named the mode it moved
-*to*, with an arrow, since a bare "Free study" would have read as the mode you
-were in. The sun on the index says the same thing a third time, the mark's cream
-against a faint sage (`--color-sun-free`). Every other page says it in its
-ground: in free study the study pages, the import screen and the print pages
-are `--color-sun-free` rather than the paper, and the logo is the sage one on
-every page. The index keeps the paper, because its rays are that color and
+repetition is the main way to study, and free study is the alternative. It
+started off, while the scheduled reviewer was new; it flipped on September 13,
+2026, once it had been lived with. It is a bar of two segments, free study then
+spaced repetition, with the current one filled in the color of the mark in the
+header — the mark's cream, or the free study sage. Both modes on show is what
+lets the labels name the modes themselves; the button it replaced named the mode
+it moved *to*, with an arrow, since a bare "Free study" would have read as the
+mode you were in. The sun on the index says the same thing a third time, the
+mark's cream against a faint sage (`--color-sun-free`). Every other page says it
+in its ground: in free study the study pages, the import screen and the print
+pages are `--color-sun-free` rather than the paper, and the logo is the sage one
+on every page. The index keeps the paper, because its rays are that color and
 would disappear on it. Pages with no mode of their own take the saved one,
-before paint from the script in `app/layout.tsx` and on a client navigation
-from `useStoredMode`. It governs what the *index* draws and what it writes
-into its own study links; what the reviewer reads is `?scheduled` in the URL,
-never the preference. The two are separate on purpose: a link then says which
-reviewer it opens and a bookmark cannot change under the reader, and scrapping
-the experiment deletes a path rather than restoring a deleted one. See
+before paint from the script in `app/layout.tsx` and on a client navigation from
+`useStoredMode`. It governs what the *index* draws and what it writes into its
+own study links; what the reviewer reads is `?scheduled` in the URL, never the
+preference. The two are separate on purpose: a link then says which reviewer it
+opens and a bookmark cannot change under the reader, and scrapping the
+experiment deletes a path rather than restoring a deleted one. See
 `lib/studyMode.ts`.
 
 `/study/all?scheduled` deals only what is due across its decks — `buildDueQueue`
@@ -363,7 +364,7 @@ times. `updatedAt` moves when the draft or the grade changes, in either mode;
 `scheduledAt` only on a scheduled answer. A merge takes the draft and grade from
 the later `updatedAt` and the schedule fields from the later `scheduledAt`, so a
 free study answer on one device cannot carry an older box over a scheduled
-answer on another — the same line free study never crosses locally. A draft
+answer on another, just as free study never moves the schedule locally. A draft
 committed unchanged is not stamped (`withDraft`), or every card passed over
 would read as edited just now. Both arrived inside version 4, like `dueAt`, and
 a record without them ties at "never" and falls back on the migration rules:
