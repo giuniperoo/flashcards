@@ -7,6 +7,7 @@ import { DECK_PARAM } from "@/lib/deckFilter";
 import { studyHref } from "@/lib/studyMode";
 import { usePrefs } from "@/lib/usePrefs";
 import { useStoredMode } from "@/lib/useStoredMode";
+import { Say } from "@/components/Voice";
 
 /*
  * The top of a print page: the same title row a study page has, and what to set
@@ -52,19 +53,21 @@ export default function PrintIntro({
   return (
     <div className="no-print">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 className="text-2xl font-medium tracking-tight">{title}</h1>
+        <h1 className="text-2xl font-medium tracking-tight">
+          {slug === "all" ? <Say k="print.allHeading" /> : title}
+        </h1>
         <div className="flex items-baseline gap-4">
           <Link
             href={studyHref(slug, prefs.scheduled, search)}
             className="label text-muted hover:text-ink"
           >
-            Study
+            <Say k="deck.study" />
           </Link>
           <span aria-hidden className="label text-muted">
             ·
           </span>
           <Link href="/" className="label text-muted hover:text-ink">
-            All decks
+            <Say k="nav.allDecks" />
           </Link>
         </div>
       </div>
@@ -79,7 +82,9 @@ export default function PrintIntro({
           <PrintButton />
         </div>
 
-        <p className="label mt-5 text-muted">In the print dialog</p>
+        <p className="label mt-5 text-muted">
+          <Say k="print.inDialog" />
+        </p>
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm">
           {DIALOG.map(([setting, value]) => (
             <div key={setting} className="contents">
@@ -90,14 +95,11 @@ export default function PrintIntro({
         </dl>
 
         <p className="mt-4 text-sm leading-relaxed text-muted">
-          Answers are already mirrored, so each one lands on the back of its own
-          question. Cut along the dashed lines.
+          <Say k="print.mirrored" />
           {blanks > 0 && (
             <>
               {" "}
-              The last sheet has {blanks} blank{" "}
-              {blanks === 1 ? "cell" : "cells"}, since this deck is not a
-              multiple of eight.
+              <Say k="print.blanks" args={[blanks]} />
             </>
           )}
         </p>

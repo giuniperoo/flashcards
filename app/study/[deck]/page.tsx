@@ -3,6 +3,9 @@ import Link from "next/link";
 import Reviewer from "@/components/Reviewer";
 import ShuffledSet from "@/components/ShuffledSet";
 import CustomDeckView from "@/components/CustomDeckView";
+import { Say } from "@/components/Voice";
+import VoiceTitle from "@/components/VoiceTitle";
+import { pick } from "@/lib/copy";
 import { decks, getDeck, studySet } from "@/lib/loadDecks";
 
 export const dynamicParams = true;
@@ -19,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ deck: string }>;
 }): Promise<Metadata> {
   const { deck: slug } = await params;
-  if (slug === "all") return { title: "Everything" };
+  if (slug === "all") return { title: pick("study.everything", "plain") };
   const deck = getDeck(slug);
   return deck ? { title: deck.name } : {};
 }
@@ -40,12 +43,15 @@ export default async function StudyPage({
   }
 
   const cards = studySet(slug);
-  const title = slug === "all" ? "Everything" : getDeck(slug)!.name;
+  const title = slug === "all" ? pick("study.everything", "plain") : getDeck(slug)!.name;
 
   return (
     <div className="fit mx-auto w-full max-w-3xl">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 className="text-2xl font-medium tracking-tight">{title}</h1>
+        <h1 className="text-2xl font-medium tracking-tight">
+          {slug === "all" ? <Say k="study.everything" /> : title}
+        </h1>
+        {slug === "all" && <VoiceTitle k="study.everything" />}
         {/* Where a scheduled session puts its queue bar, if the bar fits. See
             `components/QueueBar.tsx`. Empty otherwise, and takes no room. The
             row centers its items rather than lining up baselines: the bar has
@@ -54,13 +60,13 @@ export default async function StudyPage({
         <div data-queue-slot className="flex min-w-0 flex-1 justify-center" />
         <div className="flex items-baseline gap-4">
           <Link href={`/print/${slug}`} className="label text-muted hover:text-ink">
-            Print
+            <Say k="deck.print" />
           </Link>
           <span aria-hidden className="label text-muted">
             ·
           </span>
           <Link href="/" className="label text-muted hover:text-ink">
-            All decks
+            <Say k="nav.allDecks" />
           </Link>
         </div>
       </div>

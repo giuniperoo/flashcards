@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { pick, type PlainKey } from "@/lib/copy";
 import { configured, deleteEntry, readEntry, underLimit, writeEntry } from "@/lib/syncStore";
+import { voiceFromCookie } from "@/lib/voice";
 
 /**
  * One sync key's data, by the id derived from it: read it, write it, delete it.
@@ -33,15 +35,17 @@ function answer(body: object | null, status: number) {
   return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
 }
 
-const busy = () =>
-  answer({ error: "Too many requests from this network. Wait a few minutes and try again." }, 429);
+/* A refusal in the reader's voice, which their cookie carries. See `lib/voice.ts`. */
+function refuse(request: NextRequest, key: PlainKey, status: number) {
+  return answer({ error: pick(key, voiceFromCookie(request.headers.get("cookie"))) }, status);
+}
 
 async function guard(request: NextRequest, id: string) {
   if (!configured()) {
-    return answer({ error: "Sync isn’t set up on this server yet." }, 503);
+    return refuse(request, "api.notSetUp", 503);
   }
-  if (!ID.test(id)) return answer({ error: "That isn’t a sync id." }, 400);
-  if (!(await underLimit("all", address(request), 300, 600))) return busy();
+  if (!ID.test(id)) return refuse(request, "api.notAnId", 400);
+  if (!(await underLimit("all", address(request), 300, 600))) return refuse(request, "api.busy", 429);
   return null;
 }
 
@@ -55,12 +59,9 @@ export async function GET(request: NextRequest, { params }: Params) {
   const entry = await readEntry(id);
   if (!entry) {
     if (!(await underLimit("miss", address(request), 20, 3600))) {
-      return answer(
-        { error: "Too many keys tried from this network. Wait an hour and try again." },
-        429,
-      );
+      return refuse(request, "api.tooManyKeys", 429);
     }
-    return answer({ error: "Nothing is stored under that key." }, 404);
+    return refuse(request, "api.nothingStored", 404);
   }
   return answer(entry, 200);
 }
@@ -74,14 +75,14 @@ export async function PUT(request: NextRequest, { params }: Params) {
   try {
     body = await request.json();
   } catch {
-    return answer({ error: "The request wasn’t JSON." }, 400);
+    return refuse(request, "api.notJson", 400);
   }
   const { v, data } = (body ?? {}) as { v?: unknown; data?: unknown };
   if (typeof v !== "number" || !Number.isInteger(v) || v < 0 || typeof data !== "string") {
-    return answer({ error: "The request needs a version and the data." }, 400);
+    return refuse(request, "api.needsVersion", 400);
   }
   if (data.length > MAX_DATA) {
-    return answer({ error: "There’s more progress here than sync can hold." }, 413);
+    return refuse(request, "api.tooBig", 413);
   }
 
   const result = await writeEntry(id, v, data);

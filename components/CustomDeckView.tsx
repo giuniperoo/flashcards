@@ -9,6 +9,9 @@ import Reviewer from "@/components/Reviewer";
 import PrintSheets from "@/components/PrintSheets";
 import PrintIntro from "@/components/PrintIntro";
 import { useStoredMode } from "@/lib/useStoredMode";
+import { Say } from "@/components/Voice";
+import { useSay } from "@/lib/useSay";
+import { useTabTitle } from "@/lib/useTabTitle";
 
 type State = { status: "loading" } | { status: "missing" } | { status: "found"; deck: Deck };
 
@@ -20,6 +23,7 @@ export default function CustomDeckView({
   mode: "study" | "print";
 }) {
   const [state, setState] = useState<State>({ status: "loading" });
+  const say = useSay();
   // An imported deck's print page, from its first frame: "Loading deck…" comes
   // before `PrintIntro`, which sets the same mode once the deck is found. The
   // study page leaves the mode to the reviewer, which reads `?scheduled`.
@@ -32,7 +36,7 @@ export default function CustomDeckView({
 
   const title =
     state.status === "missing"
-      ? "No such deck"
+      ? say("custom.noSuch")
       : state.status === "found"
         ? mode === "print"
           ? `Print ${state.deck.name}`
@@ -43,7 +47,7 @@ export default function CustomDeckView({
   if (state.status === "loading") {
     return (
       <p data-loading className="label text-muted">
-        Loading deck…
+        <Say k="custom.loading" />
       </p>
     );
   }
@@ -51,18 +55,18 @@ export default function CustomDeckView({
   if (state.status === "missing") {
     return (
       <div className="cut rounded-sm bg-card px-5 py-6">
-        <h1 className="text-lg font-medium">No deck called “{slug}” here</h1>
+        <h1 className="text-lg font-medium">
+          <Say k="custom.missingHeading" args={[slug]} />
+        </h1>
         <p className="mt-2 text-sm text-muted">
-          Imported decks are saved in the browser that added them, and on the
-          devices that sync with it. This link won&rsquo;t open anywhere else,
-          including a private window.
+          <Say k="custom.missingBody" />
         </p>
         <div className="mt-4 flex gap-4">
           <Link href="/new" className="label text-muted hover:text-ink">
-            Add a deck
+            <Say k="nav.addDeck" />
           </Link>
           <Link href="/" className="label text-muted hover:text-ink">
-            All decks
+            <Say k="nav.allDecks" />
           </Link>
         </div>
       </div>
@@ -98,39 +102,17 @@ export default function CustomDeckView({
         <div data-queue-slot className="flex min-w-0 flex-1 justify-center" />
         <div className="flex items-baseline gap-4">
           <Link href={`/print/${deck.slug}`} className="label text-muted hover:text-ink">
-            Print
+            <Say k="deck.print" />
           </Link>
           <span aria-hidden className="label text-muted">
             ·
           </span>
           <Link href="/" className="label text-muted hover:text-ink">
-            All decks
+            <Say k="nav.allDecks" />
           </Link>
         </div>
       </div>
       <Reviewer cards={cards} schedulable />
     </div>
   );
-}
-
-/**
- * The server cannot name a deck it has never seen, so an imported deck's tab is
- * named here, the way the built-in routes' `generateMetadata` names theirs.
- *
- * Kept, not just set: Next writes the layout's title into the head after this
- * page has rendered, and that overwrote a title set once from an effect. A
- * `<title>` rendered here lost the same way, since the browser reads the first
- * one in the head and Next's comes first.
- */
-function useTabTitle(title: string | null) {
-  useEffect(() => {
-    if (!title) return;
-    const apply = () => {
-      if (document.title !== title) document.title = title;
-    };
-    apply();
-    const observer = new MutationObserver(apply);
-    observer.observe(document.head, { childList: true, subtree: true, characterData: true });
-    return () => observer.disconnect();
-  }, [title]);
 }

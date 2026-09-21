@@ -1,5 +1,6 @@
 import type { Card } from "./types";
 import { newCardId } from "./cardId";
+import { say } from "./copy";
 
 export type ParseIssue = { line: number; message: string };
 
@@ -74,7 +75,7 @@ export function parseDeck(input: string): ParseResult {
     if (a.length > LONG_ANSWER) {
       result.warnings.push({
         line,
-        message: `This answer is ${a.length} characters, and a printed card fits about ${LONG_ANSWER}, so it will run off the card: "${q.slice(0, 40)}"`,
+        message: say("parse.longAnswer", a.length, LONG_ANSWER, q.slice(0, 40)),
       });
     }
   };
@@ -85,7 +86,7 @@ export function parseDeck(input: string): ParseResult {
     if (!answer) {
       result.errors.push({
         line: pendingQ.line,
-        message: `Question has no answer: "${pendingQ.text.slice(0, 48)}"`,
+        message: say("parse.noAnswer", pendingQ.text.slice(0, 48)),
       });
     } else {
       addCard(tidy(pendingQ.text), answer, pendingQ.line);
@@ -125,7 +126,7 @@ export function parseDeck(input: string): ParseResult {
         if (!isId) {
           result.warnings.push({
             line: lineNo,
-            message: `Not a uuid, so a new id was generated: "${value.slice(0, 40)}"`,
+            message: say("parse.badId", value.slice(0, 40)),
           });
         }
         return;
@@ -155,7 +156,7 @@ export function parseDeck(input: string): ParseResult {
         } else {
           result.warnings.push({
             line: lineNo,
-            message: `Not a six-digit hex color, so a tint was picked for you: "${meta[2]}"`,
+            message: say("parse.badTint", meta[2]),
           });
         }
       }
@@ -176,7 +177,7 @@ export function parseDeck(input: string): ParseResult {
         if (!pendingQ) {
           result.errors.push({
             line: lineNo,
-            message: "Answer with no question above it",
+            message: say("parse.orphanAnswer"),
           });
           return;
         }
@@ -193,7 +194,7 @@ export function parseDeck(input: string): ParseResult {
       } else {
         result.warnings.push({
           line: lineNo,
-          message: `Ignored, no Q: above it: "${line.slice(0, 40)}"`,
+          message: say("parse.ignored", line.slice(0, 40)),
         });
       }
       return;
@@ -225,18 +226,18 @@ export function parseDeck(input: string): ParseResult {
     } else {
       result.warnings.push({
         line: lineNo,
-        message: `Could not find a question and answer on this line: "${line.slice(0, 40)}"`,
+        message: say("parse.noPair", line.slice(0, 40)),
       });
     }
   });
 
   flush();
 
-  if (!result.title) result.title = "Untitled deck";
+  if (!result.title) result.title = say("parse.untitled");
   if (result.cards.length === 0 && result.errors.length === 0) {
     result.errors.push({
       line: 1,
-      message: "No cards found. Check the format guide below",
+      message: say("parse.noCards"),
     });
   }
 

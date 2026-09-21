@@ -26,6 +26,8 @@ import ColorKey from "@/components/ColorKey";
 import { loadReviewerPrefs, saveReviewerPrefs } from "@/lib/reviewerPrefs";
 import { shuffled } from "@/lib/shuffle";
 import { wantsSchedule, withoutSchedule } from "@/lib/studyMode";
+import { Say } from "@/components/Voice";
+import { useSay } from "@/lib/useSay";
 
 /* The progress strip's geometry: how many dashes go in a row.
  *
@@ -246,6 +248,7 @@ export default function Reviewer({
       rather than naming the first card's. */
   crossDeck?: boolean;
 }) {
+  const say = useSay();
   const [order, setOrder] = useState(cards);
   const [position, setPosition] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -596,7 +599,7 @@ export default function Reviewer({
   if (scheduled && !session && !left) {
     return (
       <p data-pending className="label text-muted">
-        Dealing today’s cards…
+        <Say k="reviewer.dealing" />
       </p>
     );
   }
@@ -668,7 +671,7 @@ export default function Reviewer({
             <span className="label text-muted" aria-live="polite">
               {position + 1}/{order.length}
               {tally.held + tally.review > 0 && (
-                <> · {tally.held} held · {tally.review} to revisit</>
+                <Say k="reviewer.tally" args={[tally.held, tally.review]} />
               )}
             </span>
           )}
@@ -681,7 +684,7 @@ export default function Reviewer({
               onClick={shuffle}
               className="press label min-h-9 rounded-sm border border-rule px-3 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
-              Shuffle
+              <Say k="reviewer.shuffle" />
             </button>
           )}
         </div>
@@ -689,22 +692,22 @@ export default function Reviewer({
 
       <p aria-live="polite" className="sr-only">
         {session
-          ? `Card ${done + 1} of ${session.cards.length} due today, ${card.deck.name}. `
-          : `Card ${position + 1} of ${order.length}, ${card.deck.name}. `}
-        {flipped ? "Showing the answer." : "Showing the question."}
+          ? say("reviewer.srScheduled", done + 1, session.cards.length, card.deck.name)
+          : say("reviewer.srFree", position + 1, order.length, card.deck.name)}
+        {flipped ? say("reviewer.srAnswer") : say("reviewer.srQuestion")}
       </p>
 
       <div className="fit [perspective:1600px]">
         <div className="flip" data-face={flipped ? "back" : "front"}>
           <Face tint={card.deck.tint} className="flex flex-col" hidden={flipped}>
             <p className="label" style={{ color: "var(--color-question)" }}>
-              Question
+              <Say k="reviewer.question" />
             </p>
             <p className="mt-3 text-lg leading-snug font-medium sm:text-xl">
               {card.q}
             </p>
             <label htmlFor="recall" className="sr-only">
-              Write your answer before turning the card over
+              <Say k="reviewer.answerLabel" />
             </label>
             <textarea
               id="recall"
@@ -719,7 +722,7 @@ export default function Reviewer({
               onBlur={() => commitDraft(draft)}
               aria-invalid={error}
               aria-describedby={error ? "recall-error" : undefined}
-              placeholder="Write it from memory. A half answer still counts."
+              placeholder={say("reviewer.placeholder")}
               // Grows into whatever the card's fixed height leaves over, and
               // stays draggable. `grow shrink-0` rather than `flex-1` because
               // flex-1 sets a 0% basis, which overrides the height the resize
@@ -733,7 +736,7 @@ export default function Reviewer({
             />
             {error && (
               <p id="recall-error" role="alert" className="mt-2 text-sm text-error">
-                Write something first. A guess is fine.
+                <Say k="reviewer.writeFirst" />
               </p>
             )}
           </Face>
@@ -745,13 +748,15 @@ export default function Reviewer({
             hidden={!flipped}
           >
             <p className="label" style={{ color: "var(--color-answer)" }}>
-              Answer
+              <Say k="reviewer.answer" />
             </p>
             <p className="mt-3 text-base leading-relaxed sm:text-[17px]">
               {card.a}
             </p>
             <div className="mt-5 border-t border-rule pt-4">
-              <p className="label text-muted">You wrote</p>
+              <p className="label text-muted">
+                <Say k="reviewer.youWrote" />
+              </p>
               <p className="mt-2 text-[15px] leading-relaxed text-muted">
                 {saved.cards[key]?.draft}
               </p>
@@ -770,14 +775,14 @@ export default function Reviewer({
                 onClick={(event) => grade("held", event.detail === 0)}
                 className="press min-h-11 pointer-fine:min-h-9 flex-1 rounded-sm border border-rule px-3 py-2 pointer-fine:py-1.5 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
-                I had it
+                <Say k="grade.held" />
               </button>
               <button
                 type="button"
                 onClick={(event) => grade("review", event.detail === 0)}
                 className="press min-h-11 pointer-fine:min-h-9 flex-1 rounded-sm border border-rule px-3 py-2 pointer-fine:py-1.5 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
-                Needs review
+                <Say k="grade.review" />
               </button>
             </div>
           </Face>
@@ -788,7 +793,7 @@ export default function Reviewer({
         <button
           type="button"
           onClick={() => move(-1)}
-          aria-label="Previous card"
+          aria-label={say("reviewer.previous")}
           className="press min-h-11 pointer-fine:min-h-9 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           ←
@@ -798,12 +803,12 @@ export default function Reviewer({
           onClick={flip}
           className="press min-h-11 pointer-fine:min-h-9 flex-1 rounded-sm border border-ink px-3 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
-          {flipped ? "Turn back" : "Turn card over"}
+          {flipped ? <Say k="reviewer.turnBack" /> : <Say k="reviewer.turnOver" />}
         </button>
         <button
           type="button"
           onClick={() => move(1)}
-          aria-label="Next card"
+          aria-label={say("reviewer.next")}
           className="press min-h-11 pointer-fine:min-h-9 w-14 rounded-sm border border-rule text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           →
@@ -831,8 +836,8 @@ export default function Reviewer({
       </div>
 
       <p className="label mt-4 hidden text-muted sm:block">
-        ⌘/Ctrl + Enter turn over · ← → move · 1 held · 2 revisit
-        {!session && <> · S shuffle</>}
+        <Say k="reviewer.keys" />
+        {!session && <Say k="reviewer.keysShuffle" />}
       </p>
     </div>
   );
@@ -921,7 +926,7 @@ function Panel({
   focus = false,
   children,
 }: {
-  title: string;
+  title: React.ReactNode;
   /** Take focus when it appears: the last card was graded from the keyboard,
       and the button that graded it has gone. */
   focus?: boolean;
@@ -950,7 +955,7 @@ function AllDecks() {
       href="/"
       className="press label inline-flex min-h-11 pointer-fine:min-h-9 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
-      All decks
+      <Say k="nav.allDecks" />
     </Link>
   );
 }
@@ -981,26 +986,27 @@ function SessionDone({
   onStudyDeck: (fromKeyboard: boolean) => void;
   focus: boolean;
 }) {
+  const say = useSay();
   const total = session.cards.length;
   /* Only the halves that happened: "0 need review" takes the same room as a
      real number while saying nothing. The words are the buttons' own, so the
      sentence reads back what the reader pressed. */
   const moves = [
-    session.right > 0 && `${session.right} right`,
-    session.missed > 0 && `${session.missed} need${session.missed === 1 ? "s" : ""} review`,
+    session.right > 0 && say("done.right", session.right),
+    session.missed > 0 && say("done.missed", session.missed),
   ].filter(Boolean);
   return (
     // "For today" is wrong when a card is back this afternoon.
     <Panel
-      title={laterToday(returns, today) ? "Done for now" : "Done for today"}
+      title={laterToday(returns, today) ? <Say k="done.titleNow" /> : <Say k="done.titleToday" />}
       focus={focus}
     >
       <p className="mt-2 max-w-[46ch] text-sm text-muted">
         {total} card{total === 1 ? "" : "s"}.{moves.length > 0 && ` ${moves.join(", ")}.`}
         {returns &&
           (deck
-            ? ` ${deck} comes back ${returnsIn(returns, today)}.`
-            : ` The next cards come back ${returnsIn(returns, today)}.`)}
+            ? say("done.deckBack", deck, returnsIn(returns, today))
+            : say("done.nextBack", returnsIn(returns, today)))}
       </p>
       <Strip
         className="mt-5"
@@ -1020,7 +1026,7 @@ function SessionDone({
           onClick={(event) => onStudyDeck(event.detail === 0)}
           className="press label inline-flex min-h-11 pointer-fine:min-h-9 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
-          {deck ? "Study the whole deck" : "Study every card"}
+          {deck ? <Say k="done.studyDeck" /> : <Say k="done.studyEvery" />}
         </button>
         <AllDecks />
       </div>
@@ -1043,18 +1049,18 @@ function NothingDue({
   /* Across decks, "nothing scheduled" needs one more sentence than in a deck:
      this queue never deals new cards, so the way in is a deck of its own, and
      without saying so the reader has no way to find that out. */
+  const say = useSay();
   const where = deck
     ? returns
       ? `${deck} comes back ${returnsIn(returns, today)}.`
-      : `Nothing in ${deck} is scheduled yet.`
+      : say("nothing.notScheduledDeck", deck)
     : returns
       ? `The next cards come back ${returnsIn(returns, today)}.`
-      : "Nothing is scheduled yet. Cards join the schedule when you answer them in their own deck.";
+      : say("nothing.notScheduled");
   return (
-    <Panel title={laterToday(returns, today) ? "Nothing due right now" : "Nothing due today"}>
+    <Panel title={laterToday(returns, today) ? <Say k="nothing.titleNow" /> : <Say k="nothing.titleToday" />}>
       <p className="mt-2 max-w-[42ch] text-sm text-muted">
-        {where} You can still study {deck ? "the whole deck" : "every card"}. That
-        won’t change when any card comes back.
+        {say("nothing.body", where, deck !== null)}
       </p>
       <div className="mt-5 flex flex-wrap gap-2">
         <button
@@ -1062,7 +1068,7 @@ function NothingDue({
           onClick={(event) => onStudyAnyway(event.detail === 0)}
           className="press min-h-11 pointer-fine:min-h-9 rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
-          Study anyway
+          <Say k="nothing.studyAnyway" />
         </button>
         <AllDecks />
       </div>

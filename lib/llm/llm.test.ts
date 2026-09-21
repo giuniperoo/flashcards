@@ -28,8 +28,8 @@ import {
 import { explainOpenAI, generateWithOpenAI, openAIOptions, unusableOpenAI } from "./openai";
 import { keyProblem } from "./providers";
 import {
-  CUT_OFF,
-  DECLINED,
+  cutOff,
+  declined,
   GenerateError,
   cleanDeck,
   readEvents,
@@ -371,14 +371,14 @@ const cases: Array<[string, () => boolean | Promise<boolean>]> = [
     "OpenAI running out of room says the deck was cut off",
     async () => {
       answer(() => sse([{ choices: [{ delta: { content: "# CAP" }, finish_reason: "length" }] }, "[DONE]"]));
-      return failsWith(() => generateWithOpenAI(options("openai", { id: "gpt-4o", label: "" })), CUT_OFF);
+      return failsWith(() => generateWithOpenAI(options("openai", { id: "gpt-4o", label: "" })), cutOff());
     },
   ],
   [
     "an OpenAI refusal says the model declined",
     async () => {
       answer(() => sse([{ choices: [{ delta: { refusal: "I can't help with that." }, finish_reason: "stop" }] }, "[DONE]"]));
-      return failsWith(() => generateWithOpenAI(options("openai", { id: "gpt-4o", label: "" })), DECLINED);
+      return failsWith(() => generateWithOpenAI(options("openai", { id: "gpt-4o", label: "" })), declined());
     },
   ],
   [
@@ -492,12 +492,12 @@ const cases: Array<[string, () => boolean | Promise<boolean>]> = [
     async () => {
       const model = { id: "gemini-2.5-flash", label: "" };
       answer(() => sse([{ candidates: [{ content: { parts: [{ text: "# CAP" }] }, finishReason: "MAX_TOKENS" }] }]));
-      const cut = await failsWith(() => generateWithGemini(options("gemini", model)), CUT_OFF);
+      const cut = await failsWith(() => generateWithGemini(options("gemini", model)), cutOff());
       answer(() => sse([{ candidates: [{ finishReason: "SAFETY" }] }]));
-      const declined = await failsWith(() => generateWithGemini(options("gemini", model)), DECLINED);
+      const safety = await failsWith(() => generateWithGemini(options("gemini", model)), declined());
       answer(() => sse([{ promptFeedback: { blockReason: "PROHIBITED_CONTENT" } }]));
-      const blocked = await failsWith(() => generateWithGemini(options("gemini", model)), DECLINED);
-      return cut && declined && blocked;
+      const blocked = await failsWith(() => generateWithGemini(options("gemini", model)), declined());
+      return cut && safety && blocked;
     },
   ],
   [

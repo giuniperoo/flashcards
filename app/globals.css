@@ -406,6 +406,28 @@ html[data-mode="free"] .wordmark-schedule {
   display: none;
 }
 
+/* The two voices. `<Say>` renders both, and the one not in use is neither drawn
+   nor read aloud. `display: contents` so the words' span adds no box of its
+   own: they sit in their parent exactly as bare text would, in a flex row or
+   anywhere else. Plain unless the pre-paint script set `data-voice`, which it
+   does only for the other voice, so with scripts off the interface is plain.
+   See `lib/voice.ts`. */
+.voice-plain {
+  display: contents;
+}
+
+.voice-swearengen {
+  display: none;
+}
+
+html[data-voice="swearengen"] .voice-plain {
+  display: none;
+}
+
+html[data-voice="swearengen"] .voice-swearengen {
+  display: contents;
+}
+
 /* What a study page draws before it knows what to draw, kept out of sight.
 
    The study routes are prerendered without the address, so the server's frame

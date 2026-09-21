@@ -1,3 +1,4 @@
+import { say, type PlainKey } from "../copy";
 /**
  * The model providers a deck can be written with, and what differs between them
  * before any request is made: what they are called, where a key comes from, and
@@ -23,7 +24,8 @@ export type ProviderInfo = {
   company: string;
   placeholder: string;
   keysUrl: string;
-  keysLinkText: string;
+  /** The words on the link to where keys are made; see `lib/copy.ts`. */
+  keysLink: PlainKey;
 };
 
 export const PROVIDER_INFO: Record<Provider, ProviderInfo> = {
@@ -32,21 +34,21 @@ export const PROVIDER_INFO: Record<Provider, ProviderInfo> = {
     company: "Anthropic",
     placeholder: "sk-ant-...",
     keysUrl: "https://platform.claude.com/settings/keys",
-    keysLinkText: "Get a key from the Anthropic console",
+    keysLink: "keys.linkAnthropic",
   },
   openai: {
     name: "OpenAI",
     company: "OpenAI",
     placeholder: "sk-...",
     keysUrl: "https://platform.openai.com/api-keys",
-    keysLinkText: "Get a key from the OpenAI platform",
+    keysLink: "keys.linkOpenai",
   },
   gemini: {
     name: "Gemini",
     company: "Google",
     placeholder: "AQ... or AIza...",
     keysUrl: "https://aistudio.google.com/apikey",
-    keysLinkText: "Get a key from Google AI Studio",
+    keysLink: "keys.linkGemini",
   },
 };
 
@@ -94,15 +96,15 @@ export function keyProblem(provider: Provider, raw: string): string | null {
   if (shape.test(key) && (other === null || other === provider)) return null;
 
   if (other && other !== provider) {
-    return `That looks like ${AN_OWNER[other]} key. Choose ${PROVIDER_INFO[other].name} above to use it, or paste your ${PROVIDER_INFO[provider].company} key here.`;
+    return say("keys.wrongProvider", AN_OWNER[other], PROVIDER_INFO[other].name, PROVIDER_INFO[provider].company);
   }
 
   switch (provider) {
     case "anthropic":
-      return "That doesn't look like an Anthropic key. They start with sk-ant- . Copy the whole thing from the console.";
+      return say("keys.notAnthropic");
     case "openai":
-      return "That doesn't look like an OpenAI key. They start with sk- . Copy the whole thing from the API keys page.";
+      return say("keys.notOpenai");
     case "gemini":
-      return "That doesn't look like a Gemini API key. They start with AQ. or AIza . Copy the whole thing from Google AI Studio.";
+      return say("keys.notGemini");
   }
 }

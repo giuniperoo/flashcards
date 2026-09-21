@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import {
-  CUT_OFF,
-  DECLINED,
+  cutOff,
+  declined,
   GenerateError,
   SYSTEM,
   buildPrompt,
@@ -9,6 +9,7 @@ import {
   type GenerateOptions,
   type ModelOption,
 } from "./shared";
+import { say } from "../copy";
 
 /**
  * Claude, through the Anthropic SDK in the browser. `dangerouslyAllowBrowser`
@@ -78,19 +79,19 @@ export function explainAnthropic(error: unknown): string {
     error instanceof Anthropic.APIError &&
     /credit balance|billing|quota/i.test(error.message)
   ) {
-    return "Your Anthropic account is out of credit. Add some under Plans and billing in the console, then try again.";
+    return say("llm.anthropicCredit");
   }
   if (error instanceof Anthropic.AuthenticationError) {
-    return "That key was rejected. Check it hasn't been revoked, or paste a new one.";
+    return say("llm.rejectedRevoked");
   }
   if (error instanceof Anthropic.PermissionDeniedError) {
-    return "That key doesn't have access to this model. Pick another model, or check the key's permissions in the Anthropic console.";
+    return say("llm.anthropicNoAccess");
   }
   if (error instanceof Anthropic.NotFoundError) {
-    return "That model isn't available to this key. Pick another model.";
+    return say("llm.modelUnavailable");
   }
   if (error instanceof Anthropic.RateLimitError) {
-    return "Your account hit its rate limit. Wait a minute and try again.";
+    return say("llm.rateLimited");
   }
   if (error instanceof Anthropic.BadRequestError) {
     // A key whose Scope is "Same as linked account" is not bound to a
@@ -98,17 +99,17 @@ export function explainAnthropic(error: unknown): string {
     // look one up — the organizations endpoints send no CORS headers — so the
     // only fix is a key scoped to a workspace when it was created.
     if (/anthropic-workspace-id/i.test(error.message)) {
-      return "That key isn't tied to a workspace, because its scope was left as \"Same as linked account\". Make another key in the console with Scope set to a workspace such as \"Default\", and paste that one.";
+      return say("llm.anthropicWorkspace");
     }
-    return `The request was rejected: ${error.message}`;
+    return say("llm.rejectedRequest", error.message);
   }
   if (error instanceof Anthropic.APIConnectionError) {
-    return "Could not reach Anthropic. Check your connection and try again.";
+    return say("llm.anthropicUnreachable");
   }
   if (error instanceof Anthropic.APIError) {
-    return `Anthropic returned an error: ${error.message}`;
+    return say("llm.anthropicError", error.message);
   }
-  return "Generation failed. Try again.";
+  return say("gen.failed");
 }
 
 export async function generateWithClaude(options: GenerateOptions): Promise<string> {
@@ -142,8 +143,8 @@ export async function generateWithClaude(options: GenerateOptions): Promise<stri
 
     const message = await stream.finalMessage();
 
-    if (message.stop_reason === "refusal") throw new GenerateError(DECLINED);
-    if (message.stop_reason === "max_tokens") throw new GenerateError(CUT_OFF);
+    if (message.stop_reason === "refusal") throw new GenerateError(declined());
+    if (message.stop_reason === "max_tokens") throw new GenerateError(cutOff());
   } catch (error) {
     if (error instanceof GenerateError) throw error;
     if (options.signal?.aborted) return cleanDeck(full).trim();

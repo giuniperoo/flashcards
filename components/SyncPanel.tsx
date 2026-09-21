@@ -15,6 +15,9 @@ import {
   type SyncStatus,
 } from "@/lib/sync";
 import { MIN_KEY_LENGTH, suggestKey } from "@/lib/syncCrypto";
+import { Say } from "@/components/Voice";
+import { say } from "@/lib/copy";
+import { useSay } from "@/lib/useSay";
 
 const FIELD =
   "min-h-11 pointer-fine:min-h-9 w-full rounded-sm border border-rule bg-card px-3 font-mono text-base outline-none placeholder:text-muted focus:border-ink sm:text-sm";
@@ -74,6 +77,7 @@ function useSyncStatus(): SyncStatus | null {
  */
 export default function SyncPanel() {
   const status = useSyncStatus();
+  const words = useSay();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"new" | "join">("new");
   const [typed, setTyped] = useState("");
@@ -149,13 +153,13 @@ export default function SyncPanel() {
 
   const label = !on
     ? status.notice
-      ? "Sync stopped"
-      : "Sync across devices"
+      ? words("sync.stopped")
+      : words("sync.label")
     : status.busy
-      ? "Syncing…"
+      ? words("sync.syncing")
       : status.error
-        ? "Not synced"
-        : "Synced across devices";
+        ? words("sync.notSynced")
+        : words("sync.synced");
 
   return (
     <>
@@ -193,14 +197,14 @@ export default function SyncPanel() {
           <div className="px-5 pt-2 pb-5">
             <div className="flex items-center gap-1">
               <h2 id={titleId} className="mr-auto text-base font-medium">
-                Sync across devices
+                <Say k="sync.label" />
               </h2>
               {/* 44px to press, a 20px ring to see, as beside the study strip. */}
               <button
                 type="button"
                 aria-expanded={noteOpen}
                 aria-controls={noteId}
-                aria-label="How your key is used"
+                aria-label={words("sync.noteLabel")}
                 onClick={() => setNoteOpen(!noteOpen)}
                 className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none"
               >
@@ -217,7 +221,7 @@ export default function SyncPanel() {
                 ref={closer}
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close"
+                aria-label={words("common.close")}
                 className="-mr-3 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:text-ink focus-visible:outline-1 focus-visible:-outline-offset-4 focus-visible:outline-focus"
               >
                 <CloseIcon className="h-5 w-5" />
@@ -243,7 +247,7 @@ export default function SyncPanel() {
                 )}
                 <div
                   role="radiogroup"
-                  aria-label="Which device is this"
+                  aria-label={words("sync.whichDevice")}
                   className="mt-3 flex min-h-11 pointer-fine:min-h-9 items-center"
                 >
                   <span className="segment-bar">
@@ -255,7 +259,7 @@ export default function SyncPanel() {
                         onChange={() => choose("new")}
                         className="sr-only"
                       />
-                      My first device
+                      <Say k="sync.firstDevice" />
                     </label>
                     <label className={mode === "join" ? "chosen" : undefined}>
                       <input
@@ -265,15 +269,15 @@ export default function SyncPanel() {
                         onChange={() => choose("join")}
                         className="sr-only"
                       />
-                      I have a key
+                      <Say k="sync.haveKey" />
                     </label>
                   </span>
                 </div>
 
                 <p className="mt-2 text-sm text-muted">
                   {mode === "new"
-                    ? "Choose a key for your progress and imported decks, or keep the one suggested. You’ll use it, or its QR code, to add your other devices."
-                    : "Enter the key from your first device. Scanning its QR code with this device’s camera fills it in."}
+                    ? words("sync.introNew")
+                    : words("sync.introJoin")}
                 </p>
 
                 <form
@@ -311,7 +315,7 @@ export default function SyncPanel() {
                       spellCheck={false}
                       aria-describedby="sync-key-hint"
                       aria-invalid={problem !== ""}
-                      placeholder={mode === "join" ? "Your key" : undefined}
+                      placeholder={mode === "join" ? words("sync.keyPlaceholder") : undefined}
                       className={FIELD}
                     />
                   </div>
@@ -321,10 +325,10 @@ export default function SyncPanel() {
                     className={BUTTON}
                   >
                     {working
-                      ? "Checking the key…"
+                      ? words("sync.checking")
                       : mode === "new"
-                        ? "Start syncing"
-                        : "Join"}
+                        ? words("sync.start")
+                        : words("sync.join")}
                   </button>
                 </form>
 
@@ -333,7 +337,7 @@ export default function SyncPanel() {
                   className="mt-2 flex flex-wrap items-center gap-x-3 text-sm text-muted"
                 >
                   <span>
-                    At least {MIN_KEY_LENGTH} characters. Capital letters count.
+                    <Say k="sync.keyHint" args={[MIN_KEY_LENGTH]} />
                   </span>
                   {mode === "new" && (
                     <button
@@ -344,7 +348,9 @@ export default function SyncPanel() {
                       }}
                       className={TEXT_BUTTON}
                     >
-                      <span className="ring-words">Suggest another</span>
+                      <span className="ring-words">
+                        <Say k="sync.suggest" />
+                      </span>
                     </button>
                   )}
                 </p>
@@ -379,41 +385,36 @@ function KeyNote({ id }: { id: string }) {
     >
       <p className="font-medium">How your key is used</p>
       <p className="mt-1 text-muted">
-        Syncing with a key trades some security for ease of use. There’s no
-        account, email or password to set up, and no password reset either. Your
-        key is the only lock.
+        <Say k="sync.noteIntro" />
       </p>
       <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-muted marker:text-rule">
         <li>
-          <strong className="font-medium text-ink">On this device</strong> the
-          key is saved in the browser so syncing keeps working. Anyone who can
-          use this browser can see it.
+          <strong className="font-medium text-ink">On this device</strong>{" "}
+          <Say k="sync.noteDevice" />
         </li>
         <li>
           <strong className="font-medium text-ink">
             It’s never sent anywhere.
           </strong>{" "}
-          The server receives a fingerprint of the key, used to find your data,
-          and your progress encrypted with the key. It can’t read your answers.
+          <Say k="sync.noteSent" />
         </li>
         <li>
           <strong className="font-medium text-ink">
             A simple key can be guessed
           </strong>
-          , and whoever guesses it can read and change your progress. A longer
-          key, or several unrelated words, is much harder to guess.
+          <Say k="sync.noteGuess" />
         </li>
         <li>
           <strong className="font-medium text-ink">
             Anyone with a photo of the QR code
           </strong>{" "}
-          has your key.
+          <Say k="sync.notePhoto" />
         </li>
         <li>
           <strong className="font-medium text-ink">
             Lose the key on every device
           </strong>{" "}
-          and it can’t be recovered.
+          <Say k="sync.noteLost" />
         </li>
       </ul>
     </div>
@@ -428,6 +429,7 @@ function Syncing({
   status: Extract<SyncStatus, { state: "on" }>;
   onStopped: () => void;
 }) {
+  const words = useSay();
   const [showKey, setShowKey] = useState(false);
   const [showCode, setShowCode] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -442,7 +444,7 @@ function Syncing({
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setProblem(
-        "Couldn’t copy the link. Show the key and type it on the other device instead.",
+        say("sync.copyFailed"),
       );
     }
   };
@@ -451,16 +453,18 @@ function Syncing({
     <div className="mt-2 text-sm">
       <p role="status" className={status.error ? "text-error" : "text-muted"}>
         {status.busy
-          ? "Syncing…"
+          ? words("sync.syncing")
           : status.error
             ? status.error
             : status.syncedAt
-              ? `This device is syncing. Last synced ${when(status.syncedAt)}.`
+              ? words("sync.statusAt", when(status.syncedAt))
               : "This device is syncing."}
       </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span className="label text-muted">Key</span>
+        <span className="label text-muted">
+          <Say k="sync.keyLabel" />
+        </span>
         <code className="font-mono text-ink">
           {showKey ? status.key : "••••••••••••"}
         </code>
@@ -469,7 +473,9 @@ function Syncing({
           onClick={() => setShowKey(!showKey)}
           className={TEXT_BUTTON}
         >
-          <span className="ring-words">{showKey ? "Hide" : "Show"}</span>
+          <span className="ring-words">
+            {showKey ? <Say k="sync.hideKey" /> : <Say k="sync.showKey" />}
+          </span>
         </button>
       </div>
 
@@ -479,10 +485,10 @@ function Syncing({
           onClick={() => setShowCode(!showCode)}
           className={BUTTON}
         >
-          {showCode ? "Hide QR code" : "Show QR code"}
+          {showCode ? <Say k="sync.hideQr" /> : <Say k="sync.showQr" />}
         </button>
         <button type="button" onClick={copy} className={BUTTON}>
-          {copied ? "Link copied" : "Copy link"}
+          {copied ? <Say k="sync.copied" /> : <Say k="sync.copy" />}
         </button>
         <button
           type="button"
@@ -490,7 +496,7 @@ function Syncing({
           onClick={() => void syncNow()}
           className={BUTTON}
         >
-          Sync now
+          <Say k="sync.now" />
         </button>
       </div>
 
@@ -505,7 +511,9 @@ function Syncing({
           }}
           className={TEXT_BUTTON}
         >
-          <span className="ring-words">Stop syncing on this device</span>
+          <span className="ring-words">
+            <Say k="sync.stopHere" />
+          </span>
         </button>
         {!confirming && (
           <button
@@ -513,7 +521,9 @@ function Syncing({
             onClick={() => setConfirming(true)}
             className={TEXT_BUTTON}
           >
-            <span className="ring-words">Delete the synced copy</span>
+            <span className="ring-words">
+              <Say k="sync.deleteCopy" />
+            </span>
           </button>
         )}
       </div>
@@ -521,8 +531,7 @@ function Syncing({
       {confirming && (
         <div className="mt-2">
           <p>
-            This deletes the copy on the server. Every device stops syncing, and
-            each keeps the progress it has.
+            <Say k="sync.deleteWarning" />
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             <button
@@ -537,14 +546,14 @@ function Syncing({
               }}
               className={BUTTON}
             >
-              {working ? "Deleting…" : "Delete it"}
+              {working ? <Say k="sync.deleting" /> : <Say k="sync.delete" />}
             </button>
             <button
               type="button"
               onClick={() => setConfirming(false)}
               className={BUTTON}
             >
-              Keep it
+              <Say k="sync.keep" />
             </button>
           </div>
         </div>
@@ -565,6 +574,7 @@ function Syncing({
  */
 function QrCode({ text }: { text: string }) {
   const [path, setPath] = useState<{ d: string; size: number } | null>(null);
+  const words = useSay();
 
   const draw = useCallback(async () => {
     const { default: qrcode } = await import("qrcode-generator");
@@ -592,7 +602,7 @@ function QrCode({ text }: { text: string }) {
         {path && (
           <svg
             role="img"
-            aria-label="QR code for joining with this key"
+            aria-label={words("sync.qrLabel")}
             viewBox={`0 0 ${path.size} ${path.size}`}
             className="h-full w-full text-ink"
             shapeRendering="crispEdges"
@@ -602,8 +612,7 @@ function QrCode({ text }: { text: string }) {
         )}
       </div>
       <p className="max-w-[16rem] text-muted">
-        Scan it with your other device’s camera to open this app with the key
-        filled in. Anyone with a photo of this code has your key.
+        <Say k="sync.qrHelp" />
       </p>
     </div>
   );

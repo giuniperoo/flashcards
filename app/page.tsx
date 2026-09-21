@@ -4,6 +4,8 @@ import DeckIndex from "@/components/DeckIndex";
 import DeckVisibility, { StudyMode } from "@/components/DeckVisibility";
 import LogoSun from "@/components/LogoSun";
 import SyncPanel from "@/components/SyncPanel";
+import { Say } from "@/components/Voice";
+import { pick } from "@/lib/copy";
 import { decks, totalCards } from "@/lib/loadDecks";
 export default function Home() {
   return (
@@ -23,8 +25,8 @@ export default function Home() {
         }))}
         shuffled={{
           slug: "all",
-          name: "Everything, shuffled",
-          blurb: `All ${decks.length} decks, interleaved`,
+          name: pick("index.everythingShuffled", "plain"),
+          blurb: pick("index.blurbAll", "plain", decks.length),
           // The mark's own cream ground: the card that is every deck wears
           // the logo's color rather than a hue that would read as a deck.
           tint: "#e0d4bf",
@@ -52,7 +54,7 @@ export default function Home() {
             href="/new"
             className="press label mr-2 inline-flex min-h-11 pointer-fine:min-h-9 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink"
           >
-            Add your own deck
+            <Say k="index.addOwn" />
           </Link>
           <DeckVisibility slugs={decks.map((deck) => deck.slug)} />
           <SyncPanel />

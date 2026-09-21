@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { INTERVALS, intervalWords } from "@/lib/schedule";
+import { Say } from "@/components/Voice";
+import type { PlainKey } from "@/lib/copy";
+import { useSay } from "@/lib/useSay";
 
 /*
  * What the strip's colors mean, behind a small "?" at the end of the strip.
@@ -23,18 +26,18 @@ import { INTERVALS, intervalWords } from "@/lib/schedule";
  * a directive of its own.
  */
 
-const SCHEDULED_ROWS: Array<[string, string]> = [
-  ["var(--color-rule)", "Not answered yet"],
-  ["var(--color-box-1)", "You marked it “Needs review”"],
-  ["var(--color-box-2)", "One right answer in a row"],
-  ["var(--color-box-3)", "Two right answers in a row"],
-  ["var(--color-box-4)", "Three right answers in a row"],
+const SCHEDULED_ROWS: Array<[string, PlainKey]> = [
+  ["var(--color-rule)", "key.notAnswered"],
+  ["var(--color-box-1)", "key.box1"],
+  ["var(--color-box-2)", "key.box2"],
+  ["var(--color-box-3)", "key.box3"],
+  ["var(--color-box-4)", "key.box4"],
 ];
 
-const FREE_ROWS: Array<[string, string]> = [
-  ["var(--color-rule)", "Not answered yet"],
-  ["var(--color-held)", "You marked it “I had it”"],
-  ["var(--color-review)", "You marked it “Needs review”"],
+const FREE_ROWS: Array<[string, PlainKey]> = [
+  ["var(--color-rule)", "key.notAnswered"],
+  ["var(--color-held)", "key.held"],
+  ["var(--color-review)", "key.review"],
 ];
 
 /* Two icons from Lineicons Free (MIT, https://lineicons.com): `question-mark`
@@ -52,11 +55,9 @@ const RING =
    the unit for every rung, so at hours it is four numbers of hours, 8, 16, 24
    and 32, and at a day it is the days in words. See `FIRST_INTERVALS`. */
 function returnsSentence(hours: number) {
-  if (hours >= 24) {
-    return "Red comes back the next day, orange in two days, yellow in three, green in four.";
-  }
+  if (hours >= 24) return <Say k="key.returnsDay" />;
   const [red, orange, yellow, green] = INTERVALS.map((step) => step * hours);
-  return `Red comes back in ${intervalWords(red)}, orange in ${orange}, yellow in ${yellow}, green in ${green}.`;
+  return <Say k="key.returnsHours" args={[intervalWords(red), orange, yellow, green]} />;
 }
 
 export function CloseIcon({ className }: { className?: string }) {
@@ -99,6 +100,7 @@ export default function ColorKey({
   onOpenChange: (open: boolean) => void;
 }) {
   const [hover, setHover] = useState(false);
+  const say = useSay();
   const wrap = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const id = useId();
@@ -152,7 +154,7 @@ export default function ColorKey({
         }}
         aria-expanded={shown}
         aria-controls={id}
-        aria-label="What the colors mean"
+        aria-label={say("key.title")}
         className="group -my-[18px] -mr-3 flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none"
       >
         {/* A 1px ring in the rule color with the glyph inside, rather than
@@ -183,12 +185,14 @@ export default function ColorKey({
             row keeps the button's height either way, so a click on the "?"
             while previewing does not grow the key and shift it up. */}
         <div className="flex min-h-11 items-center justify-between gap-3">
-          <p className="text-sm font-medium">What the colors mean</p>
+          <p className="text-sm font-medium">
+            <Say k="key.title" />
+          </p>
           {open && (
             <button
               type="button"
               onClick={close}
-              aria-label="Close"
+              aria-label={say("common.close")}
               className="-mr-3 inline-flex h-11 w-11 items-center justify-center rounded-full text-muted hover:text-ink focus-visible:outline-1 focus-visible:-outline-offset-4 focus-visible:outline-focus"
             >
               <CloseIcon className="h-5 w-5" />
@@ -196,26 +200,23 @@ export default function ColorKey({
           )}
         </div>
         <p className="text-sm text-muted">
-          {scheduled
-            ? "Each dash is one of today’s cards, colored by how far it has climbed."
-            : "Each dash is a card, colored by your last answer."}
+          {scheduled ? <Say k="key.dashScheduled" /> : <Say k="key.dashFree" />}
         </p>
         <ul className="mt-3 flex flex-col gap-2 text-sm">
           {rows.map(([color, words]) => (
             <li key={words} className="flex items-center gap-3">
               <span aria-hidden className="h-[3px] w-5 shrink-0 rounded-full" style={{ background: color }} />
-              {words}
+              <Say k={words} />
             </li>
           ))}
           <li className="flex items-center gap-3">
             <span aria-hidden className="h-[7px] w-5 shrink-0 rounded-full" style={{ background: ink }} />
-            The card you’re on
+            <Say k="key.current" />
           </li>
         </ul>
         {scheduled && (
           <p className="mt-3 text-sm text-muted">
-            One wrong answer sends a card back to red, so green means three in a
-            row, not three in total. {returnsSentence(firstInterval)}{" "}
+            <Say k="key.oneWrong" /> {returnsSentence(firstInterval)}{" "}
             {/* The setting is on the index, and nothing in a session says so.
                 Leaving ends the session; grades are already saved, and coming
                 back deals what is left. Changing it moves nothing already
@@ -223,7 +224,7 @@ export default function ColorKey({
             <Link href="/#interval" className="underline underline-offset-2 hover:text-ink">
               Change the interval
             </Link>{" "}
-            at the bottom of the deck list. Cards already scheduled aren’t moved.
+            <Say k="key.afterLink" />
           </p>
         )}
       </div>

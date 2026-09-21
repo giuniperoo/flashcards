@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Say } from "@/components/Voice";
 
 /** Everything a card shows. Deliberately not a `Deck`: the index renders a
     dozen of these and has no use for the cards themselves, which are the bulk
@@ -62,7 +63,7 @@ export default function DeckCard({
             <>
               {" · "}
               <span className="font-medium" style={{ color: deck.ink }}>
-                {due} due
+                <Say k="deck.due" args={[due]} />
               </span>
             </>
           )}
@@ -75,10 +76,10 @@ export default function DeckCard({
           them, floating mid-card on anything with a short blurb. */}
       <div className="deck-actions">
         <Link href={study} className="label text-muted hover:text-ink">
-          Study
+          <Say k="deck.study" />
         </Link>
         <Link href={print} className="label text-muted hover:text-ink">
-          Print
+          <Say k="deck.print" />
         </Link>
         {actions}
       </div>

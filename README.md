@@ -28,6 +28,16 @@ like, green and red for your last answer. Nothing you do there moves the
 schedule, so you can't turn a deck green in one sitting. The logo in the
 header says which mode you are in, cream on a schedule and sage in free study.
 
+## Two voices
+
+The interface speaks plainly. Add `?swearengen` to any address and it speaks
+like Al Swearengen from *Deadwood* instead, profanity and all, down to the
+buttons and the error messages; `?swearengen=off` turns it back. The choice is
+kept in a cookie in that browser, so it holds from page to page. Every string
+is written twice, in `lib/copy.ts`, and nothing is swapped after the page loads,
+so neither voice flashes up before the other. The printed sheets and these docs
+are plain either way.
+
 ## Stack
 
 Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4. There's no
@@ -213,7 +223,8 @@ Everything the app remembers lives in `localStorage`, under six keys:
 `decks:custom` for imported decks, `progress` for your answers and each card's
 schedule, `prefs:index` for what the index shows and the mode, `prefs:reviewer`
 for the interval, `llm:key` for the deck writer's keys if you have set any, and
-`sync` for your sync key if you have turned sync on. There is no account, and a
+`sync` for your sync key if you have turned sync on. One cookie, `voice`, says
+whether the interface speaks in the second voice. There is no account, and a
 `/study/your-deck` link will not open for anyone else.
 
 ## Sync

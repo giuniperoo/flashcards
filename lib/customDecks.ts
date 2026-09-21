@@ -2,6 +2,7 @@ import type { Card, Deck, StudyCard } from "./types";
 import { newCardId } from "./cardId";
 import { forgetDeck } from "./progress";
 import { nextTint, shadeForTint } from "./tint";
+import { say } from "./copy";
 
 export const CUSTOM_KEY = "decks:custom";
 export const CUSTOM_VERSION = 1;
@@ -141,7 +142,7 @@ export function saveCustomDeck(input: {
   const deck: Deck = {
     slug: uniqueSlug(input.title, existing, input.reservedSlugs ?? []),
     name: input.title,
-    blurb: input.blurb || `${input.cards.length} imported cards`,
+    blurb: input.blurb || say("custom.importedBlurb", input.cards.length),
     tint: input.tint ?? picked.tint,
     ink: input.tint ? shadeForTint(input.tint) : picked.ink,
     cards: input.cards,
