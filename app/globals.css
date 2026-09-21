@@ -213,7 +213,8 @@ body {
    actions have to fit in 287, and at 0.75rem of side padding they did not —
    they cleared the three-column case and wrapped in the two-column one. */
 /* The queue bar above a scheduled session's card. See `QueueBar` in
-   `Reviewer.tsx`. Two grays for what is still owed, darker for overdue; done
+   `Reviewer.tsx`. Two grays for what is still owed, darker for overdue and for
+   a card answered wrong and waiting to be tried again; done
    and new sit on the card color, and not due on the paper behind a dashed
    edge, since those cards are not part of today at all.
 
@@ -338,7 +339,8 @@ body {
   background: var(--color-card);
 }
 
-.queue-overdue {
+.queue-overdue,
+.queue-again {
   background: var(--color-queue-overdue);
 }
 

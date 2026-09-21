@@ -20,7 +20,7 @@ import {
   daysBetween,
   type Grade,
 } from "@/lib/schedule";
-import { breakdown, buildDueQueue, buildQueue } from "@/lib/queue";
+import { afterAnswer, breakdown, buildDueQueue, buildQueue } from "@/lib/queue";
 import QueueBar from "@/components/QueueBar";
 import ColorKey from "@/components/ColorKey";
 import { loadReviewerPrefs, saveReviewerPrefs } from "@/lib/reviewerPrefs";
@@ -217,13 +217,21 @@ function isTyping(target: EventTarget | null) {
  * left like the bar it is. In answer order rather than dealt order, so a card
  * answered after skipping ahead joins the end of the colored run instead of
  * reshuffling it.
+ *
+ * A card answered wrong is not done. It goes to the back of what is left and
+ * comes round again until it is answered right once, and only then joins
+ * `graded`. `retrying` holds it meanwhile. Only a card's first answer moves the
+ * schedule; a retry records what free study records. See `grade` below.
  */
 type Session = {
   cards: StudyCard[];
   graded: StudyCard[];
-  /** Graded this session. Together they are every card graded, so they add up. */
+  /** First answers this session. Retries are not counted, so the two add up
+      to the cards dealt. */
   right: number;
   missed: number;
+  /** Cards answered wrong and not yet answered right, by `cardKey`. */
+  retrying: ReadonlySet<string>;
   /**
    * Every card in the deck was new when the session opened. The queue bar then
    * has nothing to say but "16 new", so it is not shown — and it stays hidden
@@ -348,6 +356,7 @@ export default function Reviewer({
       graded: [],
       right: 0,
       missed: 0,
+      retrying: new Set(),
       allNew: cardsRef.current.every((c) => !saved.cards[cardKey(c)]?.seen),
     });
     setOrder(queue);
@@ -408,6 +417,11 @@ export default function Reviewer({
   const backRef = useRef<HTMLDivElement>(null);
   const [focusEnd, setFocusEnd] = useState(false);
 
+  /* Bumped on every answer in a session, so the card on screen is reset even
+     when it is the same card: a miss with nothing else left deals it straight
+     back, and its key does not change. */
+  const [turn, setTurn] = useState(0);
+
   useEffect(() => {
     const stored = recordsRef.current[key]?.draft ?? "";
     setDraft(scheduled && !typedRef.current.has(key) ? "" : stored);
@@ -419,7 +433,7 @@ export default function Reviewer({
       inputRef.current.scrollLeft = 0;
       inputRef.current.scrollTop = 0;
     }
-  }, [key, ready, scheduled]);
+  }, [key, ready, scheduled, turn]);
 
   const commitDraft = useCallback(
     (value: string) => {
@@ -504,9 +518,14 @@ export default function Reviewer({
     (value: Grade, fromKeyboard: boolean) => {
       if (!card) return;
       if (fromKeyboard) {
-        if (session && order.length === 1) setFocusEnd(true);
+        if (session && order.length === 1 && value === "held") setFocusEnd(true);
         else focusNext.current = "question";
       }
+      /* Only a card's first answer in a session moves the schedule. A retry is
+         recorded as free study would record it, so a miss, a look at the
+         answer and a right answer a minute later cannot climb the card out of
+         box 1. */
+      const retry = !!session?.retrying.has(key);
       // Free study records the answer only; see `applyGrade`.
       setSaved((prev) => ({
         ...prev,
@@ -518,7 +537,7 @@ export default function Reviewer({
             prev.cards[key] ?? unseenCard,
             value,
             today,
-            scheduled,
+            scheduled && !retry,
             firstInterval,
             Date.now(),
           ),
@@ -530,21 +549,33 @@ export default function Reviewer({
         return;
       }
 
-      /* In a session the card leaves the queue rather than the cursor moving
-         past it, so the next card falls into this position on its own and the
-         session is over when there is nothing left to fall in. */
-      setSession((s) =>
-        s && {
+      /* In a session a card answered right leaves the queue rather than the
+         cursor moving past it, so the next card falls into this position on
+         its own and the session is over when there is nothing left to fall in.
+         A card answered wrong goes to the back instead; see `afterAnswer`. */
+      setSession((s) => {
+        if (!s) return s;
+        const retrying = new Set(s.retrying);
+        if (value === "review") retrying.add(key);
+        else retrying.delete(key);
+        return {
           ...s,
-          graded: [...s.graded, card],
-          right: s.right + (value === "held" ? 1 : 0),
-          missed: s.missed + (value === "review" ? 1 : 0),
-        },
-      );
+          graded: value === "held" ? [...s.graded, card] : s.graded,
+          right: s.right + (!retry && value === "held" ? 1 : 0),
+          missed: s.missed + (!retry && value === "review" ? 1 : 0),
+          retrying,
+        };
+      });
       commitDraft(draft);
-      const remaining = order.filter((_, i) => i !== position);
-      setOrder(remaining);
-      setPosition(remaining.length === 0 ? 0 : Math.min(position, remaining.length - 1));
+      // The box opens empty when the card comes round again, as it does for a
+      // card returning on another day: the wrong answer left in it would be
+      // there to edit rather than recall. It stays in the store until the
+      // retry's answer replaces it.
+      if (value === "review") typedRef.current.delete(key);
+      const next = afterAnswer(order, position, value);
+      setOrder(next.order);
+      setPosition(next.position);
+      setTurn((t) => t + 1);
     },
     [card, key, today, scheduled, firstInterval, session, move, commitDraft, draft, order, position],
   );
@@ -634,7 +665,9 @@ export default function Reviewer({
 
   const strip = session ? [...session.graded, ...order] : order;
   const done = session ? session.cards.length - order.length : 0;
-  const counts = session ? breakdown(cards, session.cards, order, saved.cards, today) : null;
+  const counts = session
+    ? breakdown(cards, session.cards, order, saved.cards, today, session.retrying)
+    : null;
 
   return (
     // `data-pending` while no session is dealt: on a schedule this is the

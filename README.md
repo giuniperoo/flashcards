@@ -15,7 +15,8 @@ the built-in decks in.
 
 Spaced repetition is the default. A deck deals what is due, the cards you owe
 first and then the ones you have never seen, and the session ends when they are
-done. Every card sits in one of four boxes: a right answer moves it up one, a
+done. A card you get wrong goes to the back of the session and comes back until
+you get it right; only the first answer counts toward the schedule. Every card sits in one of four boxes: a right answer moves it up one, a
 wrong one sends it back to the first. Box one comes back after one interval, box
 four after four. The interval is a day unless you set it shorter at the bottom
 of the index: 1, 2, 4 or 8 hours, for the day before an interview. The strip
