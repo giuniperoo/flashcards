@@ -5,8 +5,8 @@ Context for working in this repo. Read before making changes.
 ## What this is
 
 A flashcard app for interview preparation. Twelve built-in decks and 264 cards,
-four of which (React 19, CAP theorem, ACID, SOLID) mirror decks that exist as
-printed cards, plus any deck you import or have an AI write. Studied in the
+four of which (React 19, CAP theorem, ACID, SOLID) began as printed cards, plus
+any deck you import or have an AI write. Studied in the
 browser, on a schedule or freely, or printed as physical cards. Single user. The
 only backend is sync's: one route that keeps an encrypted copy per sync key.
 The interface speaks plainly, or in Al Swearengen's voice behind `?swearengen`;
@@ -174,14 +174,21 @@ puts the font on disk. The icon carries a lighter frame and bolt outline than
 the wordmark: the wordmark's weights are hairlines at 265x76 and heavy on a
 square.
 
-**`content/*.md` is the source of the printed cards.** One file per deck; the
+**`content/*.md` is where the built-in decks live.** One file per deck; the
 filename is the slug, so adding a file adds a deck and nothing else is needed.
-Card *content* is fixed — these decks mirror physical cards, so editing a `q` or
-an `a` puts the app and the printed cards out of step unless you are reprinting.
-Card order is free to change, because progress is keyed by id.
+Card content can be edited. The four decks that began as printed cards used to
+be fixed so the app matched the paper; that rule was dropped on September 21,
+2026, when the decks were brought up to date, so the physical cards from the
+first print run are out of step until they are reprinted. A deck holds at most
+24 cards, three printed sheets. Card order is free to change, because progress is
+keyed by id.
 
-**Never remove or rewrite an `id:` line.** Progress is keyed by it. A card whose
-id changes reads as a brand new card and loses its history. `tools/extract-cards.py`
+**Change an `id:` line only on purpose.** Progress is keyed by it, so a card
+whose id changes reads as a brand new card and loses its history. Keep the id
+when a card is reworded or corrected in passing, since the reader's progress
+still applies. Give it a new uuid when the fact itself changed, such as the
+latest version of something, so a reader who learned the old answer meets the
+card again. A card that is cut takes its id with it. `tools/extract-cards.py`
 is the original one-off PDF migration, kept for the record and run by nothing.
 
 **`lib/loadDecks.ts` is server-only** — it reads the filesystem. Client

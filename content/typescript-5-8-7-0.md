@@ -4,11 +4,11 @@ blurb: Releases, dates, breaking changes and what's next
 
 id: 36560cec-d8b8-4c87-a4c4-251caecfb8fa
 Q: When did TypeScript 5.8, 5.9, 6.0 and 7.0 ship?
-A: 5.8 on 28 Feb 2025, 5.9 on 1 Aug 2025, 6.0 on 23 Mar 2026 and 7.0 on 8 Jul 2026. The 5.x line ran on a roughly 3-month cadence; 6.0 and 7.0 arrived four months apart in 2026.
+A: 5.8 on February 28, 2025, 5.9 on August 1, 2025, 6.0 on March 23, 2026 and 7.0 on July 8, 2026. The 5.x line ran on a roughly 3-month cadence; 6.0 and 7.0 arrived under four months apart.
 
 id: 1a9f8837-47fd-4a22-8801-273a713f4749
 Q: What is TypeScript 7.0, and why is it a landmark release?
-A: It is the compiler and language service ported from JavaScript to Go, released 8 Jul 2026. Microsoft measured 7.7x-11.9x faster builds on real codebases with 6-26% lower memory use.
+A: It is the compiler and language service ported from JavaScript to Go, released July 8, 2026. Microsoft measured 7.7x-11.9x faster builds on real codebases with 6-26% lower memory use.
 
 id: 93a025f0-b6df-4153-8773-53d6f611032f
 Q: Is TypeScript 7 a new language or type system?
@@ -24,7 +24,7 @@ A: --watch was rebuilt on a Go port of Parcel's file watcher, and the language s
 
 id: 19cff139-825b-4f1c-8cd9-132385e4d551
 Q: Which tsconfig defaults changed on the way to 7.0?
-A: strict is now true, module defaults to esnext, target to es2025 (6.0), rootDir to the tsconfig's own directory, and types to an empty array.
+A: All in 6.0: strict is true, module defaults to esnext, target to es2025, noUncheckedSideEffectImports is on, rootDir is the tsconfig's own directory, and types is an empty array. 7.0 keeps them.
 
 id: f39d0975-4ad7-4cf5-adf3-fa923cf30460
 Q: Why does "types": [] as a default break so many projects?
@@ -32,11 +32,11 @@ A: Previously every package under node_modules/@types was auto-included. Now you
 
 id: 0d3a8992-5664-412a-beda-511caf888e3c
 Q: What did TypeScript 6.0 deprecate?
-A: target es5, downlevelIteration, moduleResolution node10 and classic, module amd/umd/system/none, baseUrl, outFile, esModuleInterop false, legacy module namespace syntax and import assert.
+A: target es5, downlevelIteration, moduleResolution node10 and classic, module amd/umd/systemjs/none, baseUrl, outFile, esModuleInterop and alwaysStrict set to false, legacy module namespace syntax and import asserts.
 
 id: 33dc3048-438d-46ff-b841-8da90696bcf5
 Q: What does "ignoreDeprecations": "6.0" do?
-A: It downgrades 6.0's deprecation errors back to warnings so a project can keep building on the old options - an escape hatch for migration, not a long-term setting, since 7.0 removes them outright.
+A: It silences 6.0's deprecation errors so a project keeps building on the old options. An escape hatch for migration, not a long-term setting, since 7.0 removes those options outright.
 
 id: 04e9a4ea-7122-4511-8789-2eefe56af5bb
 Q: Why did TypeScript 6.0 exist at all?
@@ -52,7 +52,7 @@ A: JS support was tightened to match TS rules: values can no longer stand in for
 
 id: 5299219e-b8dc-4ba5-888a-bfbd8d32de2e
 Q: Can Vue, Svelte, Angular, Astro or MDX use TypeScript 7 today?
-A: Not yet. Embedded-language tooling depends on the compiler API, which is only stabilized in 7.1 - until then those frameworks stay on the 6.0 toolchain.
+A: Not yet. Embedded-language tooling depends on the compiler API, which isn't stable until 7.1, due November 24, 2026. Until then those frameworks stay on the 6.0 toolchain.
 
 id: a4727286-ba89-414a-8c17-aac9ce14d717
 Q: What was tsgo, and what does TypeScript 7 ship as now?
@@ -62,9 +62,9 @@ id: 94de8bec-36b1-4514-9c6a-48a8d5f7ea63
 Q: How do you run TypeScript 6 and 7 side by side?
 A: Install the @typescript/typescript6 compatibility package, which lets both compilers coexist without name collisions while you migrate parts of a repo.
 
-id: 14ce4da3-676e-46d0-b2d2-429a5098d129
+id: 1577912c-a819-4d47-9ae1-f3ac79d184ae
 Q: What is planned for TypeScript 7.1, and when?
-A: Per the published iteration plan: beta 9 Sep 2026, RC 20 Oct, stable 10 Nov 2026. Headline item is the stable programmatic API, plus ES2026 lib/target and type on import attributes.
+A: Per the iteration plan as revised September 12, 2026: beta October 6, RC November 10, stable November 24. The headline is the stable programmatic API, plus es2026 lib and target and type on import attributes.
 
 id: 42b50981-9920-4870-ba9e-fb1b68218d10
 Q: Why does the missing programmatic API in 7.0 matter?

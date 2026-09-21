@@ -4,7 +4,7 @@ blurb: Routing, rendering and file conventions in the App Router, weighted to 15
 
 id: 42575223-35e4-4cf8-b145-3a8bd3112785
 Q: When did the App Router become stable, and what is the current Next.js version?
-A: Stable in 13.4 (May 2023). The current line is 16.3, released August 2026; there is no Next.js 17.
+A: Stable in 13.4 (May 2023). The current line is 16.3, released August 3, 2026, with 16.4 in canary; there is no Next.js 17.
 
 id: 32ca8c2c-7c0d-4335-bb8a-aec348f17396
 Q: What is the default component type in the App Router?
@@ -72,7 +72,7 @@ A: Serving a static shell with dynamic holes streamed in. It shipped folded into
 
 id: e3946fed-ed3f-4ef1-aa3c-7230c2162313
 Q: What are Instant Navigations (16.3)?
-A: An opt-in suite — partial prefetching, extracted loading shells, Instant Insights — for SPA-feel routing.
+A: An opt-in suite, behind cacheComponents and partialPrefetching: loading shells extracted from Suspense and 'use cache', per-link partial prefetching, and Instant Insights to flag slow navigations. SPA-feel routing.
 
 id: 0ee4bd31-3505-4894-8400-9e4344ac5493
 Q: What problem do root params (16.3) solve?
@@ -80,7 +80,7 @@ A: Reading a root-level param like [lang] from any Server Component, instead of 
 
 id: 6ab944e9-1bb1-426d-a7a8-dcf7f2e32abe
 Q: How does error handling work in the App Router?
-A: error.tsx catches a segment's render errors, global-error wraps the root, notFound() renders 404.
+A: error.tsx catches a segment's render errors, global-error wraps the root, notFound() renders a 404. Since 16.3, catchError builds a custom boundary that leaves notFound and redirect alone and can retry Server Components.
 
 id: f09b5d3b-4045-43bb-9f71-1315ca05f623
 Q: What are parallel and intercepting routes?
@@ -92,7 +92,7 @@ A: Export a static metadata object or an async generateMetadata from a layout or
 
 id: 33f43377-f78a-4f79-9c89-428d9f5a7840
 Q: What is the bundler story in Next 16?
-A: Turbopack is the default for dev and build; webpack config is deprecated with a temporary --webpack fallback.
+A: Turbopack is the default for dev and build, with webpack still available behind --webpack. Since 16.3 its disk cache also speeds up repeat builds.
 
 id: 9bee220e-0bbc-4757-973d-6bf2a9473b5d
 Q: Interview one-liner: what is the App Router's architectural theme?

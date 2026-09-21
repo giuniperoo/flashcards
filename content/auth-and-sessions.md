@@ -78,6 +78,10 @@ id: c7d14f8a-1ce6-46b0-8c44-bd5796115cdc
 Q: How should passwords be stored?
 A: Hashed with a slow, salted algorithm like Argon2 or bcrypt — never encrypted, never a fast general-purpose hash.
 
+id: 4f7ccb54-3433-4454-85de-0ff2bf413d7d
+Q: What are passkeys, and why do they resist phishing?
+A: WebAuthn credentials: a key pair per site, the private key kept on the device and unlocked by biometrics or a PIN. The browser binds each signature to the site's origin, so a lookalike domain gets nothing it can use.
+
 id: 1501b192-6967-4480-a602-18bbd07924e6
 Q: What does the auth boundary look like in Next.js?
 A: Read the session in a Server Component or Server Action; proxy.ts is a coarse gate, not the real authorization check.
@@ -85,10 +89,6 @@ A: Read the session in a Server Component or Server Action; proxy.ts is a coarse
 id: de76d140-eec7-406d-b31e-13dc34f28104
 Q: Why is proxy or middleware alone insufficient for authz?
 A: It guards navigation, not data access — every action and route handler must re-check permissions server-side.
-
-id: edd7a79b-9d0d-4a55-baae-ab405c8c1c1b
-Q: What is the confused deputy problem here?
-A: A server component fetching on the user's behalf must scope the query to that user, not just to a valid session.
 
 id: 5a0e0378-6e69-4b7b-8ed0-53bd152ec5ee
 Q: How do you handle multi-tenant authorization?

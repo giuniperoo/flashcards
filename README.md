@@ -5,9 +5,9 @@ A flashcard app for interview preparation. You can't turn a card over until
 you've written an answer. It's easy to recognize an answer you couldn't have
 come up with yourself, and in an interview you have to come up with it.
 
-Twelve decks and 264 cards ship with the app. Four of them (React 19, CAP
-theorem, ACID and SOLID) also exist as printed cards, and the other eight were
-written the same way. The index starts empty anyway, on the assumption that
+Twelve decks and 264 cards ship with the app, none of them over 24 cards. Four
+of them (React 19, CAP theorem, ACID and SOLID) began as printed cards, and the
+other eight were written the same way. The index starts empty anyway, on the assumption that
 you're here for your own material. A toggle at the bottom of the index brings
 the built-in decks in.
 
@@ -276,13 +276,14 @@ which printing ignores. The card flip respects
 
 ## Card data
 
-Decks live in `content/*.md`, one file per deck. The four that exist as printed
-cards were converted from the PDFs instead of retyped, so the app and the paper
-decks match. The filename is the slug: add a new `.md` file and it becomes a
+Decks live in `content/*.md`, one file per deck. The four that began as printed
+cards were converted from the PDFs, and have since been updated, so the paper
+decks from that first print run are out of date. The filename is the slug: add a new `.md` file and it becomes a
 deck, with no code change. A file that doesn't parse fails the build.
 
-Each card carries an `id:`, a uuid that progress is keyed by. Don't change
-them. A card with a new id looks new to the app, and its history is lost.
+Each card carries an `id:`, a uuid that progress is keyed by. A card with a new
+id looks new to the app, and its history is lost, so an id changes only when the
+card's answer has changed and it should be learned again.
 
 Each deck carries the pastel tint used for the corner triangle on the printed
 card, so a card looks the same on screen as it does in your hand.
