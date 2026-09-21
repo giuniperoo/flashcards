@@ -757,7 +757,12 @@ export default function Reviewer({
               <p className="label text-muted">
                 <Say k="reviewer.youWrote" />
               </p>
-              <p className="mt-2 text-[15px] leading-relaxed text-muted">
+              {/* As it was typed: the line breaks, blank lines and indents in
+                  the answer box are the reader's own structure, and HTML would
+                  otherwise fold them into one line. `wrap-anywhere` as on the
+                  box, so a long unbroken token wraps rather than widening the
+                  card. */}
+              <p className="mt-2 text-[15px] leading-relaxed whitespace-pre-wrap wrap-anywhere text-muted">
                 {saved.cards[key]?.draft}
               </p>
             </div>
