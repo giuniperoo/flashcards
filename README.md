@@ -1,4 +1,4 @@
-<img src="public/logo.svg" alt="Flashcards" width="265">
+<img src="logo_pixelated.png" alt="Flashcards" width="265">
 <h2><a href="https://f.lash.cards">f.lash.cards</a></h2>
 
 A flashcard app for interview preparation. You can't turn a card over until
@@ -30,8 +30,8 @@ header says which mode you are in, cream on a schedule and sage in free study.
 
 ## Two voices
 
-The interface speaks plainly. Add `?swearengen` to any address and it speaks
-like Al Swearengen from *Deadwood* instead, profanity and all, down to the
+Do you like things a little spicy? Add `?swearengen` to any address and it speaks
+like Al Swearengen from <a href="https://www.imdb.com/title/tt0348914" target="_blank">Deadwood</a> instead, profanity and all, down to the
 buttons and the error messages; `?swearengen=off` turns it back. The choice is
 kept in a cookie in that browser, so it holds from page to page. Every string
 is written twice, in `lib/copy.ts`, and nothing is swapped after the page loads,
