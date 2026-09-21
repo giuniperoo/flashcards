@@ -350,6 +350,7 @@ export const COPY = {
   "queue.overdue": { plain: "overdue", swearengen: "late" },
   "queue.today": { plain: "due today", swearengen: "owed today" },
   "queue.fresh": { plain: "new", swearengen: "fresh meat" },
+  "queue.again": { plain: "to retry", swearengen: "botched" },
   "queue.notDue": { plain: "not due", swearengen: "not owed" },
   "queue.srPrefix": { plain: "Today:", swearengen: "Today’s accounts:" },
 

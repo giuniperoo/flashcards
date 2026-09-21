@@ -1,4 +1,4 @@
-import { breakdown, buildDueQueue, buildQueue, dueByDeck } from "./queue";
+import { afterAnswer, breakdown, buildDueQueue, buildQueue, dueByDeck } from "./queue";
 import { cardKey, type CardProgress } from "./progress";
 import type { Deck, StudyCard } from "./types";
 
@@ -69,7 +69,8 @@ const cases: Array<[string, () => boolean]> = [
         b.today === 1 &&
         b.fresh === 3 &&
         b.notDue === 2 &&
-        b.done + b.overdue + b.today + b.fresh + b.notDue === cards.length
+        b.again === 0 &&
+        b.done + b.overdue + b.today + b.fresh + b.again + b.notDue === cards.length
       );
     },
   ],
@@ -366,6 +367,72 @@ const cases: Array<[string, () => boolean]> = [
         dueByDeck(records, TODAY, new Date(2026, 8, 10, 17, 0).getTime()).d === 1 &&
         dueByDeck(records, TODAY, new Date(2026, 8, 10, 18, 0).getTime()).d === 2
       );
+    },
+  ],
+  [
+    "a card answered wrong counts as again, not by its new due day",
+    () => {
+      const cards = deckOfSize(4);
+      const dealt = buildQueue(cards, {}, TODAY, (items) => items);
+      // c0 answered right, c1 answered wrong: box 1, due tomorrow, and still here.
+      const records = { "d:c0": seen("2026-09-12", 2), "d:c1": seen("2026-09-11", 1) };
+      const remaining = [dealt[2], dealt[3], dealt[1]];
+      const b = breakdown(cards, dealt, remaining, records, TODAY, new Set(["d:c1"]));
+      return (
+        b.done === 1 && b.again === 1 && b.fresh === 2 && b.today === 0 && b.notDue === 0 &&
+        b.done + b.overdue + b.today + b.fresh + b.again + b.notDue === cards.length
+      );
+    },
+  ],
+
+  [
+    "a right answer takes the card out, and the next one falls into its place",
+    () => {
+      const next = afterAnswer(["a", "b", "c"], 1, "held");
+      return next.order.join(",") === "a,c" && next.position === 1;
+    },
+  ],
+
+  [
+    "a wrong answer sends the card behind every card still to come",
+    () => {
+      const next = afterAnswer(["a", "b", "c"], 0, "review");
+      return next.order.join(",") === "b,c,a" && next.order[next.position] === "b";
+    },
+  ],
+
+  [
+    "a wrong answer on the last card in line does not deal it straight back",
+    () => {
+      const next = afterAnswer(["a", "b", "c"], 2, "review");
+      return next.order.join(",") === "a,b,c" && next.order[next.position] === "b";
+    },
+  ],
+
+  [
+    "a wrong answer with nothing else left deals the card straight back",
+    () => {
+      const next = afterAnswer(["a"], 0, "review");
+      return next.order.join(",") === "a" && next.position === 0;
+    },
+  ],
+
+  [
+    "a session ends once every card has been answered right once",
+    () => {
+      // c1 is missed twice before it is had; everything else is right first time.
+      const misses: Record<string, number> = { b: 2 };
+      let order = ["a", "b", "c"];
+      let position = 0;
+      const answered: string[] = [];
+      for (let turn = 0; order.length > 0 && turn < 20; turn++) {
+        const card = order[position];
+        answered.push(card);
+        const wrong = (misses[card] ?? 0) > 0;
+        if (wrong) misses[card]--;
+        ({ order, position } = afterAnswer(order, position, wrong ? "review" : "held"));
+      }
+      return order.length === 0 && answered.join(",") === "a,b,c,b,b";
     },
   ],
 ];

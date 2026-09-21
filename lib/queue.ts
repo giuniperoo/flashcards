@@ -1,6 +1,6 @@
 import type { CardProgress } from "./progress";
 import { cardKey, deckOfKey } from "./progress";
-import { isDue } from "./schedule";
+import { isDue, type Grade } from "./schedule";
 import { shuffled } from "./shuffle";
 import type { StudyCard } from "./types";
 
@@ -138,9 +138,10 @@ export function dueByDeck(
   return due;
 }
 
-/** What a scheduled session's queue bar shows. The five add up to the deck. */
+/** What a scheduled session's queue bar shows. The six add up to the deck. */
 export type Breakdown = {
-  /** Graded in this session. */
+  /** Done with in this session: answered right, or answered wrong and then
+      right on a retry. */
   done: number;
   /** Still to come, and due before today. */
   overdue: number;
@@ -148,6 +149,8 @@ export type Breakdown = {
   today: number;
   /** Still to come, and never graded. */
   fresh: number;
+  /** Answered wrong in this session, and still to be answered right. */
+  again: number;
   /** Not dealt at all, because their day has not come. */
   notDue: number;
 };
@@ -157,10 +160,12 @@ export type Breakdown = {
  * queue bar above the card.
  *
  * `dealt` is the queue as it was built and `remaining` is what is left of it,
- * so the difference is what has been graded. What is left is split by its
- * record — overdue, due today, or never seen — which is stable for the life of
- * a session, since a card's record only changes when it is graded and a graded
- * card is no longer remaining. Everything the queue left out is not due.
+ * so the difference is what is done. A card answered wrong stays remaining,
+ * and `retrying` names it: it is counted as again, whatever its record now
+ * says. The rest of what is left is split by its record — overdue, due today,
+ * or never seen — which is stable for the life of a session, since a card's
+ * record only changes when it is answered, and an answered card is either gone
+ * or retrying. Everything the queue left out is not due.
  *
  * Counted per session rather than per day: open the deck again this afternoon
  * and this morning's cards are not due, not done.
@@ -171,13 +176,17 @@ export function breakdown(
   remaining: StudyCard[],
   records: Record<string, CardProgress>,
   today: string,
+  retrying: ReadonlySet<string> = new Set(),
 ): Breakdown {
   let overdue = 0;
   let dueToday = 0;
   let fresh = 0;
+  let again = 0;
   for (const card of remaining) {
-    const record = records[cardKey(card)];
-    if (!record?.seen) fresh++;
+    const key = cardKey(card);
+    const record = records[key];
+    if (retrying.has(key)) again++;
+    else if (!record?.seen) fresh++;
     else if (record.due < today) overdue++;
     else dueToday++;
   }
@@ -186,6 +195,26 @@ export function breakdown(
     overdue,
     today: dueToday,
     fresh,
+    again,
     notDue: deck.length - dealt.length,
+  };
+}
+
+/**
+ * What is left of a session once the card at `position` is answered, and where
+ * the reader lands.
+ *
+ * Right, and the card leaves. Wrong, and it goes to the back, behind every card
+ * still to come, so the ones between are the gap before it is tried again; if
+ * nothing else is left, it comes straight back. Either way the next card falls
+ * into the answered one's place, or the one before it when the answered card
+ * was last.
+ */
+export function afterAnswer<T>(remaining: T[], position: number, grade: Grade) {
+  const card = remaining[position];
+  const rest = remaining.filter((_, i) => i !== position);
+  return {
+    order: grade === "review" ? [...rest, card] : rest,
+    position: rest.length === 0 ? 0 : Math.min(position, rest.length - 1),
   };
 }

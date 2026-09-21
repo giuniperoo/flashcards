@@ -40,7 +40,7 @@ is due today, and it ends.
 | 9 — Say what the colors mean, once | merged |
 | 10 — The queue bar | merged |
 | 11 — Docs | done |
-| 16 — A missed card comes back in the session | in review |
+| 16 — A missed card comes back in the session | built, in review |
 
 **Spaced repetition is the default.** The switch at the foot of the index starts on,
 and free study is what you turn to. The logo in the header shows which mode you are
@@ -826,6 +826,14 @@ comes after the correct answer has been read, and recalling it is new work.
 gap. And a retry does not survive a reload: the store holds the schedule, and the
 schedule says the card is not due. Losing a retry costs one recall, and keeping it
 would need session state in storage.
+
+**As built.** As planned. The order is `afterAnswer` in `lib/queue.ts`, with tests: a
+miss on the last card in line lands on the card before it rather than dealing the miss
+straight back, and a session ends once every card has been answered right once. The
+queue bar's segment reads "to retry", "botched" in the second voice, in the darker
+gray overdue cards use, since both are owed now. The reviewer resets the card on every
+answer rather than on a change of card, since a miss with nothing else left is the same
+card again.
 
 ---
 

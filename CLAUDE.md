@@ -336,9 +336,18 @@ in `lib/schedule.ts` for why it changed. A card graded before then keeps the day
 it was given until it is answered again.
 `isDue` compares the time when there is one; the queue still groups by `due`, so
 the shuffle within a day survives. A session reads the clock once when it is
-dealt, so a card answered in a session never comes back into it, however short
-the interval — see `comesBack` in `lib/schedule.ts` and `buildDueQueue`.
+dealt, so a card answered right in a session never comes back into it, however
+short the interval — see `comesBack` in `lib/schedule.ts` and `buildDueQueue`.
 `dueAt` arrived inside version 4, like `misses`.
+
+**A card answered wrong comes back in the same session**, at the back of what is
+left, until it is answered right once. Only its first answer in the session
+moves the schedule; every retry writes what free study writes, the grade and the
+draft. A miss followed by a look at the answer and a right answer a minute later
+is recognition, and must not climb the card out of box 1. The box opens empty on
+each retry. Retries live in the reviewer's session state, not the store, so a
+reload drops them: the store says the card is not due. See `afterAnswer` in
+`lib/queue.ts` and `grade` in `Reviewer.tsx`, and task 16 in `TASKS.md`.
 
 **Free study never touches the schedule.** One store and one record per card,
 but two kinds of field. `grade` is the last answer, "held" or "review", and is

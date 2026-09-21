@@ -10,8 +10,9 @@ import { useVoice } from "@/lib/useSay";
  * done segment carries that count's progress, and the rest say what is still
  * to come and what the schedule left out.
  *
- * Segments run in the order the queue deals — done, overdue, due today, new —
- * then the cards not due. Each takes a share of the width by its count, but
+ * Segments run in the order the queue deals — done, overdue, due today, new,
+ * then the cards answered wrong and waiting to be tried again, which go to the
+ * back — then the cards not due. Each takes a share of the width by its count, but
  * never less than its label, and a segment with nothing in it is left out. The
  * colors are neutral on purpose: the strip below already uses color for
  * boxes, and a second meaning for the same hues would muddle both.
@@ -36,7 +37,7 @@ import { useVoice } from "@/lib/useSay";
  *
  * **How wide.** At most `PER_SEGMENT` for each segment shown, then no wider
  * than where it sits. One segment is a short bar rather than a line across the
- * page, and five get room for their proportions.
+ * page, and six get room for their proportions.
  *
  * Only ever rendered inside a scheduled session, which exists only in the
  * browser, so the layout effect never runs on the server.
@@ -48,6 +49,7 @@ const SEGMENTS: Array<{ key: keyof Breakdown; word: PlainKey | "done"; className
   { key: "overdue", word: "queue.overdue", className: "queue-overdue" },
   { key: "today", word: "queue.today", className: "queue-today" },
   { key: "fresh", word: "queue.fresh", className: "queue-new" },
+  { key: "again", word: "queue.again", className: "queue-again" },
   { key: "notDue", word: "queue.notDue", className: "queue-later" },
 ];
 
