@@ -2,15 +2,19 @@
 order: 2
 tint: #DCD6F3
 ink: #7A6DBE
-blurb: Actions, Server Components, and the 19.2 additions
+blurb: Actions, Server Components, and what 19.2 and 19.3 added
 
-id: b122d58d-4dea-4338-b8fe-721c092bdffe
+id: f9cb5111-9439-4220-a5e1-d1d7867472ee
 Q: What is the latest React version, and is 'React 20' real?
-A: React 19.2 (19.0 shipped Dec 2024; 19.2 landed Oct 2025). No React 20 exists. React is now stewarded by the independent React Foundation under the Linux Foundation.
+A: React 19.3, released September 9, 2026 (19.0 shipped December 2024 and 19.2 October 2025). There is no React 20. React is stewarded by the independent React Foundation under the Linux Foundation.
 
 id: 49e1ac33-f41a-414a-8a51-51311ce27f82
 Q: What are Actions in React 19?
 A: Async functions passed to a transition or form. React automatically manages the pending state, error handling, optimistic updates, and form resets you used to hand-write.
+
+id: 992512e0-db10-4ab5-bb55-3add9e3dae06
+Q: What changed about startTransition in React 19?
+A: It accepts async functions, so isPending covers the awaited work and the updates after it. That is the mechanism under Actions: a form action is an async transition.
 
 id: a2778f4b-7bc6-4496-bfec-64cfbb4dcd3f
 Q: What does useActionState do?
@@ -38,7 +42,7 @@ A: 'use client': the boundary where components ship to the browser. 'use server'
 
 id: b3410866-4534-4e8c-9639-42d702d8d83b
 Q: What replaced forwardRef?
-A: Nothing is needed anymore: in React 19, ref is a regular prop on function components. forwardRef is deprecated and codemods remove it.
+A: Nothing is needed anymore: in React 19, ref is a regular prop on function components. forwardRef still works, React has said it will be deprecated, and a codemod removes it.
 
 id: 53272e2f-fc1b-4c3b-81a9-b5a7f8bb3505
 Q: How does React 19 handle <title> and <meta> tags?
@@ -56,13 +60,41 @@ id: 90611cf3-b857-4bdf-9ce4-1caf37da0135
 Q: What does useEffectEvent do (19.2)?
 A: Extracts the 'event' part of an effect so it always reads the latest props/state without being a dependency — eliminating stale closures and effects that re-fire too often.
 
+id: 9a827a0e-0d8a-4081-a805-69c3363189e6
+Q: What are Performance Tracks (19.2)?
+A: Custom tracks in Chrome DevTools' Performance panel showing React's scheduler priorities and the component work in each render, so a profile shows what React did and why.
+
+id: 9b03df23-5926-41c5-be3b-c1ce032cff50
+Q: What is Partial Pre-rendering in React 19.2?
+A: prerender a static shell ahead of time with react-dom/static, then resume it at request time to fill in the dynamic parts. It is the primitive frameworks use for a static shell with dynamic holes.
+
+id: cbd4d5f6-7077-437d-a824-c0011fa11aa5
+Q: What is cacheSignal for (19.2)?
+A: In Server Components, cacheSignal() returns an AbortSignal that fires when the cache() lifetime ends, so a fetch or query started for a render can be cancelled once its result can no longer be used.
+
 id: cc64e2ec-ab6a-4b9c-94c0-3fb6ccb798f1
 Q: Name three smaller React 19 quality-of-life changes.
 A: Context used directly as a provider (<MyContext> instead of .Provider), ref callbacks can return cleanup functions, and hydration errors now show a single readable diff.
 
-id: f1604993-898a-4907-9718-6774d854dca8
-Q: Which headline features are still NOT stable in 19.2?
-A: View Transitions and Fragment Refs — real and demoed, but only in Canary/Experimental channels. Saying they're stable in an interview is a red flag.
+id: 29055888-0f06-4212-9db4-26b1d8245eab
+Q: What did React 19.3 make stable?
+A: The <ViewTransition> component and Fragment Refs, both Canary-only through 19.2. Calling them experimental is now the out-of-date answer.
+
+id: de5505d2-bdec-4c6e-b1a2-f2f461867b47
+Q: What does the <ViewTransition> component do (19.3)?
+A: Animates what it wraps as it enters, exits, updates or moves, using the browser's View Transition API. It fires on updates marked as transitions, and addTransitionType lets one update pick a different animation, like a carousel's direction.
+
+id: a468abbf-e7f0-45c0-bbf6-7897771e6b50
+Q: What are Fragment Refs (19.3)?
+A: <Fragment ref> gives a FragmentInstance for a group of sibling elements with no wrapper: add event listeners, move focus, observe intersection or size, and scroll, without touching the children's markup.
+
+id: dfeee9c4-6383-431e-b37b-71ecab6191c5
+Q: What is browser() for (19.3)?
+A: use(browser()), from react-dom, keeps a component out of server rendering: on the server it suspends to the nearest fallback, and in the browser it renders after hydration. For code that needs window, localStorage or the user's time zone.
+
+id: 40b89c95-cb08-4656-a876-a4a4bb90814e
+Q: What changed for Context in Server Components in 19.3?
+A: A Server Component can render a Context imported from a 'use client' module directly, as <ThemeContext value={...}>, without writing a client wrapper component just to provide it.
 
 id: 1ae833df-e286-4a1f-81f0-88cd12e1ab04
 Q: Interview one-liner: what's the architectural theme of React 19?

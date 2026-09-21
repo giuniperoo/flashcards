@@ -7,20 +7,12 @@ Q: What is Kafka, in one line?
 A: A distributed event streaming platform - a durable, partitioned, append-only commit log usable as either a message queue or a stream.
 
 id: ef4fcf93-ad99-41d0-96eb-07d5f7343518
-Q: Define broker, partition and topic.
-A: A broker is a server in the cluster. A partition is an ordered, immutable, append-only log on a broker. A topic is a logical grouping of partitions.
-
-id: 8271ae2f-f90f-435e-a468-2fc34531cb64
-Q: Topic vs partition - the actual difference?
-A: A topic is a logical grouping; a partition is the physical one. Partitions are the unit of parallelism and the only place ordering is guaranteed.
-
-id: afe12183-dcaf-40d6-800c-74654f19c720
-Q: What are the fields of a Kafka message?
-A: Value (payload), key, timestamp and headers - all technically optional. Headers are key-value metadata, like HTTP headers.
+Q: Define broker, topic and partition.
+A: A broker is a server in the cluster. A topic is a logical stream, split into partitions: ordered, append-only logs spread across brokers. The partition, not the topic, is the unit of parallelism and of ordering.
 
 id: a4a48271-4068-4b53-ba64-e6dfd7d6b633
-Q: What does the message key do, and what if you omit it?
-A: It is hashed to pick the partition, so equal keys stay together and stay ordered. With no key, modern clients use a sticky partitioner and you lose related-message ordering.
+Q: How does the message key pick a partition?
+A: hash(key) % partitions, murmur2 by default, so equal keys stay on one partition and in order. Adding partitions remaps keys. With no key, clients use a sticky partitioner and related messages lose their ordering.
 
 id: a86b124b-728c-4edf-b163-1cc642c93b78
 Q: What is an offset?
@@ -30,25 +22,13 @@ id: 8a2d7768-62e9-429f-9ba3-2d76ff4e9fe2
 Q: What is a consumer group and what does it guarantee?
 A: Consumers sharing a topic's partitions - each partition goes to exactly one consumer in the group. Separate groups read the same topic independently.
 
-id: 61dcc3d1-2774-4860-86ff-b8e0367f1445
-Q: Kafka as a message queue vs as a stream?
-A: Same mechanics, different consumption pattern: a queue has one consumer per message; a stream retains the log for replay and multiple independent groups.
-
-id: 7fa0f7f4-9e5d-45dd-b961-a3a02d99ffc3
-Q: What two steps happen when a producer publishes?
-A: Partition determination (hash the key, or default partitioner), then broker assignment - the client uses cluster metadata to reach that partition's leader.
-
-id: 40a7e1f8-7363-4df3-837d-6b2591ca6669
-Q: Why is an append-only log the right structure?
-A: Immutability simplifies replication and recovery, appending avoids disk seeks, and the simplicity makes scaling by adding partitions straightforward.
-
-id: f23f1aaa-a870-4d52-b50b-cf4a809bc7ee
-Q: How does Kafka replicate a partition?
-A: Leader-follower: one replica takes writes, followers on other brokers sync passively. The controller promotes an in-sync follower when a leader dies.
+id: 680c6804-2035-48ec-b8d3-6172257b73dd
+Q: What are share groups (Queues for Kafka)?
+A: A second consumer model, GA in Kafka 4.2 (February 2026): consumers in a share group read the same partitions concurrently and acknowledge records one by one. Queue semantics, without one consumer per partition, and without per-key ordering.
 
 id: 84f9936f-ec3d-4568-b570-1094042de155
-Q: What is the ISR, and what does acks=all buy you?
-A: In-sync replicas are the followers fully caught up. acks=all acknowledges only once every ISR has the message - strongest durability, at the cost of latency.
+Q: How is a partition replicated, and what does acks=all buy you?
+A: One leader takes writes and followers on other brokers copy it; the in-sync replicas (ISR) are those caught up, and a new leader comes from the ISR. acks=all waits for every ISR member: the strongest durability, at some latency.
 
 id: bc17a2c4-9c7a-4bd0-af19-a0318f321fe4
 Q: Watch-outs when using Kafka from a Node/Next.js app?
@@ -80,19 +60,11 @@ A: Producers retry transient failures automatically. Enable idempotent mode alon
 
 id: 974896ab-58b4-4b7e-868f-3a94f0640776
 Q: What does Kafka give you for consumer-side retries?
-A: Nothing built in, unlike SQS. The pattern is a retry topic consumed separately, then a dead letter queue after N failures - a fair reason to pick SQS for simple worker queues.
-
-id: 6e26d304-6252-4cb5-b713-e5e8f6e1ea39
-Q: Rough single-broker capacity for back-of-envelope math?
-A: Very hand-wavy, but ~1TB storage and up to ~1M messages/sec on good hardware, with messages under ~1MB. Below that, scaling is not the conversation.
+A: A classic consumer group gives you nothing built in: the pattern is a retry topic, then a dead letter topic after N failures. Share groups (Kafka 4.2) redeliver unacknowledged records and count deliveries, much like SQS.
 
 id: 4c7af18c-4472-466b-aad2-92d49311db66
 Q: Two ways to scale Kafka.
 A: Add brokers, and partition properly. Brokers alone do nothing if topics are under-partitioned - scale the topic, not just the cluster.
-
-id: 4305bd52-29cc-4a84-8e67-d74b43e45950
-Q: How is a partition chosen from a key?
-A: partition = hash(key) % num_partitions, murmur2 by default. Changing the partition count therefore reshuffles which partition a key maps to.
 
 id: b05959f5-ad81-46ec-b997-c665ee61b229
 Q: Four ways to fix a hot partition.
@@ -125,7 +97,3 @@ A: Asynchronous work such as transcoding after upload, work that must stay order
 id: b532cdc5-dd3d-4fe5-869d-4b4360ea00c4
 Q: When do you reach for it as a stream?
 A: Continuous real-time processing, such as aggregating ad clicks as they arrive, or fan-out where many independent consumers need the same messages.
-
-id: 161ffec7-8ec2-4585-8199-5d9bb3b70f79
-Q: "Always available, sometimes consistent" - so what?
-A: Replication and leader failover make cluster-wide outage an unrealistic premise; redirect the question. The interesting failure is a consumer dying.

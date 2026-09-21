@@ -48,7 +48,7 @@ A: Expose a route handler, verify the webhook signature, then call revalidateTag
 
 id: 0e981e8e-bb42-47fd-8e6e-bd01cfc65fbe
 Q: What is ISR in App Router terms?
-A: Time-based revalidation of a prerendered route: serve the cached version, regenerate in the background.
+A: Time-based revalidation of a prerendered route: serve the cached version, regenerate in the background. With Cache Components in 16.3, a page not prerendered at build serves a loading shell first, then its prerendered version.
 
 id: 650de55e-a972-4985-8584-c925cddc310a
 Q: What does the segment export revalidate = 60 mean?

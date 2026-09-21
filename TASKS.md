@@ -1056,6 +1056,13 @@ above is not mistaken for everything that changed.
   default; the docs went back to plain. The printed sheets
   stay plain until somebody prints a test sheet. `pnpm run test:copy` checks that every
   entry has both voices and that the phrases other tests pin survive the second one
+- **After #41 — the built-in decks, brought up to date.** Every deck was checked against
+  the current releases on September 21, 2026: React 19.3 made View Transitions and Fragment
+  Refs stable, TypeScript 7.1's schedule moved, and Kafka 4.2 made share groups GA. A deck
+  now holds at most 24 cards, so Kafka and TypeScript in practice lost their weakest eight;
+  React 19 grew to 24 with what 19.2 and 19.3 added, and CAP and ACID to 16 with quorums,
+  session guarantees, lost updates, write skew and snapshot isolation. The rule that kept
+  the four printed decks' text fixed went with it, so those printed cards need a reprint
 
 ---
 

@@ -36,6 +36,14 @@ id: d24eab5a-c075-44d5-ac85-a09ca3a28336
 Q: Non-repeatable read vs phantom read?
 A: Non-repeatable: a row you already read changes between two reads. Phantom: new rows matching your query appear between two reads.
 
+id: fc744d75-c4b3-4a4d-b749-8734cead9a4b
+Q: What is a lost update?
+A: Two transactions read the same value, both change it, and the second write silently overwrites the first. Prevent it with an atomic UPDATE ... SET x = x + 1, SELECT ... FOR UPDATE, or a version check.
+
+id: 03c178cf-2874-4a1c-b6ba-a3795891702d
+Q: What is write skew?
+A: Two transactions read overlapping data, then each writes a different row based on it, breaking an invariant neither broke alone, like two doctors both going off call. Only serializable isolation prevents it.
+
 id: 0184b182-5a46-46cb-8174-4d46249f086d
 Q: How do databases implement atomicity and durability?
 A: The write-ahead log (WAL): changes are appended to a sequential log and fsynced before commit. Crash recovery replays the log — redo committed, undo uncommitted.
@@ -43,6 +51,14 @@ A: The write-ahead log (WAL): changes are appended to a sequential log and fsync
 id: 372a3838-94f9-4381-ab6c-7096b0959e1e
 Q: What is MVCC?
 A: Multi-version concurrency control: writers create new row versions instead of overwriting; each transaction reads a consistent snapshot. Readers never block writers.
+
+id: 3dfa95c5-95bb-4b93-a606-fde9ceea3167
+Q: What is snapshot isolation?
+A: Each transaction reads a consistent snapshot from when it started, and a write conflict aborts the later writer. It stops dirty and non-repeatable reads but still allows write skew; Postgres's repeatable read is snapshot isolation.
+
+id: 8cc8b29f-4119-4de0-ad63-da69fbee2483
+Q: Optimistic vs pessimistic concurrency control?
+A: Pessimistic locks rows up front and makes others wait. Optimistic proceeds without locks and checks a version at commit, retrying on conflict. Optimistic wins when conflicts are rare; pessimistic when they're common.
 
 id: 2b6fdefc-99f3-4b1a-9ce5-0f9d9d72f4b1
 Q: What is BASE and how does it contrast with ACID?

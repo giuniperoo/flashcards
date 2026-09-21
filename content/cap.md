@@ -6,7 +6,7 @@ blurb: Partitions, trade-offs, and PACELC
 
 id: c2396dd8-28eb-48b2-9233-586f19161ee8
 Q: What do the three letters in CAP stand for?
-A: Consistency, Availability, Partition tolerance. A distributed system can only guarantee two of the three at once.
+A: Consistency, Availability, Partition tolerance. The popular 'pick two of three' misleads: partitions aren't optional in a real network, so the actual choice is C or A while one lasts.
 
 id: 0c6c496a-d778-46d4-95e5-dce77a704b06
 Q: CAP theorem in one sentence?
@@ -36,9 +36,25 @@ id: 7446cea3-adf7-4054-95fb-7b90ff1bf42b
 Q: Name some AP systems.
 A: Cassandra, DynamoDB (default reads), CouchDB, DNS. They stay responsive and reconcile conflicts later (eventual consistency).
 
+id: 20aa5d83-bd8b-4c57-8d65-36c1a22b18a6
+Q: Is Google Spanner a CA system?
+A: No, it's CP: during a partition it chooses consistency. Google's private network makes partitions so rare that it behaves as if always available, which is why it gets called 'effectively CA'.
+
 id: 7779d1ef-8450-4e15-b1b4-bf8adaa3c1cf
 Q: What is PACELC?
 A: If Partition: choose Availability or Consistency. Else (normal operation): choose Latency or Consistency. It covers the trade-off even when the network is healthy.
+
+id: bac96c76-8b2e-4622-82de-5ba7679b01da
+Q: Where do common databases sit in PACELC?
+A: DynamoDB and Cassandra are PA/EL: available during a partition, low latency otherwise. Spanner and etcd are PC/EC: consistent in both cases, and they pay latency for it.
+
+id: 06a16496-8df7-4432-9f32-cf652bf9cacb
+Q: What sits between eventual consistency and linearizability?
+A: Eventual consistency only promises replicas converge once writes stop. Session guarantees are stronger and cheaper than linearizability: read-your-writes, monotonic reads and consistent prefix.
+
+id: cf741380-41ef-4fbc-b966-03ff232dc4fe
+Q: What does a quorum buy you, and what is R + W > N?
+A: With N replicas, reading from R and writing to W so that R + W > N guarantees every read overlaps the latest write. Tuning R and W trades latency for consistency, as Cassandra and Dynamo-style stores let you.
 
 id: 6b2affe0-a6c5-40ec-b212-48076c66d1a6
 Q: When should you choose CP in a system design interview?
