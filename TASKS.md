@@ -40,6 +40,7 @@ is due today, and it ends.
 | 9 — Say what the colors mean, once | merged |
 | 10 — The queue bar | merged |
 | 11 — Docs | done |
+| 16 — A missed card comes back in the session | in review |
 
 **Spaced repetition is the default.** The switch at the foot of the index starts on,
 and free study is what you turn to. The logo in the header shows which mode you are
@@ -779,6 +780,52 @@ there is small. Checked against `main` after #34.
 - **Found while writing it:** `navigator.storage.persist()`, which task 1 planned and
   "Not now" below still counts on, is called nowhere. §10 says so. It is a line of code
   and wants a decision on where it runs, so it is not slipped in here
+
+---
+
+### Task 16 — A missed card comes back in the session
+
+*Planned on September 21, 2026, and built in the same PR. This is the "same-day
+repeats" task 7 left undecided.*
+
+**Why.** A card answered wrong on a schedule leaves the session and waits in box 1:
+a day at the default interval. You have just read the right answer and get no chance
+to recall it until tomorrow. Trying again a few cards later, with the answer still
+fresh, is the step that makes a correction stick. Anki does it with its
+relearning steps.
+
+Task 7 ruled that "a card graded in this session must not return in this session",
+since re-dealing a card answered twenty minutes ago is the same answer twice. That
+still holds for a card answered right. It does not fit one answered wrong: the retry
+comes after the correct answer has been read, and recalling it is new work.
+
+**What to build**
+
+- **A miss goes to the back of the session**, behind every card still to come, so
+  other cards come between reading the answer and recalling it. If it was the last
+  card, it comes straight back
+- **Only a card's first answer in a session moves the schedule.** The miss sends it
+  to box 1 as it does now. Every answer after that is a retry and writes what free
+  study writes, the grade and the draft, and nothing else. Otherwise a miss, a look
+  at the answer and a right answer a minute later would climb the card to box 2,
+  which is recognition passing for knowing
+- **It comes back until it is answered right once.** A right retry takes it out of
+  the session, and the session ends when nothing is left, retries included
+- **The answer box opens empty on every retry.** The wrong answer sitting in it would
+  be editing, not recalling (task 8's rule, applied within a session). You still write
+  before you can turn the card over
+- **Tomorrow is unchanged.** The card is due when its box says, however many retries
+  it took
+- The queue bar gets a segment for cards waiting on a retry, between new and not
+  due, since that is where they sit in the rotation. The strip needs nothing new: a
+  retry is at the end of what is left, red, because it is in box 1
+- "N right, M need review" on the done panel counts first answers, so it still adds
+  up to the cards dealt
+
+**Not this.** Learning steps in minutes, as Anki has them. The other cards are the
+gap. And a retry does not survive a reload: the store holds the schedule, and the
+schedule says the card is not due. Losing a retry costs one recall, and keeping it
+would need session state in storage.
 
 ---
 
