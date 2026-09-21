@@ -61,7 +61,7 @@ export default function DeckImporter({
       router.push(studyHref(deck.slug, loadPrefs().scheduled));
     } catch {
       setSaveError(
-        "Could not save — browser storage is full or unavailable. Try a smaller deck, or a normal (non-private) window.",
+        "Could not save. Browser storage is full or unavailable. Try a smaller deck, or a normal (non-private) window.",
       );
     }
   };

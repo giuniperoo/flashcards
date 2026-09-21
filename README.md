@@ -1,16 +1,15 @@
 <img src="public/logo.svg" alt="Flashcards" width="265">
 <h2><a href="https://f.lash.cards">f.lash.cards</a></h2>
 
-A recall-first flashcard app. Twelve decks and 264 cards ship with it; four —
-React 19, CAP theorem, ACID and SOLID — mirror decks that exist as printed
-cards, and the rest were written for the same drill.
+A flashcard app for interview preparation. You can't turn a card over until
+you've written an answer. It's easy to recognize an answer you couldn't have
+come up with yourself, and in an interview you have to come up with it.
 
-The index starts empty all the same, on the assumption that you are here for
-your own material. One toggle at its foot brings the built-in decks in.
-
-The one rule the app enforces: you cannot turn a card over until you have
-written something. Recognizing an answer feels like knowing it; producing one is
-the part that survives an interview.
+Twelve decks and 264 cards ship with the app. Four of them (React 19, CAP
+theorem, ACID and SOLID) also exist as printed cards, and the other eight were
+written the same way. The index starts empty anyway, on the assumption that
+you're here for your own material. A toggle at the bottom of the index brings
+the built-in decks in.
 
 ## Studying
 
@@ -18,22 +17,23 @@ Spaced repetition is the default. A deck deals what is due, the cards you owe
 first and then the ones you have never seen, and the session ends when they are
 done. Every card sits in one of four boxes: a right answer moves it up one, a
 wrong one sends it back to the first. Box one comes back after one interval, box
-four after four. The interval is a day unless you set it shorter at the foot of
-the index — 1, 2, 4 or 8 hours, for the day before an interview. The strip under
-the card colors each card by its box, red, orange, yellow, green, and the "?" at
-its end says so. "Everything" deals what is due across every deck, interleaved,
-and the index shows how many cards each deck owes.
+four after four. The interval is a day unless you set it shorter at the bottom
+of the index: 1, 2, 4 or 8 hours, for the day before an interview. The strip
+under the card colors each card by its box, red, orange, yellow or green, and
+the "?" at its end explains the colors. "Everything" deals what is due across
+every deck, interleaved, and the index shows how many cards each deck owes.
 
 Free study is the other side of the switch: the whole deck, shuffled if you
 like, green and red for your last answer. Nothing you do there moves the
-schedule, so a deck cannot be climbed to green in one sitting. The logo in the
+schedule, so you can't turn a deck green in one sitting. The logo in the
 header says which mode you are in, cream on a schedule and sage in free study.
 
 ## Stack
 
-Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4. No database —
-decks are markdown files read at build time, progress lives in `localStorage`.
-The one thing the server keeps is sync's encrypted copy, in Redis; see below.
+Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4. There's no
+database. Decks are markdown files read at build time, and progress lives in
+`localStorage`. The only thing the server keeps is sync's encrypted copy, in
+Redis (see below).
 
 ## Run it
 
@@ -94,10 +94,10 @@ lib/
   syncStore.ts           the server's side: Redis, or memory in development
 ```
 
-The client components are the interactive parts and nothing else: the reviewer,
-the importer and generator, the print button, and the index components that read
-`localStorage`. Deck cards render from summaries — names and counts, not 264
-cards — so the index ships kilobytes rather than the content folder.
+Only the interactive parts are client components: the reviewer, the importer and
+generator, the print button, and the index components that read `localStorage`.
+Deck cards render from summaries, which hold names and counts instead of all 264
+cards, so the index ships kilobytes instead of the whole content folder.
 `generateStaticParams` prerenders every study and print route at build time,
 thirteen slugs each.
 
@@ -111,8 +111,8 @@ thirteen slugs each.
 | 2 or R           | Mark for review (once turned over) |
 | S                | Shuffle (free study only)          |
 
-Shuffle is free study's, because a scheduled session's order is the queue: what
-you owe, then what you have never seen.
+A scheduled session can't be shuffled, because its order is the queue: the
+cards you owe, then the ones you've never seen.
 
 Arrow and letter shortcuts stand down while you are typing in the answer box.
 Everything else is reachable with Tab. In Safari, and in DuckDuckGo and other
@@ -125,21 +125,20 @@ WebKit browsers, Tab skips links and buttons unless you hold Option or turn on
 grid, with dashed cut lines and the deck's corner tint. Answer columns are
 mirrored left to right so each answer prints on the back of its own question.
 
-Print double-sided, flip on the **long edge**, at 100% scale with browser
-margins set to none — the sheet carries its own 12.7mm margin. The page says
-the same thing in the print dialog's own words, and shows you the sheets
-first: front and back side by side where the window has room, each one
-labeled, zoomed to fit the column. All of that is on screen only, so what
-prints is unaffected by it. Decks that are not a multiple of eight leave blank
-cells on the final sheet rather than shifting the alignment.
+Print double-sided, flipping on the **long edge**, at 100% scale with browser
+margins set to none. The sheet has its own 12.7mm margin. The print page lists
+these settings using the print dialog's wording, and previews the sheets zoomed
+to fit, with front and back side by side when the window is wide enough. The
+preview only changes the screen, not what prints. A deck that isn't a multiple
+of eight leaves blank cells on its last sheet, so the alignment stays put.
 
 ## Adding your own decks
 
 `/new` takes a pasted deck or an uploaded `.txt`, `.md`, `.csv` or `.tsv`
 file, parses it in the browser, shows you what it found, and saves it to
 `localStorage`. Imported decks study and print exactly like the built-in ones.
-Any deck can be exported back out as markdown — an imported one from the
-browser, a built-in one through `/export/[deck]`.
+Any deck can be exported as markdown: an imported one from the browser, and a
+built-in one through `/export/[deck]`.
 
 The preferred format:
 
@@ -163,13 +162,13 @@ ends the card.
 
 Two fallbacks are accepted for material you already have:
 
-- **Markdown headings** — `## question` with the answer as the text beneath it
-- **One card per line** — question and answer split on a tab or a pipe, which is
-  what a spreadsheet export gives you
+- Markdown headings: `## question`, with the answer as the text under it
+- One card per line, with the question and answer split by a tab or a pipe, the
+  way a spreadsheet exports them
 
-The parser reports problems with line numbers rather than failing silently: a
-question with no answer, an answer with no question, or a tint that is not a
-six-digit hex all surface in the preview before you save.
+The preview lists problems by line number before you save: a question with no
+answer, an answer with no question, a tint that isn't a six-digit hex, or an
+answer too long to fit on a printed card.
 
 ```bash
 pnpm run test:parser
@@ -179,34 +178,34 @@ covers all three shapes plus the malformed cases.
 
 ### Writing one with AI
 
-The import screen can also ask Claude, OpenAI or Gemini for a deck. Give it a topic and a card
-count and it streams the same `Q:` / `A:` text into the textarea above, where you
-read and edit it like any other paste. Saving stays a separate, deliberate
-press: a generated card is a claim you are about to memorize, so reading it
-first is the feature rather than a step to remove.
+The import screen can also ask Claude, OpenAI or Gemini for a deck. Give it a
+topic and a card count, and it streams the same `Q:` / `A:` text into the box
+above, where you read and edit it like any other paste. If the deck isn't right,
+say what to change and it writes it again. Saving is still a separate press. A
+generated card is a claim you're about to memorize, so read it before you keep
+it.
 
-It runs in your browser against your own key for the provider you pick, held in
-`localStorage` and sent nowhere but that provider. Each keeps its own key and
-model, and the model list comes from the provider itself. There is no server in
-this path and no key of mine anywhere. Card counts are offered in multiples of eight,
-because eight cards fill one printed sheet.
+It runs in your browser with your own key for the provider you pick. The key is
+kept in `localStorage` and sent only to that provider. Each provider keeps its
+own key and model, and the list of models comes from the provider. There's no
+server involved and no key of mine anywhere. Card counts come in multiples of
+eight, because eight cards fill one printed sheet.
 
 ## The built-in decks
 
-They start hidden. The twelve decks in `content/` are compiled into the app and
-nobody but their author can delete them, and somebody running this for their own
-material has no use for them — so the index opens empty and the controls at its
-foot bring them in: the toggle beside "Add your own deck" for all of them,
-**Hide** on a card to drop one again. The two are independent, so turning the
-built-in decks back on restores whatever selection was there before.
+They start hidden. The twelve decks in `content/` are compiled into the app, so
+only their author can delete them, and someone running the app for their own
+material probably doesn't want them. The index opens empty. "Show built-in
+decks", beside "Add your own deck", brings them all in, and "Hide" on a card
+takes one away again. The two settings are separate, so turning the built-in
+decks off and on again doesn't bring back the ones you hid.
 
-Hiding is never deleting. The files stay, the routes still resolve, progress
-against those cards is untouched, and imported decks are never affected. The
-preference applies before the page paints, so a hidden grid does not flash up on
-load.
+Hiding a deck doesn't delete anything. The files stay, the links still work,
+progress on those cards is kept, and imported decks aren't affected. The
+setting applies before the page paints, so hidden decks don't flash up on load.
 
-The headline count follows what is actually on screen: hidden decks are not
-counted, imported ones are.
+The headline counts only what's on screen: hidden decks aren't counted, and
+imported ones are.
 
 ## Storage
 
@@ -219,12 +218,11 @@ for the interval, `llm:key` for the deck writer's keys if you have set any, and
 
 ## Sync
 
-"Sync across devices", at the foot of the index, keeps progress and imported
+"Sync across devices", at the bottom of the index, keeps progress and imported
 decks in step between your devices with a key instead of an account. The first
-device chooses a key, or keeps the one suggested — three words, like "pink pony
-charging" — and the app checks nobody else
-holds it; every other device joins with the same key, typed in or scanned from
-the first device's QR code. The preferences and the interval stay per device.
+device chooses a key or keeps the suggested one, three words such as "pink pony
+charging", and the app checks that nobody else holds it. Every other device
+joins with the same key, typed in or scanned from the first device's QR code. The preferences and the interval stay per device.
 
 The key never leaves the browser. It is stretched with PBKDF2 into two halves:
 one is the id the server files your data under, the other an AES-GCM key that
@@ -239,25 +237,26 @@ answers to one card settle by time: the words and grade from whichever device
 changed them last, the schedule from whichever answered on a schedule last. A
 deleted deck is deleted everywhere.
 
-In production it needs Upstash Redis — add it to the Vercel project from the
+In production it needs Upstash Redis. Add it to the Vercel project from the
 Marketplace, which sets `KV_REST_API_URL` and `KV_REST_API_TOKEN`. Without them,
-`pnpm run dev` keeps synced copies in memory, and a production build answers
-that sync isn't set up.
+`pnpm run dev` keeps synced copies in memory, and a production build says sync
+isn't set up. The browser only allows the encryption on a secure origin, so a
+second device has to use the deployed site, not a laptop's dev server.
 
-Browsers do clear this. WebKit deletes script-writable storage after seven days
-without a visit — which covers Safari and, on macOS and iOS, every browser built
-on it, DuckDuckGo included. Privacy browsers clear it on demand, and any browser
-may under storage pressure. Imported decks can be exported back out before that
-happens; progress cannot, and is the one thing here you can genuinely lose
-unless sync is on, which keeps a copy for the next device that joins. The
-built-in decks are compiled in and unaffected.
+Browsers do clear `localStorage`. WebKit deletes it after seven days without a
+visit, which covers Safari and, on macOS and iOS, every browser built on WebKit,
+including DuckDuckGo. Privacy browsers clear it on demand, and any browser may
+clear it when storage runs low. Imported decks can be exported before that
+happens. Progress can't, so it's the one thing here you can lose, unless sync
+is on and has a copy for the next device that joins. The built-in decks are
+compiled in and aren't affected.
 
 ## Responsive
 
 The deck grid goes one column, then two at 640px, and past 1300px the shell
 takes 75% of the viewport and adds a column at 1300, 1800 and 2400px. The extra
-width becomes more cards per row, never wider cards. Study and the import screen
-keep a reading measure of their own at any window size. Controls are 44px tall
+width goes to more cards per row, and the cards stay the same width. Study and
+the import screen keep a comfortable line length at any window size. Controls are 44px tall
 where the pointer is a finger and 36px with a mouse, the card being studied fits
 a phone's screen with its buttons, the answer box uses 16px text on mobile to stop
 iOS zooming on focus, and the print preview zooms its pages to fit the column,
@@ -267,19 +266,17 @@ which printing ignores. The card flip respects
 ## Card data
 
 Decks live in `content/*.md`, one file per deck. The four that exist as printed
-cards were converted from the PDFs rather than retyped, so the app and the paper
-decks cannot drift. The filename is the slug: drop a new `.md` in and it becomes
-a deck, with no code change. An unparseable file fails the build rather than
-disappearing quietly.
+cards were converted from the PDFs instead of retyped, so the app and the paper
+decks match. The filename is the slug: add a new `.md` file and it becomes a
+deck, with no code change. A file that doesn't parse fails the build.
 
-Each card carries an `id:` — a uuid that progress is keyed by. Leave them alone.
-Rewriting one makes the card read as new and drops its history.
+Each card carries an `id:`, a uuid that progress is keyed by. Don't change
+them. A card with a new id looks new to the app, and its history is lost.
 
 Each deck carries the pastel tint used for the corner triangle on the printed
 card, so a card looks the same on screen as it does in your hand.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). That covers the code and the card content alike:
-the decks are original, and the four that exist as printed cards were written
-for those cards.
+MIT, see [LICENSE](LICENSE). It covers the code and the card content. The
+decks are original, and the four printed ones were written for those cards.

@@ -80,7 +80,7 @@ app on its own. The store it lands in is chosen by route, so the same key exists
 twice with two different values: `progress:all` from the shuffle, `progress:{slug}`
 from the deck. Nothing reconciles them. Today that shows up as a draft you wrote an
 hour ago reading as empty on the other route, and two tallies that disagree. Tasks 2
-onward put a schedule in that store, and two schedules for one card is not a wart.
+onward put a schedule in that store, and two schedules for one card would be a bug.
 
 **Do**
 
@@ -420,7 +420,7 @@ right time for all of them.
 - The control sits beside the schedule switch at the foot of the index, and only
   while scheduling is on. Off, it governs nothing and should not be on the page
 
-**The representation is the whole task.** `due` is a local `YYYY-MM-DD` string, and
+**The hard part is the representation.** `due` is a local `YYYY-MM-DD` string, and
 that is argued for twice — in `lib/schedule.ts` and in `CLAUDE.md` — on the grounds
 that a card graded at eleven at night should come back in the morning rather than at
 eleven the following night. An hour cannot be said in a day key. Two ways out:
@@ -557,8 +557,8 @@ press and by keyboard: clicking a segment and arrowing between them both save.
 *Merged, in #21. Landed early, alongside task 4, and narrower than first planned.*
 
 **Why.** When a card returns, the answer you wrote last time is already sitting in
-the box. You read it instead of recalling it. That is the one thing this app exists
-to stop.
+the box. You read it instead of recalling it, which is what the app is built to
+prevent.
 
 **What was built**
 
@@ -630,7 +630,7 @@ never show it unasked twice — `prefs:index` remembers.
 
 **What changed from the first draft.** "Answer each question 3 times correctly"
 became "three times in a row", because a wrong answer drops a card to red from any
-rung, and that is the whole of the ladder. And the interval paragraph came out: it
+rung. And the interval paragraph came out: it
 described task 7, which is not built.
 
 **When task 7 lands**, this panel gains one line about the setting, saying plainly that
@@ -814,8 +814,8 @@ to be identified for any of it to work.
 - The merge splits a record the way `applyGrade` writes it: the draft and grade
   from whichever device changed them last, the schedule fields from whichever
   answered *on a schedule* last. Free study on a phone therefore cannot carry an
-  old box over a scheduled answer on a laptop — the line free study never crosses
-  locally, held across devices
+  old box over a scheduled answer on a laptop, just as free study never moves the
+  schedule on one device
 - Imported decks ride along, with a tombstone and a time for a deletion, so a
   deck deleted on one device is not handed back by another
 - Preferences and the interval stay per device: which decks a phone shows is not
@@ -831,9 +831,8 @@ imported on one appears on the other, and `pnpm run test:sync` covers the merge.
   Every other device joins by typing it or scanning the first device's QR code
 - **The panel says what the key trades away** before the reader types anything:
   a short key can be guessed, anyone with the key or a photo of its QR code has
-  the progress, and a key lost on every device cannot be recovered. Advice you
-  can act on beats a promise you cannot check. Misses are rate limited per
-  network to slow guessing
+  the progress, and a key lost on every device cannot be recovered. Misses are
+  rate limited per network to slow guessing
 - **`updatedAt` and `scheduledAt`** are new for this and arrive inside version 4
   like `dueAt`, rather than as a version 5 — a record written before this
   landed ties at "never" and falls back on the migration rules the store already
@@ -927,7 +926,7 @@ print, and `pnpm run test:parser` still passes.
 - Check the press feedback from #32 on a real iPhone: the `:active` states, no gray tap
   flash and no double-tap delay. Chromium's device emulation reproduces none of them
 
-**Accessibility, in this order.** Not a project, three fixes. Most of this helps any
+**Accessibility, in this order.** Three small fixes. Most of this helps any
 reader, not only someone using a screen reader: the keyboard grading bug fixed in task
 4 was an accessibility bug.
 
@@ -1055,7 +1054,7 @@ rejected: it only parses if you already know progress lives somewhere that can
 vanish, so the control is the thing that teaches the reader the app forgets. The
 footer row is placed deliberately and there is no settings screen to hide it in.
 
-Sync, task 15, is most of the honest fix, and arrived without the `progress`
+Sync, task 15, is most of the fix, and arrived without the `progress`
 table in `ARCHITECTURE.md` §3 that this paragraph was waiting for: a reader with
 sync on has a copy on the server and a second device that can restore it. What
 it does not cover is the reader who never turns it on, which is the default and

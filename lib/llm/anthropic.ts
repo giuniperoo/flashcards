@@ -98,7 +98,7 @@ export function explainAnthropic(error: unknown): string {
     // look one up — the organizations endpoints send no CORS headers — so the
     // only fix is a key scoped to a workspace when it was created.
     if (/anthropic-workspace-id/i.test(error.message)) {
-      return "That key isn't tied to a workspace — its scope was left as \"Same as linked account\". Make another key in the console with Scope set to a workspace such as \"Default\", and paste that one.";
+      return "That key isn't tied to a workspace, because its scope was left as \"Same as linked account\". Make another key in the console with Scope set to a workspace such as \"Default\", and paste that one.";
     }
     return `The request was rejected: ${error.message}`;
   }

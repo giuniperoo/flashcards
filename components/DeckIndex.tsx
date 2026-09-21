@@ -77,12 +77,12 @@ export default function DeckIndex({
             ? `Nothing due today across ${count(shown.length, "deck")}`
             : dueDecks.length === 1
               ? `${count(dueTotal, "card")}, all from ${dueDecks[0].name}`
-              : `${count(dueTotal, "card")} across ${dueDecks.length} decks, interleaved — the honest test`,
+              : `${count(dueTotal, "card")} across ${dueDecks.length} decks, interleaved`,
         count: shownCards,
       }
     : {
         ...shuffled,
-        blurb: `All ${shown.length} decks interleaved — the honest test`,
+        blurb: `All ${shown.length} decks, interleaved`,
         count: shownCards,
       };
 
@@ -95,12 +95,12 @@ export default function DeckIndex({
     <div>
       <h1 className="max-w-[40rem] text-2xl leading-tight font-medium tracking-tight sm:text-3xl">
         {deckTotal === 0
-          ? "No decks yet. One rule when you add one: write the answer before you turn the card over."
-          : `${count(deckTotal, "deck")}, ${count(cardTotal, "card")}, one rule: write the answer before you turn the card over.`}
+          ? "No decks yet. When you add one, write each answer before you turn the card over."
+          : `${count(deckTotal, "deck")}, ${count(cardTotal, "card")}. Write each answer before you turn the card over.`}
       </h1>
       <p className="mt-4 max-w-[33rem] text-muted">
-        Recognizing an answer feels like knowing it. Producing one is the part
-        that holds up under questioning.
+        It&rsquo;s easy to recognize an answer you couldn&rsquo;t have written
+        yourself. Writing it first shows you which cards you know.
       </p>
 
       {prefs.showBuiltIns && shown.length > 0 && (

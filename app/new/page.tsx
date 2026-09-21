@@ -16,7 +16,8 @@ export default function NewDeckPage() {
 
       <p className="mb-6 max-w-lg text-muted">
         Write one with AI, paste one, or upload a file. Added decks study
-        and print exactly like the built-in ones, and stay in this browser.
+        and print like the built-in ones. They&rsquo;re saved in this browser,
+        and on your other devices if you sync.
       </p>
 
       <DeckImporter
@@ -58,8 +59,8 @@ The smallest deployable unit.
 A stable IP in front of changing pods.`}</pre>
 
         <p className="mt-4 max-w-lg text-sm text-muted">
-          Or one card per line, split on a tab or a pipe - which is what you get
-          from a spreadsheet export:
+          Or one card per line, with the question and answer split by a tab or
+          a pipe, the way a spreadsheet exports them:
         </p>
         <pre className="cut mt-3 overflow-x-auto rounded-sm bg-card p-4 font-mono text-[13px] leading-relaxed">{`What is a pod? | The smallest deployable unit.
 What does a Service do? | A stable IP in front of pods.`}</pre>
@@ -84,8 +85,8 @@ What does a Service do? | A stable IP in front of pods.`}</pre>
           <li>
             <strong className="font-medium text-ink">
               Keep answers to one or two sentences
-            </strong>{" "}
-            - long ones overflow a printed card.
+            </strong>
+            . Longer ones overflow a printed card.
           </li>
         </ul>
       </section>

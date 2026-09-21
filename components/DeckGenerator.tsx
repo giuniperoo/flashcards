@@ -211,7 +211,7 @@ export default function DeckGenerator({
         );
         setError(
           replacement
-            ? `${model.label} can't write a deck from here, so it's off the list. ${replacement.label} is selected instead — try again.`
+            ? `${model.label} can't write a deck from here, so it's off the list. ${replacement.label} is selected instead, so try again.`
             : `${model.label} can't write a deck from here, and it was the last model on the list. Try another provider.`,
         );
       } else {

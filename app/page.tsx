@@ -24,7 +24,7 @@ export default function Home() {
         shuffled={{
           slug: "all",
           name: "Everything, shuffled",
-          blurb: `All ${decks.length} decks interleaved — the honest test`,
+          blurb: `All ${decks.length} decks, interleaved`,
           // The mark's own cream ground: the card that is every deck wears
           // the logo's color rather than a hue that would read as a deck.
           tint: "#e0d4bf",
