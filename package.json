@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "pnpm run test:parser && pnpm run test:progress && pnpm run test:schedule && pnpm run test:queue && pnpm run test:filter && pnpm run test:prefs && pnpm run test:llm && pnpm run test:sync",
+    "test": "pnpm run test:parser && pnpm run test:progress && pnpm run test:schedule && pnpm run test:queue && pnpm run test:filter && pnpm run test:prefs && pnpm run test:llm && pnpm run test:sync && pnpm run test:copy",
     "test:parser": "tsx lib/parseDeck.test.ts",
     "test:progress": "tsx lib/progress.test.ts",
     "test:schedule": "TZ=Europe/London tsx lib/schedule.test.ts",
@@ -16,7 +16,8 @@
     "test:filter": "tsx lib/deckFilter.test.ts",
     "test:prefs": "tsx lib/prefs.test.ts",
     "test:llm": "tsx lib/llm/llm.test.ts",
-    "test:sync": "tsx lib/sync.test.ts"
+    "test:sync": "tsx lib/sync.test.ts",
+    "test:copy": "tsx lib/copy.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

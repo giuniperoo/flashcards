@@ -1044,6 +1044,18 @@ above is not mistaken for everything that changed.
   the index's footer dropped the vertical dashed rule between its two groups on desktop.
   The rule stays under the controls while the footer is one column, where two stacked
   groups would otherwise read as one list
+- **#40 — plainer copy.** A friend said the index's headline read as machine-written, and
+  it did. The UI copy, the README and the working docs lost their aphorisms, staged
+  openers and closing one-liners, and two strings that sync had made untrue were fixed
+- **After #40 — a second voice.** The interface can speak like Al Swearengen from
+  *Deadwood*: `?swearengen` turns it on and a cookie keeps it, `?swearengen=off` turns it
+  off, and plain stays the default. Every string that differs is in `lib/copy.ts` twice.
+  Text renders in both voices and CSS keyed off `data-voice` shows one, the way
+  `data-mode` already worked, so nothing flashes and nothing mismatches on hydration. It
+  started as the only voice, docs included, and became a toggle with plain as the
+  default; the docs went back to plain. The printed sheets
+  stay plain until somebody prints a test sheet. `pnpm run test:copy` checks that every
+  entry has both voices and that the phrases other tests pin survive the second one
 
 ---
 

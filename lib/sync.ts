@@ -8,6 +8,7 @@ import {
   readPayload,
   type SyncPayload,
 } from "./syncMerge";
+import { say } from "./copy";
 
 /**
  * Keeping this device's progress and imported decks in step with the others
@@ -157,7 +158,7 @@ async function request(id: string, init?: RequestInit) {
     response = await fetch(`/api/sync/${id}`, { cache: "no-store", ...init });
   } catch {
     throw new SyncError(
-      "Couldn’t reach the server. Your progress is saved on this device and will sync when you’re back online.",
+      say("sync.unreachable"),
     );
   }
   const body = (await response.json().catch(() => null)) as
@@ -166,7 +167,7 @@ async function request(id: string, init?: RequestInit) {
   if (response.status === 404 || response.status === 409 || response.ok) {
     return { status: response.status, v: body?.v ?? 0, data: body?.data ?? "" };
   }
-  throw new SyncError(body?.error ?? `The server answered ${response.status}. Try again in a minute.`);
+  throw new SyncError(body?.error ?? say("sync.serverAnswered", response.status));
 }
 
 async function send(id: string, v: number, payload: SyncPayload, secret: string) {
@@ -190,7 +191,7 @@ async function round(store: SyncStore) {
       // It was there, and now it is not: another device deleted it.
       writeStore(null);
       notice =
-        "The synced copy was deleted from another device, so this one stopped syncing. Its progress is still here.";
+        say("sync.deletedElsewhere");
       throw new SyncError(notice);
     }
 
@@ -200,7 +201,7 @@ async function round(store: SyncStore) {
         remote = readPayload(JSON.parse(await decrypt(got.data, store.secret)));
       } catch {
         throw new SyncError(
-          "The synced copy couldn’t be unlocked with this key. Stop syncing and join again with the key from your other device.",
+          say("sync.wrongKey"),
         );
       }
     }
@@ -215,7 +216,7 @@ async function round(store: SyncStore) {
     const put = await send(store.id, got.status === 404 ? 0 : got.v, merged, store.secret);
     if (put.status === 200) return { ...store, v: put.v };
   }
-  throw new SyncError("Other devices kept syncing at the same moment. This one will try again shortly.");
+  throw new SyncError(say("sync.contended"));
 }
 
 let running: Promise<void> | null = null;
@@ -247,7 +248,7 @@ export function syncNow(): Promise<void> {
       error =
         caught instanceof SyncError
           ? caught.message
-          : "Sync stopped partway. Your progress is saved on this device, and it will try again.";
+          : say("sync.partway");
     } finally {
       busy = false;
       running = null;
@@ -272,7 +273,7 @@ export type StartResult = { ok: true } | { ok: false; error: string };
 export async function startSync(typed: string, mode: "new" | "join"): Promise<StartResult> {
   const key = normalizeKey(typed);
   if (key.length < MIN_KEY_LENGTH) {
-    return { ok: false, error: `A key needs at least ${MIN_KEY_LENGTH} characters.` };
+    return { ok: false, error: say("sync.keyTooShort", MIN_KEY_LENGTH) };
   }
 
   try {
@@ -283,7 +284,7 @@ export async function startSync(typed: string, mode: "new" | "join"): Promise<St
       if (got.status !== 404) {
         return {
           ok: false,
-          error: "That key is already in use. If it’s yours, choose “I have a key” instead.",
+          error: say("sync.keyTaken"),
         };
       }
       const payload = mergePayloads(localPayload(), emptyPayload, reserved);
@@ -291,7 +292,7 @@ export async function startSync(typed: string, mode: "new" | "join"): Promise<St
       if (put.status !== 200) {
         return {
           ok: false,
-          error: "That key is already in use. If it’s yours, choose “I have a key” instead.",
+          error: say("sync.keyTaken"),
         };
       }
       writeStore({ version: 1, key, id, secret, v: put.v, syncedAt: new Date().toISOString() });
@@ -305,7 +306,7 @@ export async function startSync(typed: string, mode: "new" | "join"): Promise<St
       return {
         ok: false,
         error:
-          "Nothing is stored under that key. Check it for typos (capital letters count), or start syncing with it as a new key.",
+          say("sync.nothingUnderKey"),
       };
     }
     writeStore({ version: 1, key, id, secret, v: 0, syncedAt: "" });
@@ -323,7 +324,7 @@ export async function startSync(typed: string, mode: "new" | "join"): Promise<St
       error:
         caught instanceof SyncError
           ? caught.message
-          : "Something went wrong while checking the key. Try again.",
+          : say("sync.checkFailed"),
     };
   }
 }
@@ -348,7 +349,7 @@ export async function deleteServerCopy(): Promise<StartResult> {
   } catch (caught) {
     return {
       ok: false,
-      error: caught instanceof SyncError ? caught.message : "Couldn’t delete it. Try again.",
+      error: caught instanceof SyncError ? caught.message : say("sync.deleteFailed"),
     };
   }
   stopSync();

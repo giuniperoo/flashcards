@@ -1,6 +1,8 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Breakdown } from "@/lib/queue";
+import { pick, type PlainKey } from "@/lib/copy";
+import { useVoice } from "@/lib/useSay";
 
 /*
  * What today's session holds, across the whole deck, in a slim bar. It replaces
@@ -40,12 +42,13 @@ import type { Breakdown } from "@/lib/queue";
  * browser, so the layout effect never runs on the server.
  */
 
-const SEGMENTS: Array<{ key: keyof Breakdown; word: string; className: string }> = [
+/* "done" reads the same in both voices; the rest are in `lib/copy.ts`. */
+const SEGMENTS: Array<{ key: keyof Breakdown; word: PlainKey | "done"; className: string }> = [
   { key: "done", word: "done", className: "queue-done" },
-  { key: "overdue", word: "overdue", className: "queue-overdue" },
-  { key: "today", word: "due today", className: "queue-today" },
-  { key: "fresh", word: "new", className: "queue-new" },
-  { key: "notDue", word: "not due", className: "queue-later" },
+  { key: "overdue", word: "queue.overdue", className: "queue-overdue" },
+  { key: "today", word: "queue.today", className: "queue-today" },
+  { key: "fresh", word: "queue.fresh", className: "queue-new" },
+  { key: "notDue", word: "queue.notDue", className: "queue-later" },
 ];
 
 const PER_SEGMENT = 9; // rem
@@ -53,9 +56,12 @@ const PER_SEGMENT = 9; // rem
 type Placement = "title" | "below" | "numbers";
 
 export default function QueueBar({ counts }: { counts: Breakdown }) {
+  const voice = useVoice();
+  const word = (s: (typeof SEGMENTS)[number]) => (s.word === "done" ? "done" : pick(s.word, voice));
   const shown = SEGMENTS.filter((segment) => counts[segment.key] > 0);
-  const sentence = shown.map((s) => `${counts[s.key]} ${s.word}`).join(", ");
-  const signature = shown.map((s) => `${s.key}:${counts[s.key]}`).join(",");
+  const sentence = shown.map((s) => `${counts[s.key]} ${word(s)}`).join(", ");
+  // The voice is in it because the words are what gets measured.
+  const signature = voice + "|" + shown.map((s) => `${s.key}:${counts[s.key]}`).join(",");
 
   const measure = useRef<HTMLDivElement>(null);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
@@ -87,7 +93,7 @@ export default function QueueBar({ counts }: { counts: Breakdown }) {
     shown.map((s) => (
       <span key={s.key} className={s.className} style={{ flexGrow: counts[s.key] }}>
         {counts[s.key]}
-        <span className="queue-word">{s.word}</span>
+        <span className="queue-word">{word(s)}</span>
       </span>
     ));
 
@@ -103,7 +109,9 @@ export default function QueueBar({ counts }: { counts: Breakdown }) {
 
   return (
     <>
-      <p className="sr-only">Today: {sentence}.</p>
+      <p className="sr-only">
+        {pick("queue.srPrefix", voice)} {sentence}.
+      </p>
       <div ref={measure} className="queue-bar queue-measure" aria-hidden>
         {segments()}
       </div>

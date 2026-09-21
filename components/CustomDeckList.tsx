@@ -8,6 +8,8 @@ import { useCustomDecks } from "@/lib/useCustomDecks";
 import { useDueCounts } from "@/lib/useDueCounts";
 import { usePrefs } from "@/lib/usePrefs";
 import { studyHref } from "@/lib/studyMode";
+import { Say } from "@/components/Voice";
+import { say } from "@/lib/copy";
 
 export default function CustomDeckList() {
   const decks = useCustomDecks();
@@ -32,7 +34,7 @@ export default function CustomDeckList() {
 
   const remove = (deck: Deck, event: React.MouseEvent<HTMLElement>) => {
     const ok = window.confirm(
-      `Delete "${deck.name}" and its progress? This cannot be undone.`,
+      say("deck.confirmDelete", deck.name),
     );
     if (!ok) return;
     focusNeighborCard(event);
@@ -43,7 +45,9 @@ export default function CustomDeckList() {
 
   return (
     <section className="mt-10">
-      <h2 className="label mb-3 text-muted">Your decks</h2>
+      <h2 className="label mb-3 text-muted">
+        <Say k="index.yourDecks" />
+      </h2>
       <ul className="deck-grid">
         {decks.map((deck) => (
           <li key={deck.slug}>
@@ -65,14 +69,14 @@ export default function CustomDeckList() {
                     onClick={() => download(deck)}
                     className="label text-muted hover:text-ink"
                   >
-                    Export
+                    <Say k="deck.export" />
                   </button>
                   <button
                     type="button"
                     onClick={(event) => remove(deck, event)}
                     className="label text-muted hover:text-error"
                   >
-                    Delete
+                    <Say k="deck.delete" />
                   </button>
                 </>
               }

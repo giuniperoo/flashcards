@@ -1,6 +1,6 @@
 import {
-  CUT_OFF,
-  DECLINED,
+  cutOff,
+  declined,
   GenerateError,
   SYSTEM,
   buildPrompt,
@@ -11,6 +11,7 @@ import {
   type GenerateOptions,
   type ModelOption,
 } from "./shared";
+import { say } from "../copy";
 
 /**
  * OpenAI, called with `fetch` from the browser: Chat Completions, streamed.
@@ -69,43 +70,43 @@ export function explainOpenAI(status: number, body: unknown): string {
   const missing = /missing scopes?:\s*([\w., ]+)/i.exec(message)?.[1] ?? "";
   if (missing || /insufficient permissions/i.test(message)) {
     if (/model\.request/.test(missing)) {
-      return "That key doesn't have permission to use models. On the OpenAI platform, edit the key and set Model capabilities to Request, or give it All permissions, then try again. A change can take a minute to apply.";
+      return say("llm.openaiNoModels");
     }
     if (/model\.read/.test(missing)) {
-      return "That key doesn't have permission to list models. On the OpenAI platform, edit the key and set List models to Read, then try again.";
+      return say("llm.openaiNoList");
     }
-    return "That key is missing a permission this page needs. On the OpenAI platform, edit the key and give it List models: Read and Model capabilities: Request, or All permissions.";
+    return say("llm.openaiMissingPermission");
   }
 
   if (status === 401 || code === "invalid_api_key") {
-    return "That key was rejected. Check it hasn't been revoked, or paste a new one.";
+    return say("llm.rejectedRevoked");
   }
   if (code === "insufficient_quota") {
-    return "Your OpenAI account is out of credit, or over its budget. Check Billing on the OpenAI platform, then try again.";
+    return say("llm.openaiCredit");
   }
   if (status === 429) {
-    return "Your account hit its rate limit. Wait a minute and try again.";
+    return say("llm.rateLimited");
   }
   if (code === "unsupported_country_region_territory") {
-    return "OpenAI doesn't offer its API where you are.";
+    return say("llm.openaiRegion");
   }
   // Before the 404 below, which is the status this arrives with: read as "not
   // available" it told the reader the key lacked access, when no key could use
   // the model here.
   if (NOT_CHAT_MESSAGE.test(message)) {
-    return "That model can't write a deck from here. Pick another model.";
+    return say("llm.cannotWrite");
   }
   if (status === 404 || code === "model_not_found") {
-    return "That model isn't available to this key. Pick another model.";
+    return say("llm.modelUnavailable");
   }
   if (status === 403) {
-    return "That key doesn't have access to this model. Pick another model, or check the project's permissions on the OpenAI platform.";
+    return say("llm.openaiNoAccess");
   }
   if (status >= 500) {
-    return "OpenAI had a problem on its side. Try again in a moment.";
+    return say("llm.openaiTrouble");
   }
-  if (status === 400 && message) return `The request was rejected: ${message}`;
-  return `OpenAI returned an error${message ? `: ${message}` : ` (${status})`}.`;
+  if (status === 400 && message) return say("llm.rejectedRequest", message);
+  return say("llm.openaiError", message ? `: ${message}` : ` (${status})`);
 }
 
 /** Whether the failure is the model's own: not a chat model, or not one this
@@ -119,7 +120,7 @@ function openAIError(status: number, body: unknown) {
   return new GenerateError(explainOpenAI(status, body), unusableOpenAI(status, body));
 }
 
-const UNREACHABLE = "Could not reach OpenAI. Check your connection and try again.";
+const unreachable = () => say("llm.openaiUnreachable");
 
 export async function listOpenAIModels(
   apiKey: string,
@@ -130,7 +131,7 @@ export async function listOpenAIModels(
     response = await fetch(`${BASE}/models`, { headers: headers(apiKey), signal });
   } catch (error) {
     if (signal?.aborted) throw error;
-    throw new GenerateError(UNREACHABLE);
+    throw new GenerateError(unreachable());
   }
   const body = await jsonBody(response);
   if (!response.ok) throw new GenerateError(explainOpenAI(response.status, body));
@@ -193,12 +194,12 @@ export async function generateWithOpenAI(options: GenerateOptions): Promise<stri
   } catch (error) {
     if (error instanceof GenerateError) throw error;
     if (options.signal?.aborted) return cleanDeck(full).trim();
-    throw new GenerateError(UNREACHABLE);
+    throw new GenerateError(unreachable());
   }
 
   if ((refusal && !full.trim()) || finish === "content_filter") {
-    throw new GenerateError(DECLINED);
+    throw new GenerateError(declined());
   }
-  if (finish === "length") throw new GenerateError(CUT_OFF);
+  if (finish === "length") throw new GenerateError(cutOff());
   return cleanDeck(full).trim();
 }

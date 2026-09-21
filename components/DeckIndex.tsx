@@ -9,6 +9,8 @@ import { studyHref } from "@/lib/studyMode";
 import { useCustomDecks } from "@/lib/useCustomDecks";
 import { useDueCounts } from "@/lib/useDueCounts";
 import { usePrefs } from "@/lib/usePrefs";
+import { useSay } from "@/lib/useSay";
+import { Say } from "@/components/Voice";
 
 function count(n: number, noun: string) {
   return `${n} ${noun}${n === 1 ? "" : "s"}`;
@@ -39,6 +41,7 @@ export default function DeckIndex({
   const [prefs, update] = usePrefs();
   const custom = useCustomDecks();
   const due = useDueCounts();
+  const say = useSay();
 
   /* Reveal the index once what it depends on is read. `custom` stops being
      null in the same render as the preferences and due counts arrive, since
@@ -71,18 +74,19 @@ export default function DeckIndex({
   const shuffledDeck: DeckSummary = prefs.scheduled
     ? {
         ...shuffled,
-        name: "Everything, due today",
+        name: say("index.everythingDue"),
         blurb:
           dueTotal === 0
-            ? `Nothing due today across ${count(shown.length, "deck")}`
+            ? say("index.blurbNothingDue", count(shown.length, "deck"))
             : dueDecks.length === 1
-              ? `${count(dueTotal, "card")}, all from ${dueDecks[0].name}`
-              : `${count(dueTotal, "card")} across ${dueDecks.length} decks, interleaved`,
+              ? say("index.blurbOneDeck", count(dueTotal, "card"), dueDecks[0].name)
+              : say("index.blurbManyDecks", count(dueTotal, "card"), dueDecks.length),
         count: shownCards,
       }
     : {
         ...shuffled,
-        blurb: `All ${shown.length} decks, interleaved`,
+        name: say("index.everythingShuffled"),
+        blurb: say("index.blurbAll", shown.length),
         count: shownCards,
       };
 
@@ -94,13 +98,14 @@ export default function DeckIndex({
   return (
     <div>
       <h1 className="max-w-[40rem] text-2xl leading-tight font-medium tracking-tight sm:text-3xl">
-        {deckTotal === 0
-          ? "No decks yet. When you add one, write each answer before you turn the card over."
-          : `${count(deckTotal, "deck")}, ${count(cardTotal, "card")}. Write each answer before you turn the card over.`}
+        {deckTotal === 0 ? (
+          <Say k="index.headlineEmpty" />
+        ) : (
+          <Say k="index.headline" args={[count(deckTotal, "deck"), count(cardTotal, "card")]} />
+        )}
       </h1>
       <p className="mt-4 max-w-[33rem] text-muted">
-        It&rsquo;s easy to recognize an answer you couldn&rsquo;t have written
-        yourself. Writing it first shows you which cards you know.
+        <Say k="index.subtitle" />
       </p>
 
       {prefs.showBuiltIns && shown.length > 0 && (
@@ -132,7 +137,7 @@ export default function DeckIndex({
                       download={`${deck.slug}.md`}
                       className="label text-muted hover:text-ink"
                     >
-                      Export
+                      <Say k="deck.export" />
                     </a>
                     <button
                       type="button"
@@ -142,7 +147,7 @@ export default function DeckIndex({
                       }}
                       className="label text-muted hover:text-ink"
                     >
-                      Hide
+                      <Say k="deck.hide" />
                     </button>
                   </>
                 }

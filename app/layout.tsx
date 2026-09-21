@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Inter, IBM_Plex_Mono } from "next/font/google";
 import SyncAgent from "@/components/SyncAgent";
+import { Say } from "@/components/Voice";
 import { decks } from "@/lib/loadDecks";
 import "./globals.css";
 
@@ -69,7 +70,14 @@ export const viewport: Viewport = {
  * server's defaults. Two seconds on, the mark comes off regardless, so a page
  * whose scripts failed after this one ran is never left blank.
  */
-const MODE_BEFORE_PAINT = `(function(){try{var d=document.documentElement,p=location.pathname;function stored(){var s=JSON.parse(localStorage.getItem("prefs:index")||"null");return s&&typeof s.version==="number"&&s.version>=4&&s.scheduled===false?"free":"schedule"}if(p==="/"){d.setAttribute("data-index-pending","");setTimeout(function(){d.removeAttribute("data-index-pending")},2000);d.setAttribute("data-mode",stored());return}if(p==="/new"||p.indexOf("/print/")===0){d.setAttribute("data-mode",stored());return}if(p.indexOf("/study/")!==0){d.setAttribute("data-mode",stored());return}d.setAttribute("data-mode",new URLSearchParams(location.search).has("scheduled")?"schedule":"free")}catch(e){}})()`;
+/*
+ * Before any of that, on every page, the voice. `?swearengen` in the address
+ * turns Al Swearengen's voice on and `?swearengen=off` turns it off, and
+ * either is written to the `voice` cookie for a year, so it holds without every
+ * link carrying it; then the cookie decides whether `<html>` gets
+ * `data-voice="swearengen"`. Plain is the absence of both. See `lib/voice.ts`.
+ */
+const MODE_BEFORE_PAINT = `(function(){try{var d=document.documentElement,p=location.pathname;try{var v=new URLSearchParams(location.search).get("swearengen");if(v!==null)document.cookie=v==="off"?"voice=; path=/; max-age=0; samesite=lax":"voice=swearengen; path=/; max-age=31536000; samesite=lax";if(/(?:^|;\\s*)voice=swearengen(?:;|$)/.test(document.cookie))d.setAttribute("data-voice","swearengen")}catch(e){}function stored(){var s=JSON.parse(localStorage.getItem("prefs:index")||"null");return s&&typeof s.version==="number"&&s.version>=4&&s.scheduled===false?"free":"schedule"}if(p==="/"){d.setAttribute("data-index-pending","");setTimeout(function(){d.removeAttribute("data-index-pending")},2000);d.setAttribute("data-mode",stored());return}if(p==="/new"||p.indexOf("/print/")===0){d.setAttribute("data-mode",stored());return}if(p.indexOf("/study/")!==0){d.setAttribute("data-mode",stored());return}d.setAttribute("data-mode",new URLSearchParams(location.search).has("scheduled")?"schedule":"free")}catch(e){}})()`;
 
 export default function RootLayout({
   children,
@@ -135,7 +143,9 @@ export default function RootLayout({
                 />
               </span>
             </Link>
-            <span className="label text-muted">Recall, then flip</span>
+            <span className="label text-muted">
+              <Say k="layout.tagline" />
+            </span>
           </header>
           <main className="flex-1">{children}</main>
           <SyncAgent slugs={decks.map((deck) => deck.slug)} />

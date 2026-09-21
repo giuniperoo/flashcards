@@ -1,4 +1,5 @@
 import type { Provider } from "./providers";
+import { say } from "../copy";
 
 /**
  * What every provider's adapter shares: the prompt, the options a generation
@@ -94,10 +95,10 @@ export class GenerateError extends Error {
   }
 }
 
-export const DECLINED =
-  "The model declined to write this deck. Try a different subject, or another model.";
-export const CUT_OFF =
-  "The deck was cut off before it finished. Try asking for fewer cards, or another model.";
+/* Functions, not constants, so the words are read in the page's voice when the
+   error is made rather than once when this module loads. */
+export const declined = () => say("llm.declined");
+export const cutOff = () => say("llm.cutOff");
 
 const CARD_LINE = /^\s*(?:q|question)\s*[:.)-]/i;
 const FENCE = /^\s*```/;

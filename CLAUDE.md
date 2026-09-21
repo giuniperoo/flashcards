@@ -9,6 +9,8 @@ four of which (React 19, CAP theorem, ACID, SOLID) mirror decks that exist as
 printed cards, plus any deck you import or have an AI write. Studied in the
 browser, on a schedule or freely, or printed as physical cards. Single user. The
 only backend is sync's: one route that keeps an encrypted copy per sync key.
+The interface speaks plainly, or in Al Swearengen's voice behind `?swearengen`;
+see Conventions.
 
 The app's central rule: **you cannot turn a card over until you have written
 an answer.** Recognizing an answer is easy to mistake for knowing it, and
@@ -33,6 +35,7 @@ pnpm run test:filter   # which decks the shuffled set draws from
 pnpm run test:prefs    # index preferences, and the switch's default
 pnpm run test:llm      # deck generation: keys, model lists, each provider's stream
 pnpm run test:sync     # what two devices' progress and decks merge to, and the crypto
+pnpm run test:copy     # both voices for every entry, and the phrases other tests pin
 ```
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
@@ -73,13 +76,15 @@ who someone is, or to read their data, is still out of scope.
 
 Server components by default. Only `Reviewer.tsx`, `PrintButton.tsx`,
 `DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx`, `DeckIndex.tsx`,
-`CustomDeckView.tsx`, `PrintPreview.tsx`, `PrintIntro.tsx`, `SyncPanel.tsx` and
-`SyncAgent.tsx` are client components, and that list should not grow without a
-reason. The preview has to measure its column to zoom the pages to fit, and the
-print page's "Study" link has to carry the reader's mode and `?deck=` set.
-`SyncAgent` sits in the layout and draws nothing: grades are given on study
-pages and sync has to follow them there. The goal is to ship JavaScript only
-for the interactive parts.
+`CustomDeckView.tsx`, `PrintPreview.tsx`, `PrintIntro.tsx`, `SyncPanel.tsx`,
+`SyncAgent.tsx` and `VoiceTitle.tsx` are client components, and that list should
+not grow without a reason. The preview has to measure its column to zoom the
+pages to fit, and the print page's "Study" link has to carry the reader's mode
+and `?deck=` set. `SyncAgent` sits in the layout and draws nothing: grades are
+given on study pages and sync has to follow them there. `VoiceTitle` draws
+nothing either: it names the tab in the second voice, which a page's `metadata`
+cannot, since the server prerenders it for everyone. The goal is to ship
+JavaScript only for the interactive parts.
 
 `DeckIndex.tsx` is a client component because it counts: the headline totals
 span the built-in decks and the imported ones, and neither which decks are
@@ -112,6 +117,8 @@ components/
   PrintSheets.tsx       shared by the built-in and custom print paths
   PrintPreview.tsx      zooms the pages to fit the column on screen, never in print
   PrintIntro.tsx        a print page's title row, and what to set in the dialog
+  Voice.tsx             `<Say>` and `<Voiced>`: words in both voices, CSS shows one
+  VoiceTitle.tsx        the tab's title in the second voice
 lib/
   loadDecks.ts          reads content/*.md at build time — SERVER ONLY
   types.ts              Card, Deck, StudyCard — safe for client components
@@ -145,6 +152,10 @@ lib/
   syncCrypto.ts         the key into an id and an AES key; the suggested key
   syncWords.ts          what a suggested key is made of: adjective, noun, verb + ing
   syncStore.ts          Redis over REST, or memory in development — SERVER ONLY
+  voice.ts              which voice a page is in: the cookie, the attribute, `currentVoice`
+  copy.ts               every string that differs between the two voices, and `say`
+  useSay.ts             the voice for client components, for strings that cannot be markup
+  useTabTitle.ts        names the browser tab from the client, and keeps it named
 ```
 
 Both `[deck]` routes set `dynamicParams = true`: built-in slugs are prerendered,
@@ -257,6 +268,11 @@ device's session silently.
   this device syncs: the key itself, so the panel can show it and its QR code,
   and what it stretches into, so a page load skips the stretching. See
   `lib/sync.ts`
+
+And one cookie, `voice`, which holds `swearengen` while the second voice is on
+and is absent otherwise. A cookie rather than a seventh key because the server's
+two routes that answer in words, the sync API and the export route, have to read
+it off the request. See the voice convention below and `lib/voice.ts`.
 
 Version 1 of `prefs:index` held `showBuiltIns` alone and version 2 added
 `hiddenDecks`. Each reads as the version after it with the new field at its
@@ -464,12 +480,46 @@ stops a second read from merging a stale grade back over a newer one.
 
 ## Conventions
 
+- **The interface has two voices, plain and Al Swearengen's**, from *Deadwood*,
+  decided on September 21, 2026. Plain is the default. `?swearengen` on any
+  address turns the second voice on and `?swearengen=off` turns it off, and the
+  choice is kept in the `voice` cookie. The pre-paint script in `app/layout.tsx`
+  reads the address and the cookie and sets `data-voice` on `<html>` before
+  anything paints, and that attribute is the authority in the browser. The docs
+  stay plain
+- Every string that reads differently in the two voices lives in `lib/copy.ts`,
+  both versions side by side, and `pnpm run test:copy` fails if an entry lacks
+  one or if the two read the same. A string that reads the same in both stays
+  where it is used. Adding a string means writing it twice
+- How a string reaches the page decides how it is written. Text in markup is a
+  `<Say k="…" />` from `components/Voice.tsx`, which renders both voices and lets
+  CSS show one, so nothing flashes and hydration matches. A passage with a link
+  or bold words inside it is a `<Voiced plain={…} swearengen={…} />`, since one
+  table string cannot hold markup. An attribute or a string another component
+  takes (an `aria-label`, a `placeholder`, a live region's sentence) comes from
+  `useSay()` in `lib/useSay.ts`. A message made after the page has loaded, such
+  as an error, a warning or a `confirm`, comes from `say()` in `lib/copy.ts`,
+  which reads the voice when it is called. The server's routes use `pick()` with
+  `voiceFromCookie()`. A page's `metadata` is always plain; `VoiceTitle` covers
+  the tab
+- The second voice borrows his manner and never his lines, since the show's
+  dialogue is HBO's, and never his slurs. It is heavy on profanity where he
+  would be, in errors and warnings, and lighter on labels. Its house terms: the
+  built-in decks are "the house decks", imported decks are ones the reader
+  "brought", hiding is "burying" and deleting is "killing", and free study and
+  spaced repetition are labeled "Free rein" and "On the schedule"
+- A label has to fit where it sits in both voices: the two grading buttons side
+  by side on a 375px phone, the four actions on a deck card on one line at five
+  columns, and the header's line on one line at 320px
+- The text printed on the sheets is plain in both voices. It sits inside the
+  print geometry, and changing it wants a test print
 - Sentence case in all UI copy. No title case, no exclamation marks
 - American English everywhere: UI copy, what the app sends to Claude, card
   content in `content/`, code, comments and these docs. "Color", "recognize",
   "behavior", "a fraction of a cent", "two weeks" rather than "a fortnight", and
   dates as "September 13, 2026"
-- Copy names what happens: "Turn card over", not "Submit"
+- Copy names what happens, in both voices: "Turn card over" and "Turn the fucker
+  over", not "Submit"
 - Tap targets at least 44px where the pointer is a finger, and 36px where it is
   a mouse or trackpad, which does not need the room: `min-h-11
   pointer-fine:min-h-9`. `pointer-fine` reads the primary pointer, so a
@@ -501,7 +551,9 @@ stops a second read from merging a stale grade back over a newer one.
   that removes its panel. Only for the keyboard, which a click event reports as
   `detail === 0`: on a phone, focusing the answer box would open the keyboard.
   See `focusNext` in `Reviewer.tsx` and `lib/focus.ts`
-- Errors are specific and actionable, and never blame the user
+- Errors are specific and actionable. In plain they never blame the user; in the
+  second voice they may curse the reader, and still say what went wrong and what
+  to do about it
 
 ## Before committing
 

@@ -9,6 +9,7 @@ import { toSheets } from "@/lib/print";
 import Reviewer from "@/components/Reviewer";
 import PrintIntro from "@/components/PrintIntro";
 import PrintSheets from "@/components/PrintSheets";
+import { Say } from "@/components/Voice";
 
 /**
  * `/study/all` and `/print/all`, narrowed to the decks that belong in them.
@@ -56,15 +57,15 @@ export default function ShuffledSet({
   if (visible.length === 0) {
     return (
       <div className="cut rounded-sm bg-card px-5 py-6">
-        <h2 className="text-lg font-medium">Nothing to study here</h2>
+        <h2 className="text-lg font-medium">
+          <Say k="shuffled.nothing" />
+        </h2>
         <p className="mt-2 text-sm text-muted">
-          {requested
-            ? "This link asks for decks that are not in this app."
-            : "Every deck this shuffle draws from is hidden. Bring them back from the deck index."}
+          {requested ? <Say k="shuffled.unknown" /> : <Say k="shuffled.allHidden" />}
         </p>
         <p className="mt-4">
           <Link href="/" className="label text-muted hover:text-ink">
-            All decks
+            <Say k="nav.allDecks" />
           </Link>
         </p>
       </div>

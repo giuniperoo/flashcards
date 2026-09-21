@@ -1,5 +1,7 @@
 import { getDeck } from "@/lib/loadDecks";
 import { toDeckText } from "@/lib/customDecks";
+import { pick } from "@/lib/copy";
+import { voiceFromCookie } from "@/lib/voice";
 
 /**
  * A built-in deck as the markdown you could re-import.
@@ -11,14 +13,14 @@ import { toDeckText } from "@/lib/customDecks";
  * nothing until it is clicked.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ deck: string }> },
 ) {
   const { deck: slug } = await params;
   const deck = getDeck(slug);
 
   if (!deck) {
-    return new Response(`No deck called "${slug}".`, {
+    return new Response(pick("export.noDeck", voiceFromCookie(request.headers.get("cookie")), slug), {
       status: 404,
       headers: { "content-type": "text/plain; charset=utf-8" },
     });

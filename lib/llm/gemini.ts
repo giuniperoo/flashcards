@@ -1,6 +1,6 @@
 import {
-  CUT_OFF,
-  DECLINED,
+  cutOff,
+  declined,
   GenerateError,
   SYSTEM,
   buildPrompt,
@@ -11,6 +11,7 @@ import {
   type GenerateOptions,
   type ModelOption,
 } from "./shared";
+import { say } from "../copy";
 
 /**
  * Gemini, called with `fetch` from the browser: the Gemini API's
@@ -97,30 +98,30 @@ export function explainGemini(status: number, body: unknown): string {
   const { message, status: code, reason } = errorFields(body);
 
   if (reason === "API_KEY_INVALID" || status === 401) {
-    return "That key was rejected. Check it hasn't been deleted, or paste a new one.";
+    return say("llm.rejectedDeleted");
   }
   // Before the 400 below, which is the status this arrives with: shown raw it
   // read as a problem with the request, when it is the model that cannot be used.
   if (NOT_HERE.test(message)) {
-    return "That model can't write a deck from here. Pick another model.";
+    return say("llm.cannotWrite");
   }
   if (code === "FAILED_PRECONDITION" || /location is not supported/i.test(message)) {
-    return "The Gemini API isn't available where you are on the free tier. Turn on billing for the key's project in Google AI Studio, or use another provider.";
+    return say("llm.geminiRegion");
   }
   if (status === 429 || code === "RESOURCE_EXHAUSTED") {
-    return "Your Gemini quota is used up for now. Wait a minute, or check the project's limits and billing in Google AI Studio.";
+    return say("llm.geminiQuota");
   }
   if (status === 404 || code === "NOT_FOUND") {
-    return "That model isn't available to this key. Pick another model.";
+    return say("llm.modelUnavailable");
   }
   if (status === 403 || code === "PERMISSION_DENIED") {
-    return "That key can't use the Gemini API. Check the key's restrictions, or make a new one in Google AI Studio.";
+    return say("llm.geminiForbidden");
   }
   if (status >= 500) {
-    return "Gemini is overloaded or having trouble. Try again in a moment.";
+    return say("llm.geminiTrouble");
   }
-  if (status === 400 && message) return `The request was rejected: ${message}`;
-  return `Gemini returned an error${message ? `: ${message}` : ` (${status})`}.`;
+  if (status === 400 && message) return say("llm.rejectedRequest", message);
+  return say("llm.geminiError", message ? `: ${message}` : ` (${status})`);
 }
 
 /** Whether the failure is the model's own: one the key cannot reach, or one
@@ -131,7 +132,7 @@ export function unusableGemini(status: number, body: unknown): boolean {
   return status === 404 || code === "NOT_FOUND" || NOT_HERE.test(message);
 }
 
-const UNREACHABLE = "Could not reach Gemini. Check your connection and try again.";
+const unreachable = () => say("llm.geminiUnreachable");
 
 export async function listGeminiModels(
   apiKey: string,
@@ -147,7 +148,7 @@ export async function listGeminiModels(
       response = await fetch(url, { headers: { "x-goog-api-key": apiKey }, signal });
     } catch (error) {
       if (signal?.aborted) throw error;
-      throw new GenerateError(UNREACHABLE);
+      throw new GenerateError(unreachable());
     }
     const body = (await jsonBody(response)) as
       | { models?: GeminiModel[]; nextPageToken?: string }
@@ -228,10 +229,10 @@ export async function generateWithGemini(options: GenerateOptions): Promise<stri
   } catch (error) {
     if (error instanceof GenerateError) throw error;
     if (options.signal?.aborted) return cleanDeck(full).trim();
-    throw new GenerateError(UNREACHABLE);
+    throw new GenerateError(unreachable());
   }
 
-  if (blocked || (finish && DECLINES.has(finish))) throw new GenerateError(DECLINED);
-  if (finish === "MAX_TOKENS") throw new GenerateError(CUT_OFF);
+  if (blocked || (finish && DECLINES.has(finish))) throw new GenerateError(declined());
+  if (finish === "MAX_TOKENS") throw new GenerateError(cutOff());
   return cleanDeck(full).trim();
 }

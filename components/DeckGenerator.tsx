@@ -25,6 +25,9 @@ import {
   keyProblem,
   type Provider,
 } from "@/lib/llm/providers";
+import { Say, Voiced } from "@/components/Voice";
+import { say } from "@/lib/copy";
+import { useSay } from "@/lib/useSay";
 
 /** Multiples of eight, because eight cards fill one printed sheet. Offering
     only these is kinder than letting someone pick 25 and warning them after. */
@@ -75,6 +78,7 @@ export default function DeckGenerator({
   // server render; nothing renders until then, so the states do not flash past.
   const [store, setStore] = useState<LlmStore | null>(null);
   const [keyDraft, setKeyDraft] = useState("");
+  const words = useSay();
   const [editingKey, setEditingKey] = useState(false);
 
   const [subject, setSubject] = useState("");
@@ -118,7 +122,7 @@ export default function DeckGenerator({
               message:
                 err instanceof GenerateError
                   ? err.message
-                  : "Could not load the models. Try again.",
+                  : say("gen.loadModelsFailed"),
             },
           }));
         });
@@ -211,11 +215,11 @@ export default function DeckGenerator({
         );
         setError(
           replacement
-            ? `${model.label} can't write a deck from here, so it's off the list. ${replacement.label} is selected instead, so try again.`
-            : `${model.label} can't write a deck from here, and it was the last model on the list. Try another provider.`,
+            ? say("gen.modelGoneReplaced", model.label, replacement.label)
+            : say("gen.modelGoneLast", model.label),
         );
       } else {
-        setError(err instanceof GenerateError ? err.message : "Generation failed. Try again.");
+        setError(err instanceof GenerateError ? err.message : say("gen.failed"));
       }
     } finally {
       setBusy(false);
@@ -230,16 +234,16 @@ export default function DeckGenerator({
   return (
     <section className="cut mb-8 rounded-sm bg-card px-5 py-4">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h2 className="text-base font-medium">Write one with AI</h2>
+        <h2 className="text-base font-medium">
+          <Say k="gen.heading" />
+        </h2>
         <ProviderPicker value={provider} onChange={switchProvider} disabled={busy} />
       </div>
 
       {!apiKey || editingKey ? (
         <>
           <p className="mt-2 max-w-lg text-sm text-muted">
-            Needs an API key from {info.company}. Best to make one just for
-            this. The key stays in this browser and goes only to {info.company}.
-            Decks are billed to your account.
+            <Say k="gen.needsKey" args={[info.company]} />
           </p>
           <div className="mt-3 flex flex-wrap items-start gap-2">
             <div className="min-w-0 flex-1 basis-64">
@@ -262,7 +266,7 @@ export default function DeckGenerator({
               />
             </div>
             <button type="button" onClick={storeKey} className={BUTTON}>
-              Save key
+              <Say k="gen.saveKey" />
             </button>
             {editingKey && (
               <button
@@ -274,13 +278,13 @@ export default function DeckGenerator({
                 }}
                 className="min-h-11 pointer-fine:min-h-9 shrink-0 px-2 text-sm text-muted hover:text-ink"
               >
-                Cancel
+                <Say k="gen.cancel" />
               </button>
             )}
           </div>
           <p className="mt-2 text-sm text-muted">
             <a href={info.keysUrl} target="_blank" rel="noreferrer" className={TEXT_BUTTON}>
-              {info.keysLinkText}
+              <Say k={info.keysLink} />
             </a>
             . <KeyAdvice provider={provider} />
           </p>
@@ -290,7 +294,7 @@ export default function DeckGenerator({
           <div className="mt-3 flex flex-wrap items-start gap-2">
             <div className="min-w-0 flex-1 basis-64">
               <label htmlFor="subject" className="sr-only">
-                What the deck is about
+                <Say k="gen.subject" />
               </label>
               <input
                 id="subject"
@@ -326,7 +330,7 @@ export default function DeckGenerator({
             </div>
             {busy ? (
               <button type="button" onClick={stop} className={BUTTON}>
-                Stop
+                <Say k="gen.stop" />
               </button>
             ) : (
               <button
@@ -369,17 +373,16 @@ export default function DeckGenerator({
                   onClick={() => apiKey && fetchModels(provider, apiKey)}
                   className={`min-h-11 pointer-fine:min-h-9 ${TEXT_BUTTON}`}
                 >
-                  Try again
+                  <Say k="gen.tryAgain" />
                 </button>
               </p>
             ) : list?.status === "ready" ? (
               <p role="alert" className="text-sm text-error">
-                This key can&rsquo;t use any model that writes text. Check the
-                key&rsquo;s permissions, or use another provider.
+                <Say k="gen.noTextModels" />
               </p>
             ) : (
               <span role="status" className="flex min-h-11 pointer-fine:min-h-9 items-center text-sm text-muted">
-                Loading the models this key can use…
+                <Say k="gen.loadingModels" />
               </span>
             )}
           </div>
@@ -388,14 +391,14 @@ export default function DeckGenerator({
             <div className="mt-3 flex flex-wrap items-start gap-2 border-t border-rule pt-3">
               <div className="min-w-0 flex-1 basis-64">
                 <label htmlFor="note" className="sr-only">
-                  What to change
+                  <Say k="gen.whatToChange" />
                 </label>
                 <input
                   id="note"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && void run(true)}
-                  placeholder="Fewer definitions, more scenario questions"
+                  placeholder={words("gen.revisePlaceholder")}
                   className={FIELD}
                 />
               </div>
@@ -405,24 +408,26 @@ export default function DeckGenerator({
                 disabled={!note.trim() || !model}
                 className={BUTTON}
               >
-                Revise
+                <Say k="gen.revise" />
               </button>
             </div>
           )}
 
           <p className="label mt-3 text-muted">
             {busy ? (
-              <span role="status">Writing…</span>
+              <span role="status">
+                <Say k="gen.writing" />
+              </span>
             ) : (
               <>
                 {info.company} key {keyHint(apiKey)}
                 {" · "}
                 <button type="button" onClick={() => setEditingKey(true)} className={TEXT_BUTTON}>
-                  Change
+                  <Say k="gen.change" />
                 </button>
                 {" · "}
                 <button type="button" onClick={forgetKey} className={TEXT_BUTTON}>
-                  Forget
+                  <Say k="gen.forget" />
                 </button>
                 {hidden.length > 0 && (
                   <>
@@ -435,7 +440,7 @@ export default function DeckGenerator({
                       }}
                       className={TEXT_BUTTON}
                     >
-                      {`Show ${hidden.length} hidden ${hidden.length === 1 ? "model" : "models"}`}
+                      <Say k="gen.showHidden" args={[hidden.length]} />
                     </button>
                   </>
                 )}
@@ -470,19 +475,21 @@ function KeyAdvice({ provider }: { provider: Provider }) {
         <>
           In that dialog, set{" "}
           <strong className="font-medium text-ink">Scope</strong> to a{" "}
-          <em>specific</em> workspace such as &ldquo;Default&rdquo;, and an
-          expiry of a day or two.
+          <em>specific</em> workspace such as &ldquo;Default&rdquo;,{" "}
+          <Voiced
+            plain={<>and an expiry of a day or two.</>}
+            swearengen={<>and have it expire in a day or two, so it dies before anybody can make use of it.</>}
+          />
         </>
       );
     case "openai":
       return (
         <>
-          A project key with a monthly budget and an expiry date is the safest
-          kind to keep in a browser.
+          <Say k="gen.adviceOpenai" />
         </>
       );
     case "gemini":
-      return <>AI Studio keys don&rsquo;t expire, so delete it when you&rsquo;re done.</>;
+      return <Say k="gen.adviceGemini" />;
   }
 }
 
@@ -501,8 +508,9 @@ function ProviderPicker({
   disabled: boolean;
 }) {
   const name = useId();
+  const words = useSay();
   return (
-    <span role="radiogroup" aria-label="Who writes the deck" className="inline-flex min-h-11 pointer-fine:min-h-9 items-center">
+    <span role="radiogroup" aria-label={words("gen.who")} className="inline-flex min-h-11 pointer-fine:min-h-9 items-center">
       <span className="segment-bar">
         {PROVIDERS.map((provider) => (
           <label key={provider} className={provider === value ? "chosen" : undefined}>

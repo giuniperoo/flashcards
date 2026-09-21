@@ -8,6 +8,8 @@ import { loadPrefs } from "@/lib/prefs";
 import { studyHref } from "@/lib/studyMode";
 import { useStoredMode } from "@/lib/useStoredMode";
 import DeckGenerator from "./DeckGenerator";
+import { Say } from "@/components/Voice";
+import { say } from "@/lib/copy";
 
 /* No `.rtf`. It was read by a handful of regexes that only held up on TextEdit's
    output and mangled anything richer without a word, which is worse than the
@@ -60,9 +62,7 @@ export default function DeckImporter({
       // new deck in free study for someone on a schedule.
       router.push(studyHref(deck.slug, loadPrefs().scheduled));
     } catch {
-      setSaveError(
-        "Could not save. Browser storage is full or unavailable. Try a smaller deck, or a normal (non-private) window.",
-      );
+      setSaveError(say("import.saveFailed"));
     }
   };
 
@@ -83,7 +83,7 @@ export default function DeckImporter({
           onClick={() => fileRef.current?.click()}
           className="press min-h-11 pointer-fine:min-h-9 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
-          Choose a file
+          <Say k="import.chooseFile" />
         </button>
         <button
           type="button"
@@ -93,7 +93,7 @@ export default function DeckImporter({
           }}
           className="press min-h-11 pointer-fine:min-h-9 rounded-sm border border-rule px-4 text-sm hover:border-ink focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
-          Load the example
+          <Say k="import.loadExample" />
         </button>
         <span className="label text-muted">
           {fileName ?? ".txt, .md, .csv or .tsv"}
@@ -116,7 +116,7 @@ export default function DeckImporter({
       </div>
 
       <label htmlFor="deck-source" className="label mb-2 block text-muted">
-        Or paste the deck here
+        <Say k="import.pasteHere" />
       </label>
       <textarea
         id="deck-source"
@@ -139,8 +139,7 @@ export default function DeckImporter({
         <div className="cut mt-4 rounded-sm bg-card px-5 py-4">
           <p className="text-sm">
             <strong className="font-medium">{parsed.title}</strong> —{" "}
-            {parsed.cards.length}{" "}
-            {parsed.cards.length === 1 ? "card" : "cards"} found
+            <Say k="import.found" args={[parsed.cards.length]} />
             {parsed.tint && (
               <span
                 aria-hidden
@@ -180,7 +179,7 @@ export default function DeckImporter({
               ))}
               {parsed.cards.length > 3 && (
                 <li className="label text-muted">
-                  and {parsed.cards.length - 3} more
+                  <Say k="import.more" args={[parsed.cards.length - 3]} />
                 </li>
               )}
             </ol>
@@ -200,9 +199,7 @@ export default function DeckImporter({
         disabled={!canSave}
         className="press mt-4 min-h-11 pointer-fine:min-h-9 w-full rounded-sm border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-muted disabled:hover:bg-transparent sm:w-auto sm:px-6"
       >
-        {canSave
-          ? `Add ${parsed!.cards.length} ${parsed!.cards.length === 1 ? "card" : "cards"}`
-          : "Add deck"}
+        {canSave ? <Say k="import.addCards" args={[parsed!.cards.length]} /> : <Say k="import.addDeck" />}
       </button>
     </div>
   );

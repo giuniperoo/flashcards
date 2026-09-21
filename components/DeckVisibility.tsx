@@ -8,6 +8,8 @@ import {
 } from "@/lib/schedule";
 import { loadReviewerPrefs, saveReviewerPrefs } from "@/lib/reviewerPrefs";
 import { usePrefs } from "@/lib/usePrefs";
+import { Say } from "@/components/Voice";
+import { useSay } from "@/lib/useSay";
 
 /**
  * What the index shows: the built-in decks, and bringing hidden ones back.
@@ -47,7 +49,7 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
           className={PLAIN}
         >
           <span className="ring-words">
-            {`Bring back ${hidden} deck${hidden === 1 ? "" : "s"}`}
+            <Say k="visibility.bringBack" args={[hidden]} />
           </span>
         </button>
       )}
@@ -57,7 +59,7 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
         className={PLAIN}
       >
         <span className="ring-words">
-          {prefs.showBuiltIns ? "Hide built-in decks" : "Show built-in decks"}
+          {prefs.showBuiltIns ? <Say k="visibility.hideBuiltIns" /> : <Say k="visibility.showBuiltIns" />}
         </span>
       </button>
     </>
@@ -128,10 +130,11 @@ function Mode({
   onChange: (scheduled: boolean) => void;
 }) {
   const name = useId();
+  const say = useSay();
   return (
     <span
       role="radiogroup"
-      aria-label="Study mode"
+      aria-label={say("mode.group")}
       className="inline-flex min-h-11 pointer-fine:min-h-9 items-center"
     >
       <span className="segment-bar">
@@ -141,10 +144,12 @@ function Mode({
             name={name}
             checked={!scheduled}
             onChange={() => onChange(false)}
-            aria-label="Free study"
+            aria-label={say("mode.free")}
             className="sr-only"
           />
-          <span aria-hidden>Free study</span>
+          <span aria-hidden>
+            <Say k="mode.free" />
+          </span>
         </label>
         <label className={scheduled ? "chosen" : undefined}>
           <input
@@ -152,10 +157,12 @@ function Mode({
             name={name}
             checked={scheduled}
             onChange={() => onChange(true)}
-            aria-label="Spaced repetition"
+            aria-label={say("mode.scheduled")}
             className="sr-only"
           />
-          <span aria-hidden>Spaced repetition</span>
+          <span aria-hidden>
+            <Say k="mode.scheduled" />
+          </span>
         </label>
       </span>
     </span>
@@ -216,7 +223,7 @@ function FirstInterval({ disabled }: { disabled: boolean }) {
       className="inline-flex min-h-11 pointer-fine:min-h-9 items-center gap-2"
     >
       <span id={`${name}-label`} className="label whitespace-nowrap text-muted">
-        Spaced by
+        <Say k="interval.label" />
       </span>
       <span className="segment-bar">
         {FIRST_INTERVALS.map((value) => (
