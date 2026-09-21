@@ -125,7 +125,7 @@ export default function QueueBar({ counts }: { counts: Breakdown }) {
               {shown.map((s) => (
                 <span key={s.key}>
                   <i className={s.className} />
-                  {s.word}
+                  {word(s)}
                 </span>
               ))}
             </div>
