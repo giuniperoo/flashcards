@@ -1,4 +1,4 @@
-<img src="logo_pixelated.png" alt="Flashcards" width="265">
+<img src="logo-pixelated.svg" alt="Flashcards" width="265">
 <h2><a href="https://f.lash.cards">f.lash.cards</a></h2>
 
 A flashcard app for interview preparation. You can't turn a card over until
