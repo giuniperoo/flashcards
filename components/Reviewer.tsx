@@ -733,7 +733,7 @@ export default function Reviewer({
             />
             {error && (
               <p id="recall-error" role="alert" className="mt-2 text-sm text-error">
-                Write something first — the guess is the part that works.
+                Write something first. A guess is fine.
               </p>
             )}
           </Face>

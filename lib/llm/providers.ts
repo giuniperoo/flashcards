@@ -99,10 +99,10 @@ export function keyProblem(provider: Provider, raw: string): string | null {
 
   switch (provider) {
     case "anthropic":
-      return "That doesn't look like an Anthropic key — they start with sk-ant- . Copy the whole thing from the console.";
+      return "That doesn't look like an Anthropic key. They start with sk-ant- . Copy the whole thing from the console.";
     case "openai":
-      return "That doesn't look like an OpenAI key — they start with sk- . Copy the whole thing from the API keys page.";
+      return "That doesn't look like an OpenAI key. They start with sk- . Copy the whole thing from the API keys page.";
     case "gemini":
-      return "That doesn't look like a Gemini API key — they start with AQ. or AIza . Copy the whole thing from Google AI Studio.";
+      return "That doesn't look like a Gemini API key. They start with AQ. or AIza . Copy the whole thing from Google AI Studio.";
   }
 }

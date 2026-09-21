@@ -236,7 +236,7 @@ export function parseDeck(input: string): ParseResult {
   if (result.cards.length === 0 && result.errors.length === 0) {
     result.errors.push({
       line: 1,
-      message: "No cards found — check the format guide below",
+      message: "No cards found. Check the format guide below",
     });
   }
 

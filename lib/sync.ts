@@ -305,7 +305,7 @@ export async function startSync(typed: string, mode: "new" | "join"): Promise<St
       return {
         ok: false,
         error:
-          "Nothing is stored under that key. Check it for typos — capital letters count — or start syncing with it as a new key.",
+          "Nothing is stored under that key. Check it for typos (capital letters count), or start syncing with it as a new key.",
       };
     }
     writeStore({ version: 1, key, id, secret, v: 0, syncedAt: "" });
