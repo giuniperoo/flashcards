@@ -51,6 +51,12 @@ outside a secure context, so a second device has to reach the deployed site
 rather than a laptop's dev server. A production build with no Redis answers
 that sync isn't set up rather than failing.
 
+**The functions run in Frankfurt**, `fra1`, set by `regions` in `vercel.json`,
+because the Upstash database is there. A sync request makes two or three Redis
+calls one after another, and from Vercel's default region, Washington, each
+one crossed the Atlantic: about 100ms apiece, found in the first traces.
+Moving the database instead would mean a new one and a lost copy per sync key.
+
 **The server's routes are traced with OpenTelemetry**, through `@vercel/otel`
 in `instrumentation.ts`. On Vercel the spans go to the project's trace drain,
 Dash0 since September 25, 2026; with no drain, and in development, they go
