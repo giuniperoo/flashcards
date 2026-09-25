@@ -51,6 +51,15 @@ outside a secure context, so a second device has to reach the deployed site
 rather than a laptop's dev server. A production build with no Redis answers
 that sync isn't set up rather than failing.
 
+**The server's routes are traced with OpenTelemetry**, through `@vercel/otel`
+in `instrumentation.ts`. On Vercel the spans go to the project's trace drain,
+Dash0 since September 25, 2026; with no drain, and in development, they go
+nowhere, and nothing needs setting. The sync store's operations are spans of
+their own (`sync.read`, `sync.write`, `sync.delete`, `sync.limit`), carrying
+versions, sizes and outcomes. They never carry the id, the data or the
+reader's address: the id is what lets someone replace a sync copy, and the
+drain's owner has no business holding it.
+
 **The package manager is pnpm**, pinned by `packageManager` in `package.json`.
 pnpm blocks dependency install scripts by default, so the three packages that
 need to link native binaries — `esbuild` (backs `tsx`), `sharp`, and
