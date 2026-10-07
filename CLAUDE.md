@@ -36,6 +36,7 @@ pnpm run test:prefs    # index preferences, and the switch's default
 pnpm run test:llm      # deck generation: keys, model lists, each provider's stream
 pnpm run test:sync     # what two devices' progress and decks merge to, and the crypto
 pnpm run test:copy     # both voices for every entry, and the phrases other tests pin
+pnpm run test:web      # what browser telemetry may record of an address
 ```
 
 Fonts come from Google Fonts via `next/font`, so builds need network access.
@@ -69,6 +70,20 @@ sync store's operations are spans of their own (`sync.read`, `sync.write`,
 carry the id, the data or the reader's address: the id is what lets someone
 replace a sync copy, and Dash0 has no business holding it. The request's own
 span does carry the path, and so the id, which is Next.js's doing.
+
+**The browser is observed too**, by Dash0's web SDK, started from
+`instrumentation-client.ts`: page views, web vitals, errors and the browser's
+requests, under the service `verso-web`, for Dash0's Websites view. It reads
+`NEXT_PUBLIC_DASH0_ENDPOINT` and `NEXT_PUBLIC_DASH0_WEB_TOKEN`, set by hand in
+Vercel rather than by the integration, and starts only when both are present,
+so development sends nothing. The token ships in the page and is public, so it
+is one that can only ingest, and is used for nothing else. The SDK is imported
+dynamically, keeping it out of every page's first load, where it would have
+added 25 kB. A request to `/api/sync` is same-origin, so it carries
+`traceparent` and the browser's span and the server's join into one trace.
+Session recording stays off, since the sync panel shows the key as text. See
+`lib/webScrub.ts` for what it may record of an address, and the sync key below
+for why.
 
 **The package manager is pnpm**, pinned by `packageManager` in `package.json`.
 pnpm blocks dependency install scripts by default, so the three packages that
@@ -171,6 +186,7 @@ lib/
   syncCrypto.ts         the key into an id and an AES key; the suggested key
   syncWords.ts          what a suggested key is made of: adjective, noun, verb + ing
   syncStore.ts          Redis over REST, or memory in development — SERVER ONLY
+  webScrub.ts           what browser telemetry may record of an address: no key, no sync id
   voice.ts              which voice a page is in: the cookie, the attribute, `currentVoice`
   copy.ts               every string that differs between the two voices, and `say`
   useSay.ts             the voice for client components, for strings that cannot be markup
@@ -253,7 +269,14 @@ one property that makes three words an acceptable substitute for an account —
 and the sync panel tells the reader so. It is also why `joinLink` puts the
 key in the URL *fragment*, `#sync=`: a fragment is the one part of an address a
 browser never sends to the server, so a link that carries the key past a QR
-code still does not hand it over. Moving it to a query string would.
+code still does not hand it over. Moving it to a query string would. A
+telemetry script in the page would too, since it reads the whole address:
+`lib/webScrub.ts` redacts the key and the sync id from every address the web
+SDK records, and a page opened from a join link is not observed at all,
+because the browser's navigation entry keeps the address the page opened at,
+fragment and all, and the SDK sends that entry without scrubbing it. A
+production build pointed at a local collector, opened at `#sync=`, sent the
+key nowhere; check again the same way after upgrading `@dash0/sdk-web`.
 
 **The merge has to stay commutative, associative and idempotent.** That is what
 lets two devices converge instead of handing each other their own copy forever:
