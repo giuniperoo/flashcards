@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { pick, type PlainKey } from "@/lib/copy";
-import { configured, deleteEntry, readEntry, underLimit, writeEntry } from "@/lib/syncStore";
+import { configured, deleteEntry, readEntry, release, underLimit, writeEntry } from "@/lib/syncStore";
 import { voiceFromCookie } from "@/lib/voice";
 
 /**
@@ -14,7 +14,13 @@ import { voiceFromCookie } from "@/lib/voice";
  *
  * What this does guard is guessing. Asking for an id that is not there is how
  * someone trying keys would find out they were wrong, so misses are limited
- * much harder than everything else.
+ * much harder than everything else. A write is asking too: it succeeds at
+ * version 0 only where nothing is stored, and a refusal names the version that
+ * is, which is 0 where nothing is. Both count as misses the same way a read does.
+ *
+ * The limit is taken before looking and handed back on a hit. Checked only
+ * after a miss, it would refuse misses and answer hits, and the refusal would
+ * itself say "wrong": the guessing would go on at the rate of everything else.
  */
 
 const ID = /^[0-9a-f]{64}$/;
@@ -49,6 +55,12 @@ async function guard(request: NextRequest, id: string) {
   return null;
 }
 
+const MISSES = 20;
+const MISS_WINDOW = 3600;
+
+const takeMiss = (request: NextRequest) => underLimit("miss", address(request), MISSES, MISS_WINDOW);
+const giveMissBack = (request: NextRequest) => release("miss", address(request));
+
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(request: NextRequest, { params }: Params) {
@@ -56,13 +68,10 @@ export async function GET(request: NextRequest, { params }: Params) {
   const refused = await guard(request, id);
   if (refused) return refused;
 
+  if (!(await takeMiss(request))) return refuse(request, "api.tooManyKeys", 429);
   const entry = await readEntry(id);
-  if (!entry) {
-    if (!(await underLimit("miss", address(request), 20, 3600))) {
-      return refuse(request, "api.tooManyKeys", 429);
-    }
-    return refuse(request, "api.nothingStored", 404);
-  }
+  if (!entry) return refuse(request, "api.nothingStored", 404);
+  await giveMissBack(request);
   return answer(entry, 200);
 }
 
@@ -85,7 +94,11 @@ export async function PUT(request: NextRequest, { params }: Params) {
     return refuse(request, "api.tooBig", 413);
   }
 
+  if (!(await takeMiss(request))) return refuse(request, "api.tooManyKeys", 429);
   const result = await writeEntry(id, v, data);
+  // Whether something was stored before this write: what the answer gives away.
+  const found = "conflict" in result ? result.conflict > 0 : v > 0;
+  if (found) await giveMissBack(request);
   return "conflict" in result ? answer({ v: result.conflict }, 409) : answer(result, 200);
 }
 

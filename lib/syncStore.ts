@@ -158,6 +158,30 @@ export function underLimit(bucket: string, address: string, limit: number, secon
   });
 }
 
+/* Only while the window lasts: a key that has expired stays gone, rather than
+   coming back at -1 with no expiry. */
+const RELEASE_SCRIPT = `
+if redis.call('EXISTS', KEYS[1]) == 1 then redis.call('DECR', KEYS[1]) end
+`;
+
+/**
+ * Hands back one request counted by `underLimit`, for a limit that is taken
+ * before knowing whether the request should count. See the miss limit in
+ * `app/api/sync/[id]/route.ts`.
+ */
+export function release(bucket: string, address: string) {
+  return traced("sync.limit.release", async (span, db) => {
+    span.setAttribute("sync.limit.bucket", bucket);
+    const key = `limit:${bucket}:${address}`;
+    if (db) {
+      await command(db, ["EVAL", RELEASE_SCRIPT, 1, key]);
+      return;
+    }
+    const entry = counts.get(key);
+    if (entry && entry.until >= Date.now() && entry.n > 0) entry.n -= 1;
+  });
+}
+
 async function count(db: Redis | null, key: string, seconds: number) {
   if (db) return Number(await command(db, ["EVAL", COUNT_SCRIPT, 1, key, seconds]));
   const now = Date.now();
