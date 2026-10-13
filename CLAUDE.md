@@ -66,7 +66,7 @@ to the project, for Production and Preview. It is not a drain: drains need a
 paid Vercel plan, and a Vercel trace drain is what `@vercel/otel` would prefer
 if there were one. With neither, and in development, the spans go nowhere. The
 sync store's operations are spans of their own (`sync.read`, `sync.write`,
-`sync.delete`, `sync.limit`), carrying versions, sizes and outcomes. They never
+`sync.delete`, `sync.limit`, `sync.limit.release`), carrying versions, sizes and outcomes. They never
 carry the id, the data or the reader's address: the id is what lets someone
 replace a sync copy, and Dash0 has no business holding it. The request's own
 span does carry the path, and so the id, which is Next.js's doing.
@@ -284,6 +284,14 @@ a sync is read, merge, write, and the next sync on the other device has to
 settle rather than reopen it. `lib/sync.test.ts` asserts all three. A rule that
 prefers "this device" over "the other one", or that writes a timestamp during
 the merge, breaks convergence while looking correct in a single test.
+
+**The miss limit is taken before a lookup and handed back on a hit.** A
+request for an id with nothing under it is how someone trying keys learns they
+were wrong, so an address gets 20 of those an hour, against 300 requests of any
+kind in ten minutes. A write counts too, since its answer also says whether
+anything is stored. Checking the limit only after a miss reads as the same
+thing and guards nothing: past the limit misses are refused and hits are
+answered, so the refusal is the answer. See `app/api/sync/[id]/route.ts`.
 
 **A write names the version it read.** `syncStore.ts` compares and sets in one
 Redis script, so two devices writing at once cannot both win; the loser reads,
