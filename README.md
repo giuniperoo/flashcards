@@ -5,9 +5,9 @@ A flashcard app for interview preparation. You can't turn a card over until
 you've written an answer. It's easy to recognize an answer you couldn't have
 come up with yourself, and in an interview you have to come up with it.
 
-Twelve decks and 264 cards ship with the app, none of them over 24 cards. Four
-of them (React 19, CAP theorem, ACID and SOLID) began as printed cards, and the
-other eight were written the same way. The index starts empty anyway, on the assumption that
+Thirteen decks and 280 cards ship with the app. Four of them (React 19, CAP
+theorem, ACID and SOLID) began as printed cards, and the other nine were written
+the same way. The index starts empty anyway, on the assumption that
 you're here for your own material. A toggle at the bottom of the index brings
 the built-in decks in.
 
@@ -107,10 +107,10 @@ lib/
 
 Only the interactive parts are client components: the reviewer, the importer and
 generator, the print button, and the index components that read `localStorage`.
-Deck cards render from summaries, which hold names and counts instead of all 264
+Deck cards render from summaries, which hold names and counts instead of all 280
 cards, so the index ships kilobytes instead of the whole content folder.
 `generateStaticParams` prerenders every study and print route at build time,
-thirteen slugs each.
+fourteen slugs each.
 
 ## Keyboard
 
@@ -204,7 +204,7 @@ eight, because eight cards fill one printed sheet.
 
 ## The built-in decks
 
-They start hidden. The twelve decks in `content/` are compiled into the app, so
+They start hidden. The thirteen decks in `content/` are compiled into the app, so
 only their author can delete them, and someone running the app for their own
 material probably doesn't want them. The index opens empty. "Show built-in
 decks", beside "Add your own deck", brings them all in, and "Hide" on a card
