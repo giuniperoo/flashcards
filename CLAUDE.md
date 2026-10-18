@@ -4,7 +4,7 @@ Context for working in this repo. Read before making changes.
 
 ## What this is
 
-A flashcard app for interview preparation. Twelve built-in decks and 264 cards,
+A flashcard app for interview preparation. Thirteen built-in decks and 280 cards,
 four of which (React 19, CAP theorem, ACID, SOLID) began as printed cards, plus
 any deck you import or have an AI write. Studied in the
 browser, on a schedule or freely, or printed as physical cards. Single user. The
@@ -110,20 +110,22 @@ who someone is, or to read their data, is still out of scope.
 
 Server components by default. Only `Reviewer.tsx`, `PrintButton.tsx`,
 `DeckImporter.tsx`, `DeckGenerator.tsx`, `CustomDeckList.tsx`, `DeckIndex.tsx`,
-`CustomDeckView.tsx`, `PrintPreview.tsx`, `PrintIntro.tsx`, `SyncPanel.tsx`,
-`SyncAgent.tsx` and `VoiceTitle.tsx` are client components, and that list should
-not grow without a reason. The preview has to measure its column to zoom the
+`CustomDeckView.tsx`, `PrintPreview.tsx`, `PrintIntro.tsx`, `ShuffledSet.tsx`,
+`LogoSun.tsx`, `SyncPanel.tsx`, `SyncAgent.tsx` and `VoiceTitle.tsx` are client
+components, and that list should not grow without a reason. The preview has to measure its column to zoom the
 pages to fit, and the print page's "Study" link has to carry the reader's mode
 and `?deck=` set. `SyncAgent` sits in the layout and draws nothing: grades are
 given on study pages and sync has to follow them there. `VoiceTitle` draws
 nothing either: it names the tab in the second voice, which a page's `metadata`
-cannot, since the server prerenders it for everyone. The goal is to ship
+cannot, since the server prerenders it for everyone. `ShuffledSet` narrows the
+shuffled set to the reader's decks, which only the browser knows, and `LogoSun`
+animates a canvas. The goal is to ship
 JavaScript only for the interactive parts.
 
 `DeckIndex.tsx` is a client component because it counts: the headline totals
 span the built-in decks and the imported ones, and neither which decks are
 hidden nor the imported decks themselves are visible to the server. It takes
-`DeckSummary[]` rather than `Deck[]` — a dozen names and counts instead of 264
+`DeckSummary[]` rather than `Deck[]` — thirteen names and counts instead of 280
 cards — so what reaches the browser stays small. Exporting a built-in deck goes
 through `/export/[deck]` for the same reason: a download button built in the
 browser would need every card in the page payload.
@@ -146,6 +148,8 @@ components/
   DeckGenerator.tsx     asks Claude, OpenAI or Gemini for a deck, streams it into the importer
   QueueBar.tsx          a scheduled session's breakdown, in the title row if it fits
   ColorKey.tsx          what the strip's colors mean, behind a "?" at its end
+  ShuffledSet.tsx       narrows /study/all and /print/all to the reader's decks
+  LogoSun.tsx           the index's turning sun behind the mark, in the mode's color
   SyncPanel.tsx         the sync control, and the dialog it opens: start, join, stop, QR code
   SyncAgent.tsx         when to sync: on arrival, after changes, on leaving and returning
   PrintSheets.tsx       shared by the built-in and custom print paths
@@ -246,7 +250,7 @@ overflow a printed card and there is no scrollbar on paper.
 
 **Deck tints are pastels with a darker `ink` for text and progress bars.** The
 four printed decks carry both in their front matter, from the original print
-spec, and must not change. The other eight carry a tint, and their ink comes
+spec, and must not change. The other nine carry a tint, and their ink comes
 from `shadeForTint()`. A deck you add gets its color from `nextTint()` in
 `lib/tint.ts`, which picks the hue *furthest from every hue already in use* —
 built-in and custom alike — and renders it at a fixed pastel saturation and
