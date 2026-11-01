@@ -459,13 +459,15 @@ export default function Reviewer({
     [commitDraft, draft, order.length],
   );
 
-  /** Turns the card, and says whether it did: an empty answer box refuses. */
+  /** Turns the card, and says whether it did. In a scheduled session an empty
+      answer box refuses, since that answer moves the card's box. Free study
+      lets the reader look without writing. */
   const flip = useCallback(() => {
     if (flipped) {
       setFlipped(false);
       return true;
     }
-    if (!draft.trim()) {
+    if (scheduled && !draft.trim()) {
       setError(true);
       inputRef.current?.focus();
       return false;
@@ -480,7 +482,7 @@ export default function Reviewer({
     setKeyOpen(false);
     setFlipped(true);
     return true;
-  }, [flipped, draft, commitDraft]);
+  }, [flipped, scheduled, draft, commitDraft]);
 
   useEffect(() => {
     const target = focusNext.current;
@@ -740,7 +742,7 @@ export default function Reviewer({
               {card.q}
             </p>
             <label htmlFor="recall" className="sr-only">
-              <Say k="reviewer.answerLabel" />
+              {scheduled ? <Say k="reviewer.answerLabel" /> : <Say k="reviewer.answerLabelFree" />}
             </label>
             <textarea
               id="recall"
@@ -755,7 +757,7 @@ export default function Reviewer({
               onBlur={() => commitDraft(draft)}
               aria-invalid={error}
               aria-describedby={error ? "recall-error" : undefined}
-              placeholder={say("reviewer.placeholder")}
+              placeholder={say(scheduled ? "reviewer.placeholder" : "reviewer.placeholderFree")}
               // Grows into whatever the card's fixed height leaves over, and
               // stays draggable. `grow shrink-0` rather than `flex-1` because
               // flex-1 sets a 0% basis, which overrides the height the resize
@@ -786,19 +788,23 @@ export default function Reviewer({
             <p className="mt-3 text-base leading-relaxed sm:text-[17px]">
               {card.a}
             </p>
-            <div className="mt-5 border-t border-rule pt-4">
-              <p className="label text-muted">
-                <Say k="reviewer.youWrote" />
-              </p>
-              {/* As it was typed: the line breaks, blank lines and indents in
-                  the answer box are the reader's own structure, and HTML would
-                  otherwise fold them into one line. `wrap-anywhere` as on the
-                  box, so a long unbroken token wraps rather than widening the
-                  card. */}
-              <p className="mt-2 text-[15px] leading-relaxed whitespace-pre-wrap wrap-anywhere text-muted">
-                {saved.cards[key]?.draft}
-              </p>
-            </div>
+            {/* Free study turns an empty box over, and an empty "You wrote"
+                would read as an answer that went missing. */}
+            {saved.cards[key]?.draft?.trim() && (
+              <div className="mt-5 border-t border-rule pt-4">
+                <p className="label text-muted">
+                  <Say k="reviewer.youWrote" />
+                </p>
+                {/* As it was typed: the line breaks, blank lines and indents in
+                    the answer box are the reader's own structure, and HTML would
+                    otherwise fold them into one line. `wrap-anywhere` as on the
+                    box, so a long unbroken token wraps rather than widening the
+                    card. */}
+                <p className="mt-2 text-[15px] leading-relaxed whitespace-pre-wrap wrap-anywhere text-muted">
+                  {saved.cards[key]?.draft}
+                </p>
+              </div>
+            )}
             {/* mt-auto pins the row to the bottom edge on every card, so the
                 grading buttons sit in one place as you move through a deck.
                 pt-5 keeps a gap when a long answer leaves no slack to absorb.

@@ -99,13 +99,18 @@ export default function DeckIndex({
     <div>
       <h1 className="max-w-[40rem] text-2xl leading-tight font-medium tracking-tight sm:text-3xl">
         {deckTotal === 0 ? (
-          <Say k="index.headlineEmpty" />
+          <Say k={prefs.scheduled ? "index.headlineEmpty" : "index.headlineEmptyFree"} />
         ) : (
-          <Say k="index.headline" args={[count(deckTotal, "deck"), count(cardTotal, "card")]} />
+          <Say
+            k={prefs.scheduled ? "index.headline" : "index.headlineFree"}
+            args={[count(deckTotal, "deck"), count(cardTotal, "card")]}
+          />
         )}
       </h1>
+      {/* Writing first is the rule on a schedule and advice in free study,
+          which turns a card over with the box empty. */}
       <p className="mt-4 max-w-[33rem] text-muted">
-        <Say k="index.subtitle" />
+        <Say k={prefs.scheduled ? "index.subtitle" : "index.subtitleFree"} />
       </p>
 
       {prefs.showBuiltIns && shown.length > 0 && (

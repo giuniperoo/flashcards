@@ -62,17 +62,34 @@ export const COPY = {
     swearengen:
       "No decks yet, and I'll tell you the fuckin' terms before you add one: you write the answer down before you turn the card.",
   },
+  "index.headlineEmptyFree": {
+    plain: "No decks yet. When you add one, write an answer first or just turn the card over.",
+    swearengen:
+      "No decks yet. When you bring one, free rein lets you turn the cards whenever you fuckin' please.",
+  },
   "index.headline": {
     plain: (decks: string, cards: string) =>
       `${decks}, ${cards}. Write each answer before you turn the card over.`,
     swearengen: (decks: string, cards: string) =>
       `${decks}, ${cards}, and the fuckin' terms: you write the answer down before you turn the card.`,
   },
+  "index.headlineFree": {
+    plain: (decks: string, cards: string) =>
+      `${decks}, ${cards}. Write an answer first or just turn the card over.`,
+    swearengen: (decks: string, cards: string) =>
+      `${decks}, ${cards}, and on free rein you turn 'em whenever you fuckin' please.`,
+  },
   "index.subtitle": {
     plain:
       "It’s easy to recognize an answer you couldn’t have written yourself. Writing it first shows you which cards you know.",
     swearengen:
       "Every cocksucker who ever nodded along at an answer believed he knew it, right up until somebody asked.",
+  },
+  "index.subtitleFree": {
+    plain:
+      "Free study is for reading through a deck. Writing an answer first still shows you which cards you know, and nothing here moves the schedule.",
+    swearengen:
+      "Look all you like. Nodding along at an answer never taught a cocksucker a thing, and nothing you do here counts toward the schedule.",
   },
   "index.yourDecks": { plain: "Your decks", swearengen: "Decks you brought" },
 
@@ -243,9 +260,17 @@ export const COPY = {
     plain: "Write your answer before turning the card over",
     swearengen: "Write your fuckin’ answer before you turn the card",
   },
+  "reviewer.answerLabelFree": {
+    plain: "Write your answer, or turn the card over without one",
+    swearengen: "Write your answer, or turn the fucker over and look",
+  },
   "reviewer.placeholder": {
     plain: "Write it from memory. A half answer still counts.",
     swearengen: "From memory, and don’t you peek. Half an answer’s worth more than none.",
+  },
+  "reviewer.placeholderFree": {
+    plain: "Write it from memory, or turn the card over to see it.",
+    swearengen: "From memory if you’ve the sand for it. Or turn it over and peek, see what it gets you.",
   },
   "reviewer.writeFirst": {
     plain: "Write something first. A guess is fine.",
