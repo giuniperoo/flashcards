@@ -98,8 +98,10 @@ export default function DeckIndex({
   return (
     <div>
       <h1 className="max-w-[40rem] text-2xl leading-tight font-medium tracking-tight sm:text-3xl">
+        {/* The same in both voices and both modes, so it is not in the copy
+            table; the subtitle under it carries the advice. */}
         {deckTotal === 0 ? (
-          <Say k={prefs.scheduled ? "index.headlineEmpty" : "index.headlineEmptyFree"} />
+          "No decks yet."
         ) : (
           <Say
             k={prefs.scheduled ? "index.headline" : "index.headlineFree"}
