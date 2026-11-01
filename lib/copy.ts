@@ -57,28 +57,6 @@ export const COPY = {
     plain: (decks: number) => `All ${decks} decks, interleaved`,
     swearengen: (decks: number) => `All ${decks} decks, dealt in together`,
   },
-  "index.headlineEmpty": {
-    plain: "No decks yet. When you add one, write each answer before you turn the card over.",
-    swearengen:
-      "No decks yet, and I'll tell you the fuckin' terms before you add one: you write the answer down before you turn the card.",
-  },
-  "index.headlineEmptyFree": {
-    plain: "No decks yet. When you add one, write an answer first or just turn the card over.",
-    swearengen:
-      "No decks yet. When you bring one, free rein lets you turn the cards whenever you fuckin' please.",
-  },
-  "index.headline": {
-    plain: (decks: string, cards: string) =>
-      `${decks}, ${cards}. Write each answer before you turn the card over.`,
-    swearengen: (decks: string, cards: string) =>
-      `${decks}, ${cards}, and the fuckin' terms: you write the answer down before you turn the card.`,
-  },
-  "index.headlineFree": {
-    plain: (decks: string, cards: string) =>
-      `${decks}, ${cards}. Write an answer first or just turn the card over.`,
-    swearengen: (decks: string, cards: string) =>
-      `${decks}, ${cards}, and on free rein you turn 'em whenever you fuckin' please.`,
-  },
   "index.subtitle": {
     plain:
       "It’s easy to recognize an answer you couldn’t have written yourself. Writing it first shows you which cards you know.",
