@@ -53,9 +53,10 @@ export default function Home() {
           centering them on the right column, which is two rows tall. In free
           study the second row is the interval's kept, invisible room, and
           centered controls sat half a row below a mode bar with nothing under
-          it. */}
+          it. Where the controls wrap to a second line, `md:gap-y-2` is the
+          right column's own gap, so that line sits level with the interval. */}
       <div className="mt-10 grid grid-cols-1 gap-y-4 sm:mt-25 md:grid-cols-[minmax(0,1fr)_auto]">
-        <div className="flex min-w-0 flex-wrap content-start items-center gap-x-2 gap-y-1">
+        <div className="flex min-w-0 flex-wrap content-start items-center gap-x-2 gap-y-1 md:gap-y-2">
           <Link
             href="/new"
             className="press label mr-2 inline-flex min-h-11 pointer-fine:min-h-9 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink"
