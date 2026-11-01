@@ -47,9 +47,15 @@ export default function Home() {
           is whatever the right one leaves and its controls wrap inside it:
           they can wrap, but they can never run into the mode. Below 768px it
           is one column, the controls and then the mode. "Sync across devices"
-          opens a dialog over the page, so nothing in the row moves. */}
+          opens a dialog over the page, so nothing in the row moves.
+
+          `content-start` lines the controls up with the mode bar rather than
+          centering them on the right column, which is two rows tall. In free
+          study the second row is the interval's kept, invisible room, and
+          centered controls sat half a row below a mode bar with nothing under
+          it. */}
       <div className="mt-10 grid grid-cols-1 gap-y-4 sm:mt-25 md:grid-cols-[minmax(0,1fr)_auto]">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+        <div className="flex min-w-0 flex-wrap content-start items-center gap-x-2 gap-y-1">
           <Link
             href="/new"
             className="press label mr-2 inline-flex min-h-11 pointer-fine:min-h-9 items-center rounded-sm border border-rule px-4 text-muted hover:border-ink hover:text-ink"
