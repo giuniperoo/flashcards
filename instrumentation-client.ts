@@ -1,4 +1,4 @@
-import { opensWithKey, scrubUrlAttributes } from "./lib/webScrub";
+import { scrubUrlAttributes } from "./lib/webScrub";
 
 /**
  * Telemetry from the reader's browser, which Next.js runs before the page
@@ -15,16 +15,16 @@ import { opensWithKey, scrubUrlAttributes } from "./lib/webScrub";
  * and nothing else. Starting a moment later loses little, since navigation
  * timing and web vitals are read from the browser's buffered entries.
  *
- * Neither a join link's key nor a sync id reaches Dash0: a page opened from a
- * join link is not observed at all, and every address that is recorded passes
- * through `scrubUrlAttributes` first; see `lib/webScrub.ts`. Session recording stays off: the sync panel shows the key
- * as text, and a replay would carry it.
+ * Neither a join link's key nor a sync id reaches Dash0: every address the SDK
+ * records passes through `scrubUrlAttributes` first, including the ones it
+ * reports as text; see `lib/webScrub.ts`. Session recording stays off: the
+ * sync panel shows the key as text, and a replay would carry it.
  */
 
 const url = process.env.NEXT_PUBLIC_DASH0_ENDPOINT;
 const authToken = process.env.NEXT_PUBLIC_DASH0_WEB_TOKEN;
 
-if (url && authToken && !opensWithKey(window.location.href)) {
+if (url && authToken) {
   import("@dash0/sdk-web").then(({ init }) => init({
     serviceName: "verso-web",
     environment: process.env.NEXT_PUBLIC_VERCEL_ENV,

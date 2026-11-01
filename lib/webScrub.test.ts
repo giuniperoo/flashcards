@@ -1,5 +1,5 @@
 import { JOIN_HASH } from "./sync";
-import { opensWithKey, REDACTED, scrubUrl, scrubUrlAttributes } from "./webScrub";
+import { REDACTED, scrubUrl, scrubUrlAttributes } from "./webScrub";
 
 let failures = 0;
 
@@ -27,6 +27,11 @@ check(
   "the key never survives in any form",
   scrubUrl(`${origin}/${JOIN_HASH}${key}`).includes("otter"),
   false,
+);
+check(
+  "a key later in the fragment is redacted too",
+  scrubUrl(`${origin}/new#a=1&sync=${key}`),
+  `${origin}/new#a=1&sync=${REDACTED}`,
 );
 check(
   "a sync id in a request's path is redacted",
@@ -76,18 +81,6 @@ check(
   "no attribute of a sync request holds the id",
   Object.values(request).some((v) => v?.includes(id)),
   false,
-);
-
-const ignored = opensWithKey;
-check(
-  "a page whose address holds a key is not observed, wherever the key sits",
-  [ignored(`${origin}/${JOIN_HASH}${key}`), ignored(`${origin}/new#a=1&sync=${key}`)],
-  [true, true],
-);
-check(
-  "every other page is",
-  [ignored(`${origin}/`), ignored(`${origin}/#interval`), ignored(`${origin}/#resync=1`), ignored(`${origin}/api/sync/${id}`)],
-  [false, false, false, false],
 );
 
 if (failures > 0) {

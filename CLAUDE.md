@@ -280,11 +280,16 @@ browser never sends to the server, so a link that carries the key past a QR
 code still does not hand it over. Moving it to a query string would. A
 telemetry script in the page would too, since it reads the whole address:
 `lib/webScrub.ts` redacts the key and the sync id from every address the web
-SDK records, and a page opened from a join link is not observed at all,
-because the browser's navigation entry keeps the address the page opened at,
-fragment and all, and the SDK sends that entry without scrubbing it. A
-production build pointed at a local collector, opened at `#sync=`, sent the
-key nowhere; check again the same way after upgrading `@dash0/sdk-web`.
+SDK records, including the browser's navigation entry, which keeps the address
+the page opened at, fragment and all, for the page's whole life. Before 0.27.1
+the SDK sent that entry unscrubbed (dash0hq/dash0-sdk-web#120), so a page opened
+from a join link was not observed at all; that guard came out on November 1,
+2026, with 0.28.3. A production build pointed at a local collector, opened at
+`#sync=`, sent the key nowhere, while the same run on 0.27.0 without the guard
+sent it in the clear; check again the same way after upgrading
+`@dash0/sdk-web`. The capture also holds protobuf traces from the server, since
+`@vercel/otel` sends to `localhost:4318` when no endpoint is set, and those
+carry the sync id in the request's path, as noted above.
 
 **The merge has to stay commutative, associative and idempotent.** That is what
 lets two devices converge instead of handing each other their own copy forever:

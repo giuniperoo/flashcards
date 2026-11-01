@@ -15,13 +15,13 @@
  *
  * Redacted rather than dropped, so a page view still says which page it was.
  *
- * Redacting attributes is not enough on its own. The SDK's navigation timing
- * event copies the browser's navigation entry into its body, and that entry's
- * `name` is the address the page was opened at, fragment included, for as
- * long as the page lives; the scrubber never sees it, and the SDK's own
- * `ignoreUrls` filters requests but not the page. So a page opened from a join
- * link is not observed at all (`opensWithKey`). That is one page load per
- * device that joins, and the next page records as usual.
+ * The SDK also reports some addresses as text rather than as attributes: the
+ * navigation timing event's `name`, which is the address the page was opened
+ * at, fragment included, for as long as the page lives; a page view's
+ * referrer; and addresses inside error messages. Since 0.27.1 it writes the
+ * `url.full` this returns there, so this is the one place that decides. Until
+ * then the navigation entry went out unscrubbed, and a page opened from a join
+ * link was not observed at all.
  *
  * The patterns match the fragment `joinLink` writes, `JOIN_HASH` in
  * `lib/sync.ts`; that module is not imported here because it would pull sync
@@ -30,14 +30,6 @@
  */
 
 export const REDACTED = "REDACTED";
-
-const KEY_IN_FRAGMENT = /#(.*&)?sync=/;
-
-/** Whether a page opened at this address carries a key, and so must not be
-    observed. */
-export function opensWithKey(href: string) {
-  return KEY_IN_FRAGMENT.test(href);
-}
 
 const SYNC_FRAGMENT = /(^#?|&)sync=[^&]*/;
 const SYNC_ID = /\/api\/sync\/[0-9a-f]{64}/g;
