@@ -12,10 +12,14 @@ only backend is sync's: one route that keeps an encrypted copy per sync key.
 The interface speaks plainly, or in Al Swearengen's voice behind `?swearengen`;
 see Conventions.
 
-The app's central rule: **you cannot turn a card over until you have written
-an answer.** Recognizing an answer is easy to mistake for knowing it, and
-writing first shows the difference. Any change that makes revealing the answer
-easier works against the app.
+The app's central rule: **in spaced repetition, you cannot turn a card over
+until you have written an answer.** Recognizing an answer is easy to mistake for
+knowing it, and writing first shows the difference. Any change that makes
+revealing the answer easier in a scheduled session works against the app. Free
+study turns a card over with the box empty, decided on November 1, 2026: it is
+the mode for looking through a deck, and nothing answered there moves the
+schedule. The index's headline follows the mode: the rule on a schedule, and
+in free study that writing first is up to the reader.
 
 ## Stack and commands
 

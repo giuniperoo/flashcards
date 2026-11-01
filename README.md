@@ -1,9 +1,10 @@
 <img src="logo-pixelated.svg" alt="Flashcards" width="265">
 <h2><a href="https://f.lash.cards">f.lash.cards</a></h2>
 
-A flashcard app for interview preparation. You can't turn a card over until
-you've written an answer. It's easy to recognize an answer you couldn't have
-come up with yourself, and in an interview you have to come up with it.
+A flashcard app for interview preparation. On a schedule, you can't turn a card
+over until you've written an answer. It's easy to recognize an answer you
+couldn't have come up with yourself, and in an interview you have to come up
+with it.
 
 Thirteen decks and 280 cards ship with the app. Four of them (React 19, CAP
 theorem, ACID and SOLID) began as printed cards, and the other nine were written
@@ -25,9 +26,11 @@ the "?" at its end explains the colors. "Everything" deals what is due across
 every deck, interleaved, and the index shows how many cards each deck owes.
 
 Free study is the other side of the switch: the whole deck, shuffled if you
-like, green and red for your last answer. Nothing you do there moves the
-schedule, so you can't turn a deck green in one sitting. The logo in the
-header says which mode you are in, cream on a schedule and sage in free study.
+like, green and red for your last answer. A card turns over whether or not
+you've written anything, so you can read through a deck. Nothing you do there
+moves the schedule, so you can't turn a deck green in one sitting. The logo in
+the header says which mode you are in, cream on a schedule and sage in free
+study.
 
 ## Two voices
 
