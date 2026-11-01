@@ -100,14 +100,9 @@ export default function DeckIndex({
       <h1 className="max-w-[40rem] text-2xl leading-tight font-medium tracking-tight sm:text-3xl">
         {/* The same in both voices and both modes, so it is not in the copy
             table; the subtitle under it carries the advice. */}
-        {deckTotal === 0 ? (
-          "No decks yet."
-        ) : (
-          <Say
-            k={prefs.scheduled ? "index.headline" : "index.headlineFree"}
-            args={[count(deckTotal, "deck"), count(cardTotal, "card")]}
-          />
-        )}
+        {deckTotal === 0
+          ? "No decks yet."
+          : `${count(deckTotal, "deck")}, ${count(cardTotal, "card")}.`}
       </h1>
       {/* Writing first is the rule on a schedule and advice in free study,
           which turns a card over with the box empty. */}
