@@ -70,10 +70,14 @@ export default function DeckVisibility({ slugs }: { slugs: string[] }) {
  * Which app this is, and the one setting that mode has.
  *
  * The other column of the row: the mode, and the interval under it, since the
- * interval is the mode's setting and nothing else's. Always one above the
- * other, so the column is as wide as the interval bar at every width and the
- * row never has to decide when to stack it. Against the left edge while the
- * row is one column, and against the right once it is two.
+ * interval is the mode's setting and nothing else's. One above the other, so
+ * the column is as wide as the interval bar and the row never has to decide
+ * when to stack it — except from 580px until the row becomes two columns at
+ * 768px, where the row is one column with room for both side by side, and a
+ * stacked interval only added a line, an empty one in free study. Below 580px
+ * the two do not fit on one line in the second voice. They wrap rather than
+ * overflow if a label grows. Against the left edge while the row is one
+ * column, and against the right once it is two.
  */
 export function StudyMode() {
   const [prefs, update] = usePrefs();
@@ -88,7 +92,7 @@ export function StudyMode() {
        sheet. Once they are columns the gap says it on its own, and a vertical
        rule between two short groups drew a line down the middle of the page
        for nothing. */
-    <span className="order-first flex flex-col items-start gap-y-2 border-b border-dashed border-rule pb-4 md:order-none md:items-end md:border-b-0 md:pb-0 md:pl-10">
+    <span className="order-first flex flex-col items-start gap-y-2 border-b border-dashed border-rule pb-4 min-[580px]:flex-row min-[580px]:flex-wrap min-[580px]:items-center min-[580px]:gap-x-8 md:order-none md:flex-col md:items-end md:border-b-0 md:pb-0 md:pl-10">
       <Mode
         scheduled={prefs.scheduled}
         onChange={(scheduled) => update({ ...prefs, scheduled })}
